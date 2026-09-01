@@ -17,6 +17,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- The framework has no FileProvider; this serves generated invoices to the share sheet
+             from one directory under cacheDir. Not exported: recipients reach it only through the
+             read grant attached to the share intent. -->
+        <provider
+            android:name=".util.ShareProvider"
+            android:authorities="com.shaforostoff.rechnungsplaner.share"
+            android:exported="false"
+            android:grantUriPermissions="true" />
     </application>
 
 </manifest>

@@ -36,13 +36,13 @@ public final class PdfA3Packer {
      * @param conformanceLevel ZUGFeRD profile name for the XMP, e.g. {@code XRECHNUNG}
      * @param pdfDate          PDF-syntax timestamp, {@code D:YYYYMMDDHHmmSS+HH'mm'}
      * @param xmpDate          ISO-8601 timestamp for the XMP packet
-     * @throws PdfTrailer.UnsupportedPdfException when the document is shaped in a way that cannot
+     * @throws UnsupportedPdfException when the document is shaped in a way that cannot
      *                                            be updated safely; the caller should fall back to
      *                                            a plain PDF plus a separate XML file
      */
     public static byte[] pack(byte[] pdf, byte[] invoiceXml, String conformanceLevel,
                               String title, String author, String pdfDate, String xmpDate)
-            throws PdfTrailer.UnsupportedPdfException {
+            throws UnsupportedPdfException {
 
         String text = upgradeHeader(PdfSyntax.toText(pdf));
         PdfTrailer trailer = PdfTrailer.parse(text);
@@ -145,34 +145,34 @@ public final class PdfA3Packer {
     }
 
     private static String readCatalog(String text, PdfTrailer trailer)
-            throws PdfTrailer.UnsupportedPdfException {
+            throws UnsupportedPdfException {
         long offset = trailer.offsets.get(trailer.rootNumber);
         if (offset < 0 || offset >= text.length()) {
-            throw new PdfTrailer.UnsupportedPdfException("catalog offset out of range");
+            throw new UnsupportedPdfException("catalog offset out of range");
         }
         int dictAt = text.indexOf("<<", (int) offset);
-        if (dictAt < 0) throw new PdfTrailer.UnsupportedPdfException("catalog has no dictionary");
+        if (dictAt < 0) throw new UnsupportedPdfException("catalog has no dictionary");
         // Guard against the offset being stale and pointing at some earlier object.
         int objAt = text.indexOf("obj", (int) offset);
         if (objAt < 0 || objAt > dictAt) {
-            throw new PdfTrailer.UnsupportedPdfException("catalog offset does not name an object");
+            throw new UnsupportedPdfException("catalog offset does not name an object");
         }
         return PdfSyntax.dictAt(text, dictAt);
     }
 
     private static String rewriteCatalog(String catalog, int filespecNo, int metadataNo,
                                          int outputIntentNo)
-            throws PdfTrailer.UnsupportedPdfException {
+            throws UnsupportedPdfException {
 
         String names = PdfSyntax.value(catalog, "/Names");
         if (names != null && !names.startsWith("<<")) {
             // An indirect name tree would have to be rewritten in place, which this incremental
             // approach cannot do. Degrade rather than corrupt.
-            throw new PdfTrailer.UnsupportedPdfException("/Names is an indirect reference");
+            throw new UnsupportedPdfException("/Names is an indirect reference");
         }
         String af = PdfSyntax.value(catalog, "/AF");
         if (af != null && !af.startsWith("[")) {
-            throw new PdfTrailer.UnsupportedPdfException("/AF is an indirect reference");
+            throw new UnsupportedPdfException("/AF is an indirect reference");
         }
 
         String embeddedFiles = "<< /Names [ (" + FacturXXmp.ATTACHMENT_NAME + ") "

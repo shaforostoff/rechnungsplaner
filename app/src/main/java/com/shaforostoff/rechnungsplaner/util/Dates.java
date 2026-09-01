@@ -86,6 +86,58 @@ public final class Dates {
         return isoDate;
     }
 
+    /**
+     * PDF date syntax, {@code D:YYYYMMDDHHmmSS+HH'mm'}, for stream /ModDate entries.
+     */
+    public static String pdfTimestamp(long millis) {
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis(millis);
+        StringBuilder sb = new StringBuilder(24);
+        sb.append("D:").append(c.get(Calendar.YEAR));
+        two(sb, c.get(Calendar.MONTH) + 1);
+        two(sb, c.get(Calendar.DAY_OF_MONTH));
+        two(sb, c.get(Calendar.HOUR_OF_DAY));
+        two(sb, c.get(Calendar.MINUTE));
+        two(sb, c.get(Calendar.SECOND));
+        int offsetMinutes = (c.get(Calendar.ZONE_OFFSET) + c.get(Calendar.DST_OFFSET)) / 60000;
+        sb.append(offsetMinutes < 0 ? '-' : '+');
+        int abs = Math.abs(offsetMinutes);
+        two(sb, abs / 60);
+        sb.append('\'');
+        two(sb, abs % 60);
+        sb.append('\'');
+        return sb.toString();
+    }
+
+    /** ISO-8601 with offset, for the XMP packet. */
+    public static String iso8601(long millis) {
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis(millis);
+        StringBuilder sb = new StringBuilder(26);
+        sb.append(c.get(Calendar.YEAR)).append('-');
+        two(sb, c.get(Calendar.MONTH) + 1);
+        sb.append('-');
+        two(sb, c.get(Calendar.DAY_OF_MONTH));
+        sb.append('T');
+        two(sb, c.get(Calendar.HOUR_OF_DAY));
+        sb.append(':');
+        two(sb, c.get(Calendar.MINUTE));
+        sb.append(':');
+        two(sb, c.get(Calendar.SECOND));
+        int offsetMinutes = (c.get(Calendar.ZONE_OFFSET) + c.get(Calendar.DST_OFFSET)) / 60000;
+        sb.append(offsetMinutes < 0 ? '-' : '+');
+        int abs = Math.abs(offsetMinutes);
+        two(sb, abs / 60);
+        sb.append(':');
+        two(sb, abs % 60);
+        return sb.toString();
+    }
+
+    private static void two(StringBuilder sb, int value) {
+        if (value < 10) sb.append('0');
+        sb.append(value);
+    }
+
     /** The first day of the month containing the given date. */
     public static String firstOfMonth(String isoDate) {
         return isValid(isoDate) ? isoDate.substring(0, 8) + "01" : isoDate;

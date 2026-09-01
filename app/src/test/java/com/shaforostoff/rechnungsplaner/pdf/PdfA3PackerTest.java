@@ -161,7 +161,7 @@ public class PdfA3PackerTest {
         try {
             PdfA3Packer.pack(notAPdf, XML.getBytes("UTF-8"), "XRECHNUNG", "t", "a", "D:2026", "x");
             org.junit.Assert.fail("should have refused");
-        } catch (PdfTrailer.UnsupportedPdfException expected) {
+        } catch (UnsupportedPdfException expected) {
             // The output pipeline degrades to a plain PDF plus a separate XML on this.
             assertNotNull(expected.getMessage());
         }

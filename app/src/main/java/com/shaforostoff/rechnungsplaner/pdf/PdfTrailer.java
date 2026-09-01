@@ -16,13 +16,6 @@ import java.util.zip.Inflater;
  */
 final class PdfTrailer {
 
-    /** Thrown when the document is structured in a way the packer will not risk rewriting. */
-    static class UnsupportedPdfException extends Exception {
-        UnsupportedPdfException(String message) {
-            super(message);
-        }
-    }
-
     /** Byte offset of each directly-stored object. Compressed objects are absent. */
     final Map<Integer, Long> offsets = new HashMap<Integer, Long>();
     /** One past the highest object number in use. */
