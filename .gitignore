@@ -14,3 +14,6 @@
 .cxx
 local.properties
 /.idea/deploymentTargetSelector.xml
+
+# Golden-file mismatches are written next to the expectation for diffing.
+*.actual
