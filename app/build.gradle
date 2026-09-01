@@ -1,0 +1,44 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+android {
+    namespace 'com.shaforostoff.rechnungsplaner'
+    compileSdk {
+        version = release(37)
+    }
+
+    defaultConfig {
+        applicationId "com.shaforostoff.rechnungsplaner"
+        minSdk 24
+        targetSdk 37
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            optimization {
+                enable true
+            }
+            shrinkResources true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+// AGP's built-in Kotlin support puts kotlin-stdlib (~2 MB of dex) on every
+// variant classpath even with no Kotlin sources. This project is Java-only.
+// Scoped to the variant classpaths so lint's own Kotlin tooling still works.
+configurations.matching {
+    it.name.endsWith('CompileClasspath') || it.name.endsWith('RuntimeClasspath')
+}.configureEach {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
+}
+
+dependencies {
+}
