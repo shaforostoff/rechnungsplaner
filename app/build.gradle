@@ -41,4 +41,5 @@ configurations.matching {
 }
 
 dependencies {
+    testImplementation libs.junit
 }
