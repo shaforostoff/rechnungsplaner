@@ -1,0 +1,13 @@
+<resources>
+    <!-- Borrowed from the reference app's palette: a single strong blue for anything that is
+         required, actionable or selected, and greys for everything else. -->
+    <color name="accent">#1A56DB</color>
+    <color name="accent_faint">#E3ECFD</color>
+    <color name="border">#D5D8DE</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="background">#F7F8FA</color>
+    <color name="text_primary">#1A1D23</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="warning">#B45309</color>
+    <color name="error">#B91C1C</color>
+</resources>

@@ -1,4 +1,204 @@
 <resources>
+    <string name="tab_calendar">Calendario</string>
+    <string name="tab_customers">Clientes</string>
+    <string name="tab_invoices">Facturas</string>
+    <string name="tab_settings">Ajustes</string>
+
+    <string name="action_save">Guardar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_share">Compartir</string>
+    <string name="action_more">Más</string>
+    <string name="action_copy">Copiar</string>
+    <string name="action_import">Importar</string>
+    <string name="action_export">Exportar</string>
+    <string name="not_set">sin definir</string>
+
+    <string-array name="weekday_initials">
+        <item>L</item>
+        <item>M</item>
+        <item>X</item>
+        <item>J</item>
+        <item>V</item>
+        <item>S</item>
+        <item>D</item>
+    </string-array>
+
+    <string name="no_gigs_on_day">Ninguna sesión este día.</string>
+    <string name="add_gig">Añadir sesión</string>
+    <string name="menu_issuer">Mis datos</string>
+    <string name="menu_export">Exportar e importar</string>
+    <string name="menu_import_calendar">Importar del calendario</string>
+    <string name="menu_today">Hoy</string>
+
+    <string name="title_new_gig">Nueva sesión</string>
+    <string name="title_edit_gig">Sesión de DJ</string>
+    <string name="label_date">Fecha</string>
+    <string name="label_start">Inicio</string>
+    <string name="label_end">Fin</string>
+    <string name="label_customer">Cliente</string>
+    <string name="label_place">Sala</string>
+    <string name="label_city">Ciudad</string>
+    <string name="label_fee">Caché (neto)</string>
+    <string name="label_travel">Gastos de viaje (neto)</string>
+    <string name="label_tax_mode">IVA</string>
+    <string name="label_notes">Notas</string>
+    <string name="label_status">Estado</string>
+    <string name="pick_customer">Elegir cliente</string>
+    <string name="new_customer">Nuevo cliente</string>
+    <string name="no_customer">Sin cliente</string>
+    <string name="action_create_invoice">Crear factura</string>
+    <string name="action_open_invoice">Abrir factura</string>
+    <string name="confirm_delete_gig">¿Eliminar esta sesión?</string>
+    <string name="crosses_midnight">Termina a la mañana siguiente. Se factura la fecha de inicio.</string>
+    <string name="needs_date">Hace falta una fecha.</string>
+
+    <string name="status_planned">Prevista</string>
+    <string name="status_played">Tocada</string>
+    <string name="status_invoiced">Facturada</string>
+    <string name="status_paid">Pagada</string>
+
+    <string name="taxmode_inherit">Heredar (cliente, luego mis datos)</string>
+    <string name="taxmode_kleinunternehmer">Pequeña empresa, § 19 UStG</string>
+    <string name="taxmode_standard_19">19 %</string>
+    <string name="taxmode_reduced_7">7 % (actuación artística)</string>
+    <string name="taxmode_reverse_charge">Inversión del sujeto pasivo</string>
+    <string name="taxmode_intra_eu">Entrega intracomunitaria</string>
+
+    <string name="title_new_customer">Nuevo cliente</string>
+    <string name="title_edit_customer">Cliente</string>
+    <string name="customers_empty">Aún no hay clientes. Añade uno al reservar tu primera sesión.</string>
+    <string name="label_official_name">Razón social</string>
+    <string name="hint_official_name_later">Pídelo después de la primera sesión</string>
+    <string name="label_street">Calle</string>
+    <string name="label_postcode">Código postal</string>
+    <string name="label_country">País</string>
+    <string name="label_email">Correo</string>
+    <string name="label_contact_name">Persona de contacto</string>
+    <string name="label_phone">Teléfono</string>
+    <string name="label_vat_id">NIF-IVA</string>
+    <string name="label_buyer_reference">Referencia del cliente</string>
+    <string name="hint_buyer_reference">Obligatorio para XRechnung (BT-10)</string>
+    <string name="label_customer_number">Número de cliente</string>
+    <string name="label_default_fee">Caché habitual</string>
+    <string name="label_invoice_language">Idioma de la factura</string>
+    <string name="label_note">Nota</string>
+    <string name="ready_to_invoice">Listo para facturar</string>
+    <string name="customer_archived">Archivado</string>
+    <string name="customer_archived_because_used">Archivado en vez de eliminado: hay sesiones o facturas que lo usan.</string>
+    <string name="confirm_delete_customer">¿Eliminar este cliente?</string>
+    <string name="needs_a_name">Hace falta el nombre de la sala o la razón social.</string>
+    <string name="language_default">Predeterminado (%1$s)</string>
+
+    <string name="title_issuer">Mis datos</string>
+    <string name="label_name">Nombre</string>
+    <string name="label_tax_number">Número fiscal</string>
+    <string name="label_account_holder">Titular de la cuenta</string>
+    <string name="label_default_tax_mode">Tributación por defecto</string>
+    <string name="label_exemption_text">Texto de exención</string>
+    <string name="hint_exemption_text">Déjalo vacío para el texto legal</string>
+    <string name="label_due_days">Plazo de pago (días)</string>
+    <string name="label_payment_terms">Condiciones de pago</string>
+    <string name="label_default_invoice_language">Idioma de factura por defecto</string>
+    <string name="required_for_xrechnung">Los campos con borde son obligatorios para XRechnung</string>
+    <string name="issuer_incomplete">Rellena tus datos antes de crear una factura.</string>
+
+    <string name="title_invoice">Factura</string>
+    <string name="invoices_empty">Aún no hay facturas.</string>
+    <string name="label_invoice_number">Número de factura</string>
+    <string name="label_issue_date">Fecha de factura</string>
+    <string name="label_due_date">Vencimiento</string>
+    <string name="label_format">Formato</string>
+    <string name="label_filename">Nombre de archivo</string>
+    <string name="totals_net">Base imponible</string>
+    <string name="totals_vat">IVA</string>
+    <string name="totals_total">Total</string>
+    <string name="no_problems">No falta nada de lo que esta app puede comprobar.</string>
+    <string name="validation_caveat">Comprobado con las reglas incluidas en la app, no con un validador completo.</string>
+    <string name="action_create">Crear</string>
+    <string name="action_create_anyway">Crear igualmente</string>
+    <string name="invoice_created">Factura %1$s creada</string>
+    <string name="hybrid_degraded">No se pudo incrustar el XML en el PDF, así que se guardó aparte. Envía ambos.</string>
+    <string name="action_save_to_folder">Guardar en carpeta</string>
+    <string name="saved_to_folder">Guardado en la carpeta elegida</string>
+    <string name="no_export_folder">Aún no hay carpeta de exportación. Elígela en Ajustes.</string>
+    <string name="mail_subject">Factura %1$s</string>
+    <string name="mail_body">Estimados señores:\n\nadjunto la factura %1$s.\n\nUn saludo\n%2$s</string>
+    <string name="select_gigs_to_bill">Elige las sesiones a facturar</string>
+
+    <string name="title_export">Exportar e importar</string>
+    <string name="export_tour_list">Lista de gira</string>
+    <string name="export_tour_list_desc">Todas las sesiones próximas, una línea cada una. Donde una ciudad tiene varios clientes, se nombra la sala.</string>
+    <string name="export_contacts">Archivo de contactos</string>
+    <string name="export_contacts_desc">Todos los contactos como zip de JSON compatible con lexoffice, un archivo por contacto.</string>
+    <string name="import_contacts">Importar contactos</string>
+    <string name="import_contacts_desc">Lee un archivo de esta app, un contacto suelto o una página de la API de lexoffice.</string>
+    <string name="copied_to_clipboard">Copiado</string>
+    <string name="nothing_to_export">Nada que exportar.</string>
+    <string name="import_summary">%1$d nuevos, %2$d actualizados</string>
+    <string name="import_replace_issuer">El archivo también contiene tus datos. ¿Reemplazarlos?</string>
+    <string name="import_failed">No se pudo leer el archivo: %1$s</string>
+
+    <string name="title_import_calendar">Importar del calendario</string>
+    <string name="calendar_nothing_to_import">No hay nada en el calendario que no sea ya una sesión.</string>
+    <string name="calendar_relink_desc">Creado antes por esta app</string>
+
+    <string name="setting_output_format">Formato de factura</string>
+    <string name="setting_filename_pattern">Patrón del nombre de archivo</string>
+    <string name="setting_number_pattern">Patrón del número de factura</string>
+    <string name="setting_calendar">Reflejar en el calendario</string>
+    <string name="setting_calendar_off">Desactivado</string>
+    <string name="setting_export_folder">Carpeta de exportación</string>
+    <string name="setting_tour_date_format">Formato de fecha de la lista</string>
+    <string name="setting_ui_language">Idioma de la app</string>
+    <string name="setting_strict_lexoffice">Exportación lexoffice estricta</string>
+    <string name="setting_strict_lexoffice_desc">Omite los campos propios de la app (sala, caché habitual, idioma de factura).</string>
+    <string name="language_system">Idioma del sistema</string>
+    <string name="tokens_legend">Comodines: %1$s</string>
+    <string name="pattern_preview">Vista previa: %1$s</string>
+    <string name="calendar_permission_needed">Hace falta acceso al calendario para reflejar las sesiones.</string>
+    <string name="calendar_permission_denied">Sin acceso al calendario, las sesiones se quedan solo en esta app.</string>
+    <string name="calendar_google_hint">Los eventos de un calendario de Google se sincronizan con Google automáticamente.</string>
+
+    <string name="format_zugferd_xrechnung">PDF ZUGFeRD (perfil XRechnung)</string>
+    <string name="format_zugferd_en16931">PDF ZUGFeRD (perfil EN 16931)</string>
+    <string name="format_xrechnung_ubl">XML XRechnung 3.0 (UBL)</string>
+    <string name="format_xrechnung_cii">XML XRechnung 3.0 (CII)</string>
+    <string name="format_xrechnung_23_ubl">XML XRechnung 2.3 (UBL)</string>
+    <string name="format_pdf_only">Solo PDF (no es factura electrónica)</string>
+    <string name="format_max_compat">Máxima compatibilidad (PDF + XML)</string>
+
+    <string name="field_seller_name">Mi nombre</string>
+    <string name="field_seller_street">Mi calle</string>
+    <string name="field_seller_city">Mi ciudad</string>
+    <string name="field_seller_postcode">Mi código postal</string>
+    <string name="field_seller_country">Mi país</string>
+    <string name="field_seller_tax_id">Mi NIF-IVA o número fiscal</string>
+    <string name="field_seller_contact_name">Mi persona de contacto</string>
+    <string name="field_seller_contact_phone">Mi teléfono</string>
+    <string name="field_seller_contact_email">Mi correo</string>
+    <string name="field_seller_endpoint">Mi dirección electrónica</string>
+    <string name="field_seller_iban">Mi IBAN</string>
+    <string name="field_buyer_name">Nombre del cliente</string>
+    <string name="field_buyer_street">Calle del cliente</string>
+    <string name="field_buyer_city">Ciudad del cliente</string>
+    <string name="field_buyer_postcode">Código postal del cliente</string>
+    <string name="field_buyer_country">País del cliente</string>
+    <string name="field_buyer_endpoint">Correo del cliente</string>
+    <string name="field_buyer_vat_id">NIF-IVA del cliente</string>
+    <string name="field_invoice_number">Número de factura</string>
+    <string name="field_invoice_issue_date">Fecha de factura</string>
+    <string name="field_invoice_currency">Moneda</string>
+    <string name="field_invoice_buyer_reference">Referencia del cliente</string>
+    <string name="field_invoice_delivery_date">Fecha de prestación</string>
+    <string name="field_invoice_payment_due">Vencimiento o condiciones de pago</string>
+    <string name="field_invoice_lines">Líneas de factura</string>
+    <string name="field_invoice_totals">Totales</string>
+    <string name="field_tax_exemption_reason">Motivo de exención de IVA</string>
+    <string name="field_tax_rate">Tipo de IVA</string>
+    <string name="problem_missing">Falta %1$s (%2$s)</string>
+    <string name="problem_generic">%1$s (%2$s)</string>
+
     <string name="inv_title">Factura</string>
     <string name="inv_number">Número de factura</string>
     <string name="inv_date">Fecha de factura</string>
@@ -7,26 +207,26 @@
     <string name="inv_due_date">Fecha de vencimiento</string>
     <string name="inv_customer_no">Número de cliente</string>
     <string name="inv_your_reference">Su referencia</string>
-
     <string name="inv_col_description">Descripción</string>
     <string name="inv_col_qty">Cant.</string>
     <string name="inv_col_unit_price">Precio unit.</string>
     <string name="inv_col_vat">IVA</string>
     <string name="inv_col_amount">Importe</string>
-
     <string name="inv_net">Base imponible</string>
     <string name="inv_vat">IVA</string>
     <string name="inv_total">Total</string>
-
     <string name="inv_payment_heading">Pago</string>
     <string name="inv_account_holder">Titular de la cuenta</string>
     <string name="inv_reference">Concepto</string>
     <string name="inv_payable_by">Pagadero hasta el %1$s sin deducción.</string>
-
     <string name="inv_vat_id">NIF-IVA</string>
     <string name="inv_tax_number">Número fiscal</string>
     <string name="inv_page">Página %1$d de %2$d</string>
-
     <string name="inv_unit_piece">ud.</string>
     <string name="inv_unit_hour">h</string>
+    <plurals name="fields_missing">
+        <item quantity="one">Falta %1$d campo</item>
+        <item quantity="many">Faltan %1$d campos</item>
+        <item quantity="other">Faltan %1$d campos</item>
+    </plurals>
 </resources>

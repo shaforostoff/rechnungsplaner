@@ -24,6 +24,16 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ui.GigEditActivity" android:exported="false" />
+        <activity android:name=".ui.CustomerListActivity" android:exported="false" />
+        <activity android:name=".ui.CustomerEditActivity" android:exported="false" />
+        <activity android:name=".ui.IssuerEditActivity" android:exported="false" />
+        <activity android:name=".ui.InvoiceActivity" android:exported="false" />
+        <activity android:name=".ui.InvoiceListActivity" android:exported="false" />
+        <activity android:name=".ui.ExportActivity" android:exported="false" />
+        <activity android:name=".ui.SettingsActivity" android:exported="false" />
+        <activity android:name=".ui.CalendarImportActivity" android:exported="false" />
+
         <!-- The framework has no FileProvider; this serves generated invoices to the share sheet
              from one directory under cacheDir. Not exported: recipients reach it only through the
              read grant attached to the share intent. -->

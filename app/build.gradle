@@ -25,6 +25,16 @@ android {
         }
     }
 
+    bundle {
+        language {
+            // The invoice document's language is a per-customer setting, independent of the
+            // device locale, so the renderer needs all three string sets present at runtime.
+            // Splitting by language would ship only the device's and break German invoices on an
+            // English phone.
+            enableSplit = false
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11

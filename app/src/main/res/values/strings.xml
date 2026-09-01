@@ -1,9 +1,219 @@
 <resources>
     <string name="app_name" translatable="false">Rechnungsplaner</string>
 
-    <!-- Labels drawn on the invoice PDF. These follow the *invoice's* language, which is a
-         per-customer setting, not the device locale: a German club gets a German invoice even
-         while the app itself is in English. -->
+    <!-- ===== Navigation and common actions ===== -->
+    <string name="tab_calendar">Calendar</string>
+    <string name="tab_customers">Customers</string>
+    <string name="tab_invoices">Invoices</string>
+    <string name="tab_settings">Settings</string>
+
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_share">Share</string>
+    <string name="action_more">More</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_import">Import</string>
+    <string name="action_export">Export</string>
+    <string name="not_set">not set</string>
+
+    <string-array name="weekday_initials">
+        <item>M</item>
+        <item>T</item>
+        <item>W</item>
+        <item>T</item>
+        <item>F</item>
+        <item>S</item>
+        <item>S</item>
+    </string-array>
+
+    <!-- ===== Calendar ===== -->
+    <string name="no_gigs_on_day">No DJ-set on this day.</string>
+    <string name="add_gig">Add DJ-set</string>
+    <string name="menu_issuer">My details</string>
+    <string name="menu_export">Export and import</string>
+    <string name="menu_import_calendar">Import from calendar</string>
+    <string name="menu_today">Today</string>
+
+    <!-- ===== DJ-set ===== -->
+    <string name="title_new_gig">New DJ-set</string>
+    <string name="title_edit_gig">DJ-set</string>
+    <string name="label_date">Date</string>
+    <string name="label_start">Start</string>
+    <string name="label_end">End</string>
+    <string name="label_customer">Customer</string>
+    <string name="label_place">Venue</string>
+    <string name="label_city">City</string>
+    <string name="label_fee">Fee (net)</string>
+    <string name="label_travel">Travel costs (net)</string>
+    <string name="label_tax_mode">VAT</string>
+    <string name="label_notes">Notes</string>
+    <string name="label_status">Status</string>
+    <string name="pick_customer">Choose customer</string>
+    <string name="new_customer">New customer</string>
+    <string name="no_customer">No customer chosen</string>
+    <string name="action_create_invoice">Create invoice</string>
+    <string name="action_open_invoice">Open invoice</string>
+    <string name="confirm_delete_gig">Delete this DJ-set?</string>
+    <string name="crosses_midnight">Ends the next morning. Billed to the start date.</string>
+    <string name="needs_date">A date is required.</string>
+
+    <string name="status_planned">Planned</string>
+    <string name="status_played">Played</string>
+    <string name="status_invoiced">Invoiced</string>
+    <string name="status_paid">Paid</string>
+
+    <string name="taxmode_inherit">Inherit (customer, then my details)</string>
+    <string name="taxmode_kleinunternehmer">Small business, § 19 UStG</string>
+    <string name="taxmode_standard_19">19 %</string>
+    <string name="taxmode_reduced_7">7 % (artistic performance)</string>
+    <string name="taxmode_reverse_charge">Reverse charge</string>
+    <string name="taxmode_intra_eu">Intra-community supply</string>
+
+    <!-- ===== Customers ===== -->
+    <string name="title_new_customer">New customer</string>
+    <string name="title_edit_customer">Customer</string>
+    <string name="customers_empty">No customers yet. Add one when you book your first set.</string>
+    <string name="label_official_name">Registered name</string>
+    <string name="hint_official_name_later">Ask for this after the first gig</string>
+    <string name="label_street">Street</string>
+    <string name="label_postcode">Post code</string>
+    <string name="label_country">Country</string>
+    <string name="label_email">Email</string>
+    <string name="label_contact_name">Contact person</string>
+    <string name="label_phone">Phone</string>
+    <string name="label_vat_id">VAT ID</string>
+    <string name="label_buyer_reference">Buyer reference</string>
+    <string name="hint_buyer_reference">Required by XRechnung (BT-10)</string>
+    <string name="label_customer_number">Customer number</string>
+    <string name="label_default_fee">Usual fee</string>
+    <string name="label_invoice_language">Invoice language</string>
+    <string name="label_note">Note</string>
+    <string name="ready_to_invoice">Ready to invoice</string>
+    <string name="customer_archived">Archived</string>
+    <string name="customer_archived_because_used">Kept as archived: gigs or invoices refer to it.</string>
+    <string name="confirm_delete_customer">Delete this customer?</string>
+    <string name="needs_a_name">A venue name or a registered name is required.</string>
+    <string name="language_default">Default (%1$s)</string>
+
+    <!-- ===== My details ===== -->
+    <string name="title_issuer">My details</string>
+    <string name="label_name">Name</string>
+    <string name="label_tax_number">Tax number</string>
+    <string name="label_iban" translatable="false">IBAN</string>
+    <string name="label_bic" translatable="false">BIC</string>
+    <string name="label_account_holder">Account holder</string>
+    <string name="label_default_tax_mode">Default VAT treatment</string>
+    <string name="label_exemption_text">Exemption wording</string>
+    <string name="hint_exemption_text">Leave blank for the statutory wording</string>
+    <string name="label_due_days">Payment term (days)</string>
+    <string name="label_payment_terms">Payment terms text</string>
+    <string name="label_default_invoice_language">Default invoice language</string>
+    <string name="required_for_xrechnung">Outlined fields are required for XRechnung</string>
+    <string name="issuer_incomplete">Fill in your details before creating an invoice.</string>
+
+    <!-- ===== Invoice ===== -->
+    <string name="title_invoice">Invoice</string>
+    <string name="invoices_empty">No invoices yet.</string>
+    <string name="label_invoice_number">Invoice number</string>
+    <string name="label_issue_date">Invoice date</string>
+    <string name="label_due_date">Due date</string>
+    <string name="label_format">Format</string>
+    <string name="label_filename">File name</string>
+    <string name="totals_net">Net</string>
+    <string name="totals_vat">VAT</string>
+    <string name="totals_total">Total</string>
+    <string name="no_problems">Nothing missing that this app can check for.</string>
+    <string name="validation_caveat">Checked against the rules built into this app, not a full validator.</string>
+    <string name="action_create">Create</string>
+    <string name="action_create_anyway">Create anyway</string>
+    <string name="invoice_created">Invoice %1$s created</string>
+    <string name="hybrid_degraded">The XML could not be embedded in the PDF, so it was written as a separate file. Send both.</string>
+    <string name="action_save_to_folder">Save to folder</string>
+    <string name="saved_to_folder">Saved to the chosen folder</string>
+    <string name="no_export_folder">No export folder chosen yet. Set one in Settings.</string>
+    <string name="mail_subject">Invoice %1$s</string>
+    <string name="mail_body">Dear Sir or Madam,\n\nplease find invoice %1$s attached.\n\nKind regards\n%2$s</string>
+    <string name="select_gigs_to_bill">Choose the DJ-sets to bill</string>
+
+    <!-- ===== Export and import ===== -->
+    <string name="title_export">Export and import</string>
+    <string name="export_tour_list">Tour list</string>
+    <string name="export_tour_list_desc">All upcoming DJ-sets, one line each. Where a city has more than one customer, the venue is named instead.</string>
+    <string name="export_contacts">Contacts archive</string>
+    <string name="export_contacts_desc">All contacts as a zip of lexoffice-compatible JSON, one file per contact.</string>
+    <string name="import_contacts">Import contacts</string>
+    <string name="import_contacts_desc">Reads an archive from this app, a single contact, or a page from the lexoffice API.</string>
+    <string name="copied_to_clipboard">Copied</string>
+    <string name="nothing_to_export">Nothing to export.</string>
+    <string name="import_summary">%1$d new, %2$d updated</string>
+    <string name="import_replace_issuer">The archive also contains your own details. Replace them?</string>
+    <string name="import_failed">Could not read that file: %1$s</string>
+
+    <!-- ===== Calendar import ===== -->
+    <string name="title_import_calendar">Import from calendar</string>
+    <string name="calendar_nothing_to_import">Nothing in the calendar that is not already a DJ-set.</string>
+    <string name="calendar_relink_desc">Created by this app earlier</string>
+
+    <!-- ===== Settings ===== -->
+    <string name="setting_output_format">Invoice format</string>
+    <string name="setting_filename_pattern">File name pattern</string>
+    <string name="setting_number_pattern">Invoice number pattern</string>
+    <string name="setting_calendar">Mirror to calendar</string>
+    <string name="setting_calendar_off">Off</string>
+    <string name="setting_export_folder">Export folder</string>
+    <string name="setting_tour_date_format">Tour list date format</string>
+    <string name="setting_ui_language">App language</string>
+    <string name="setting_strict_lexoffice">Strict lexoffice export</string>
+    <string name="setting_strict_lexoffice_desc">Leave out the app-specific fields (venue, usual fee, invoice language).</string>
+    <string name="language_system">System default</string>
+    <string name="tokens_legend">Tokens: %1$s</string>
+    <string name="pattern_preview">Preview: %1$s</string>
+    <string name="calendar_permission_needed">Calendar access is needed to mirror DJ-sets.</string>
+    <string name="calendar_permission_denied">Without calendar access, DJ-sets stay in this app only.</string>
+    <string name="calendar_google_hint">Events in a Google calendar sync up to Google automatically.</string>
+
+    <string name="format_zugferd_xrechnung">ZUGFeRD PDF (XRechnung profile)</string>
+    <string name="format_zugferd_en16931">ZUGFeRD PDF (EN 16931 profile)</string>
+    <string name="format_xrechnung_ubl">XRechnung 3.0 XML (UBL)</string>
+    <string name="format_xrechnung_cii">XRechnung 3.0 XML (CII)</string>
+    <string name="format_xrechnung_23_ubl">XRechnung 2.3 XML (UBL)</string>
+    <string name="format_pdf_only">PDF only (not an e-invoice)</string>
+    <string name="format_max_compat">Maximum compatibility (PDF + XML)</string>
+
+    <!-- ===== Validator field labels, keyed to Problem.fieldKey ===== -->
+    <string name="field_seller_name">My name</string>
+    <string name="field_seller_street">My street</string>
+    <string name="field_seller_city">My city</string>
+    <string name="field_seller_postcode">My post code</string>
+    <string name="field_seller_country">My country</string>
+    <string name="field_seller_tax_id">My VAT ID or tax number</string>
+    <string name="field_seller_contact_name">My contact name</string>
+    <string name="field_seller_contact_phone">My phone</string>
+    <string name="field_seller_contact_email">My email</string>
+    <string name="field_seller_endpoint">My electronic address</string>
+    <string name="field_seller_iban">My IBAN</string>
+    <string name="field_buyer_name">Customer name</string>
+    <string name="field_buyer_street">Customer street</string>
+    <string name="field_buyer_city">Customer city</string>
+    <string name="field_buyer_postcode">Customer post code</string>
+    <string name="field_buyer_country">Customer country</string>
+    <string name="field_buyer_endpoint">Customer email</string>
+    <string name="field_buyer_vat_id">Customer VAT ID</string>
+    <string name="field_invoice_number">Invoice number</string>
+    <string name="field_invoice_issue_date">Invoice date</string>
+    <string name="field_invoice_currency">Currency</string>
+    <string name="field_invoice_buyer_reference">Buyer reference</string>
+    <string name="field_invoice_delivery_date">Service date</string>
+    <string name="field_invoice_payment_due">Due date or payment terms</string>
+    <string name="field_invoice_lines">Invoice lines</string>
+    <string name="field_invoice_totals">Totals</string>
+    <string name="field_tax_exemption_reason">VAT exemption reason</string>
+    <string name="field_tax_rate">VAT rate</string>
+    <string name="problem_missing">%1$s is missing (%2$s)</string>
+    <string name="problem_generic">%1$s (%2$s)</string>
+
+    <!-- ===== Invoice document, in the invoice's own language ===== -->
     <string name="inv_title">Invoice</string>
     <string name="inv_number">Invoice no.</string>
     <string name="inv_date">Invoice date</string>
@@ -12,29 +222,30 @@
     <string name="inv_due_date">Due date</string>
     <string name="inv_customer_no">Customer no.</string>
     <string name="inv_your_reference">Your reference</string>
-
     <string name="inv_col_pos" translatable="false">#</string>
     <string name="inv_col_description">Description</string>
     <string name="inv_col_qty">Qty</string>
     <string name="inv_col_unit_price">Unit price</string>
     <string name="inv_col_vat">VAT</string>
     <string name="inv_col_amount">Amount</string>
-
     <string name="inv_net">Net</string>
     <string name="inv_vat">VAT</string>
     <string name="inv_total">Total</string>
-
     <string name="inv_payment_heading">Payment</string>
     <string name="inv_account_holder">Account holder</string>
     <string name="inv_iban" translatable="false">IBAN</string>
     <string name="inv_bic" translatable="false">BIC</string>
     <string name="inv_reference">Reference</string>
     <string name="inv_payable_by">Payable by %1$s without deduction.</string>
-
     <string name="inv_vat_id">VAT ID</string>
     <string name="inv_tax_number">Tax number</string>
     <string name="inv_page">Page %1$d of %2$d</string>
-
     <string name="inv_unit_piece">pcs</string>
     <string name="inv_unit_hour">h</string>
+    <plurals name="fields_missing">
+        <item quantity="one">%1$d field still missing</item>
+        <item quantity="other">%1$d fields still missing</item>
+    </plurals>
+    <string name="two_part_label" translatable="false">%1$s · %2$s</string>
+    <string name="bullet_item" translatable="false">· %1$s</string>
 </resources>

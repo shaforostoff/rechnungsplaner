@@ -26,7 +26,9 @@ final class FacturXXmp {
      */
     static byte[] build(String title, String author, String conformanceLevel, String timestamp) {
         StringBuilder x = new StringBuilder(4096);
-        x.append("<?xpacket begin=\"﻿\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?>\n");
+        // The packet must open with a byte-order mark; written as an escape so this source
+        // file itself stays plain ASCII.
+        x.append("<?xpacket begin=\"\uFEFF\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?>\n");
         x.append("<x:xmpmeta xmlns:x=\"adobe:ns:meta/\">\n");
         x.append("  <rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n");
 

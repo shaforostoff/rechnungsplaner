@@ -167,6 +167,9 @@ public class InvoiceRenderer {
         if (notEmpty(inv.dueDate)) {
             rows.add(new String[]{res.getString(R.string.inv_due_date), date(inv.dueDate)});
         }
+        if (notEmpty(inv.buyer.identifier)) {
+            rows.add(new String[]{res.getString(R.string.inv_customer_no), inv.buyer.identifier});
+        }
         if (notEmpty(inv.buyerReference)) {
             rows.add(new String[]{res.getString(R.string.inv_your_reference), inv.buyerReference});
         }

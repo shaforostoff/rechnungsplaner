@@ -1,4 +1,204 @@
 <resources>
+    <string name="tab_calendar">Kalender</string>
+    <string name="tab_customers">Kunden</string>
+    <string name="tab_invoices">Rechnungen</string>
+    <string name="tab_settings">Einstellungen</string>
+
+    <string name="action_save">Speichern</string>
+    <string name="action_cancel">Abbrechen</string>
+    <string name="action_delete">Löschen</string>
+    <string name="action_share">Teilen</string>
+    <string name="action_more">Mehr</string>
+    <string name="action_copy">Kopieren</string>
+    <string name="action_import">Importieren</string>
+    <string name="action_export">Exportieren</string>
+    <string name="not_set">nicht gesetzt</string>
+
+    <string-array name="weekday_initials">
+        <item>M</item>
+        <item>D</item>
+        <item>M</item>
+        <item>D</item>
+        <item>F</item>
+        <item>S</item>
+        <item>S</item>
+    </string-array>
+
+    <string name="no_gigs_on_day">Kein DJ-Set an diesem Tag.</string>
+    <string name="add_gig">DJ-Set hinzufügen</string>
+    <string name="menu_issuer">Meine Daten</string>
+    <string name="menu_export">Export und Import</string>
+    <string name="menu_import_calendar">Aus Kalender importieren</string>
+    <string name="menu_today">Heute</string>
+
+    <string name="title_new_gig">Neues DJ-Set</string>
+    <string name="title_edit_gig">DJ-Set</string>
+    <string name="label_date">Datum</string>
+    <string name="label_start">Beginn</string>
+    <string name="label_end">Ende</string>
+    <string name="label_customer">Kunde</string>
+    <string name="label_place">Location</string>
+    <string name="label_city">Stadt</string>
+    <string name="label_fee">Gage (netto)</string>
+    <string name="label_travel">Reisekosten (netto)</string>
+    <string name="label_tax_mode">Umsatzsteuer</string>
+    <string name="label_notes">Notizen</string>
+    <string name="label_status">Status</string>
+    <string name="pick_customer">Kunde wählen</string>
+    <string name="new_customer">Neuer Kunde</string>
+    <string name="no_customer">Kein Kunde gewählt</string>
+    <string name="action_create_invoice">Rechnung erstellen</string>
+    <string name="action_open_invoice">Rechnung öffnen</string>
+    <string name="confirm_delete_gig">Dieses DJ-Set löschen?</string>
+    <string name="crosses_midnight">Endet am nächsten Morgen. Abgerechnet wird das Startdatum.</string>
+    <string name="needs_date">Ein Datum ist erforderlich.</string>
+
+    <string name="status_planned">Geplant</string>
+    <string name="status_played">Gespielt</string>
+    <string name="status_invoiced">Berechnet</string>
+    <string name="status_paid">Bezahlt</string>
+
+    <string name="taxmode_inherit">Übernehmen (Kunde, dann meine Daten)</string>
+    <string name="taxmode_kleinunternehmer">Kleinunternehmer, § 19 UStG</string>
+    <string name="taxmode_standard_19">19 %</string>
+    <string name="taxmode_reduced_7">7 % (künstlerische Darbietung)</string>
+    <string name="taxmode_reverse_charge">Reverse Charge</string>
+    <string name="taxmode_intra_eu">Innergemeinschaftliche Lieferung</string>
+
+    <string name="title_new_customer">Neuer Kunde</string>
+    <string name="title_edit_customer">Kunde</string>
+    <string name="customers_empty">Noch keine Kunden. Leg einen an, wenn das erste Set gebucht ist.</string>
+    <string name="label_official_name">Firmenname</string>
+    <string name="hint_official_name_later">Nach dem ersten Gig erfragen</string>
+    <string name="label_street">Straße</string>
+    <string name="label_postcode">PLZ</string>
+    <string name="label_country">Land</string>
+    <string name="label_email">E-Mail</string>
+    <string name="label_contact_name">Ansprechpartner</string>
+    <string name="label_phone">Telefon</string>
+    <string name="label_vat_id">USt-IdNr.</string>
+    <string name="label_buyer_reference">Kunden-Referenz</string>
+    <string name="hint_buyer_reference">Für XRechnung erforderlich (BT-10)</string>
+    <string name="label_customer_number">Kundennummer</string>
+    <string name="label_default_fee">Übliche Gage</string>
+    <string name="label_invoice_language">Rechnungssprache</string>
+    <string name="label_note">Notiz</string>
+    <string name="ready_to_invoice">Bereit zur Abrechnung</string>
+    <string name="customer_archived">Archiviert</string>
+    <string name="customer_archived_because_used">Archiviert statt gelöscht: DJ-Sets oder Rechnungen verweisen darauf.</string>
+    <string name="confirm_delete_customer">Diesen Kunden löschen?</string>
+    <string name="needs_a_name">Eine Location oder ein Firmenname ist erforderlich.</string>
+    <string name="language_default">Standard (%1$s)</string>
+
+    <string name="title_issuer">Meine Daten</string>
+    <string name="label_name">Name</string>
+    <string name="label_tax_number">Steuernummer</string>
+    <string name="label_account_holder">Kontoinhaber</string>
+    <string name="label_default_tax_mode">Standard-Besteuerung</string>
+    <string name="label_exemption_text">Befreiungshinweis</string>
+    <string name="hint_exemption_text">Leer lassen für den gesetzlichen Wortlaut</string>
+    <string name="label_due_days">Zahlungsziel (Tage)</string>
+    <string name="label_payment_terms">Zahlungsbedingungen</string>
+    <string name="label_default_invoice_language">Standard-Rechnungssprache</string>
+    <string name="required_for_xrechnung">Umrandete Felder werden für die XRechnung benötigt</string>
+    <string name="issuer_incomplete">Trage deine Daten ein, bevor du eine Rechnung erstellst.</string>
+
+    <string name="title_invoice">Rechnung</string>
+    <string name="invoices_empty">Noch keine Rechnungen.</string>
+    <string name="label_invoice_number">Rechnungsnummer</string>
+    <string name="label_issue_date">Rechnungsdatum</string>
+    <string name="label_due_date">Fällig am</string>
+    <string name="label_format">Format</string>
+    <string name="label_filename">Dateiname</string>
+    <string name="totals_net">Netto</string>
+    <string name="totals_vat">MwSt.</string>
+    <string name="totals_total">Gesamt</string>
+    <string name="no_problems">Nichts fehlt, soweit diese App das prüfen kann.</string>
+    <string name="validation_caveat">Geprüft gegen die in dieser App hinterlegten Regeln, kein vollständiger Validator.</string>
+    <string name="action_create">Erstellen</string>
+    <string name="action_create_anyway">Trotzdem erstellen</string>
+    <string name="invoice_created">Rechnung %1$s erstellt</string>
+    <string name="hybrid_degraded">Die XML konnte nicht in die PDF eingebettet werden und wurde als eigene Datei geschrieben. Beide senden.</string>
+    <string name="action_save_to_folder">In Ordner speichern</string>
+    <string name="saved_to_folder">Im gewählten Ordner gespeichert</string>
+    <string name="no_export_folder">Noch kein Export-Ordner gewählt. In den Einstellungen festlegen.</string>
+    <string name="mail_subject">Rechnung %1$s</string>
+    <string name="mail_body">Sehr geehrte Damen und Herren,\n\nanbei die Rechnung %1$s.\n\nMit freundlichen Grüßen\n%2$s</string>
+    <string name="select_gigs_to_bill">DJ-Sets zum Abrechnen wählen</string>
+
+    <string name="title_export">Export und Import</string>
+    <string name="export_tour_list">Tourliste</string>
+    <string name="export_tour_list_desc">Alle kommenden DJ-Sets, eine Zeile pro Set. Wo eine Stadt mehrere Kunden hat, steht stattdessen die Location.</string>
+    <string name="export_contacts">Kontakt-Archiv</string>
+    <string name="export_contacts_desc">Alle Kontakte als ZIP mit lexoffice-kompatiblem JSON, eine Datei je Kontakt.</string>
+    <string name="import_contacts">Kontakte importieren</string>
+    <string name="import_contacts_desc">Liest ein Archiv dieser App, einen einzelnen Kontakt oder eine Seite aus der lexoffice-API.</string>
+    <string name="copied_to_clipboard">Kopiert</string>
+    <string name="nothing_to_export">Nichts zu exportieren.</string>
+    <string name="import_summary">%1$d neu, %2$d aktualisiert</string>
+    <string name="import_replace_issuer">Das Archiv enthält auch deine eigenen Daten. Ersetzen?</string>
+    <string name="import_failed">Datei konnte nicht gelesen werden: %1$s</string>
+
+    <string name="title_import_calendar">Aus Kalender importieren</string>
+    <string name="calendar_nothing_to_import">Im Kalender steht nichts, was nicht schon ein DJ-Set ist.</string>
+    <string name="calendar_relink_desc">Früher von dieser App angelegt</string>
+
+    <string name="setting_output_format">Rechnungsformat</string>
+    <string name="setting_filename_pattern">Muster für Dateinamen</string>
+    <string name="setting_number_pattern">Muster für Rechnungsnummern</string>
+    <string name="setting_calendar">In Kalender spiegeln</string>
+    <string name="setting_calendar_off">Aus</string>
+    <string name="setting_export_folder">Export-Ordner</string>
+    <string name="setting_tour_date_format">Datumsformat der Tourliste</string>
+    <string name="setting_ui_language">App-Sprache</string>
+    <string name="setting_strict_lexoffice">Strikter lexoffice-Export</string>
+    <string name="setting_strict_lexoffice_desc">Lässt die app-eigenen Felder weg (Location, übliche Gage, Rechnungssprache).</string>
+    <string name="language_system">Systemsprache</string>
+    <string name="tokens_legend">Platzhalter: %1$s</string>
+    <string name="pattern_preview">Vorschau: %1$s</string>
+    <string name="calendar_permission_needed">Für das Spiegeln wird Kalenderzugriff benötigt.</string>
+    <string name="calendar_permission_denied">Ohne Kalenderzugriff bleiben die DJ-Sets nur in dieser App.</string>
+    <string name="calendar_google_hint">Termine in einem Google-Kalender werden automatisch zu Google synchronisiert.</string>
+
+    <string name="format_zugferd_xrechnung">ZUGFeRD-PDF (Profil XRechnung)</string>
+    <string name="format_zugferd_en16931">ZUGFeRD-PDF (Profil EN 16931)</string>
+    <string name="format_xrechnung_ubl">XRechnung 3.0 XML (UBL)</string>
+    <string name="format_xrechnung_cii">XRechnung 3.0 XML (CII)</string>
+    <string name="format_xrechnung_23_ubl">XRechnung 2.3 XML (UBL)</string>
+    <string name="format_pdf_only">Nur PDF (keine E-Rechnung)</string>
+    <string name="format_max_compat">Maximale Kompatibilität (PDF + XML)</string>
+
+    <string name="field_seller_name">Mein Name</string>
+    <string name="field_seller_street">Meine Straße</string>
+    <string name="field_seller_city">Meine Stadt</string>
+    <string name="field_seller_postcode">Meine PLZ</string>
+    <string name="field_seller_country">Mein Land</string>
+    <string name="field_seller_tax_id">Meine USt-IdNr. oder Steuernummer</string>
+    <string name="field_seller_contact_name">Mein Ansprechpartner</string>
+    <string name="field_seller_contact_phone">Mein Telefon</string>
+    <string name="field_seller_contact_email">Meine E-Mail</string>
+    <string name="field_seller_endpoint">Meine elektronische Adresse</string>
+    <string name="field_seller_iban">Meine IBAN</string>
+    <string name="field_buyer_name">Name des Kunden</string>
+    <string name="field_buyer_street">Straße des Kunden</string>
+    <string name="field_buyer_city">Stadt des Kunden</string>
+    <string name="field_buyer_postcode">PLZ des Kunden</string>
+    <string name="field_buyer_country">Land des Kunden</string>
+    <string name="field_buyer_endpoint">E-Mail des Kunden</string>
+    <string name="field_buyer_vat_id">USt-IdNr. des Kunden</string>
+    <string name="field_invoice_number">Rechnungsnummer</string>
+    <string name="field_invoice_issue_date">Rechnungsdatum</string>
+    <string name="field_invoice_currency">Währung</string>
+    <string name="field_invoice_buyer_reference">Kunden-Referenz</string>
+    <string name="field_invoice_delivery_date">Leistungsdatum</string>
+    <string name="field_invoice_payment_due">Fälligkeit oder Zahlungsbedingungen</string>
+    <string name="field_invoice_lines">Rechnungspositionen</string>
+    <string name="field_invoice_totals">Summen</string>
+    <string name="field_tax_exemption_reason">Grund der Steuerbefreiung</string>
+    <string name="field_tax_rate">Steuersatz</string>
+    <string name="problem_missing">%1$s fehlt (%2$s)</string>
+    <string name="problem_generic">%1$s (%2$s)</string>
+
     <string name="inv_title">Rechnung</string>
     <string name="inv_number">Rechnungsnummer</string>
     <string name="inv_date">Rechnungsdatum</string>
@@ -7,26 +207,25 @@
     <string name="inv_due_date">Fällig am</string>
     <string name="inv_customer_no">Kundennummer</string>
     <string name="inv_your_reference">Ihre Referenz</string>
-
     <string name="inv_col_description">Beschreibung</string>
     <string name="inv_col_qty">Menge</string>
     <string name="inv_col_unit_price">Einzelpreis</string>
     <string name="inv_col_vat">MwSt.</string>
     <string name="inv_col_amount">Betrag</string>
-
     <string name="inv_net">Netto</string>
     <string name="inv_vat">MwSt.</string>
     <string name="inv_total">Gesamt</string>
-
     <string name="inv_payment_heading">Zahlung</string>
     <string name="inv_account_holder">Kontoinhaber</string>
     <string name="inv_reference">Verwendungszweck</string>
     <string name="inv_payable_by">Zahlbar bis %1$s ohne Abzug.</string>
-
     <string name="inv_vat_id">USt-IdNr.</string>
     <string name="inv_tax_number">Steuernummer</string>
     <string name="inv_page">Seite %1$d von %2$d</string>
-
     <string name="inv_unit_piece">Stk.</string>
     <string name="inv_unit_hour">Std.</string>
+    <plurals name="fields_missing">
+        <item quantity="one">%1$d Feld fehlt noch</item>
+        <item quantity="other">%1$d Felder fehlen noch</item>
+    </plurals>
 </resources>

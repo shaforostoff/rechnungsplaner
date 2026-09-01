@@ -258,7 +258,8 @@ public final class Json {
         void skipWhitespace() {
             while (i < s.length()) {
                 char c = s.charAt(i);
-                if (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '﻿') i++;
+                // A leading BOM is common in files exported by other tools; skip it as whitespace.
+                if (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\uFEFF') i++;
                 else break;
             }
         }

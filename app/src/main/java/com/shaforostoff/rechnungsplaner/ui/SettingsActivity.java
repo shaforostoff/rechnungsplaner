@@ -1,0 +1,285 @@
+package com.shaforostoff.rechnungsplaner.ui;
+
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
+
+import com.shaforostoff.rechnungsplaner.R;
+import com.shaforostoff.rechnungsplaner.calendar.CalendarMirror;
+import com.shaforostoff.rechnungsplaner.data.OutputFormat;
+import com.shaforostoff.rechnungsplaner.data.SettingsStore;
+import com.shaforostoff.rechnungsplaner.exchange.GigTextExporter;
+import com.shaforostoff.rechnungsplaner.output.SafExporter;
+import com.shaforostoff.rechnungsplaner.util.Dates;
+import com.shaforostoff.rechnungsplaner.util.PatternFormatter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/** Output, naming, calendar and language preferences. */
+public class SettingsActivity extends BaseActivity {
+
+    private static final int REQUEST_PICK_FOLDER = 71;
+    private static final int REQUEST_CALENDAR_PERMISSION = 72;
+
+    private static final String[] UI_LANGUAGE_TAGS = {SettingsStore.LANGUAGE_SYSTEM, "en", "de",
+            "es"};
+    private static final String[] TOUR_FORMATS = {GigTextExporter.FORMAT_ISO,
+            GigTextExporter.FORMAT_GERMAN, GigTextExporter.FORMAT_SHORT};
+
+    private SettingsStore settings;
+    private Spinner formatSpinner;
+    private EditText fileNameField;
+    private TextView fileNamePreview;
+    private EditText numberField;
+    private TextView numberPreview;
+    private TextView calendarField;
+    private TextView folderField;
+    private Spinner tourFormatSpinner;
+    private Spinner languageSpinner;
+    private CheckBox strictBox;
+
+    @Override
+    protected int bottomTab() {
+        return TAB_SETTINGS;
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        settings = new SettingsStore(this);
+        setScreenTitle(R.string.tab_settings);
+        addTitleAction(R.string.action_save, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                save();
+            }
+        });
+
+        FormBuilder f = form();
+
+        formatSpinner = f.spinner(R.string.setting_output_format, formatLabels(),
+                settings.getOutputFormat().ordinal(), false);
+
+        fileNameField = f.field(R.string.setting_filename_pattern, settings.getFileNamePattern(),
+                false);
+        fileNamePreview = f.caption("");
+        f.caption(getString(R.string.tokens_legend, tokenLegend()));
+        watch(fileNameField, fileNamePreview, false);
+
+        numberField = f.field(R.string.setting_number_pattern,
+                settings.getInvoiceNumberPattern(), false);
+        numberPreview = f.caption("");
+        watch(numberField, numberPreview, true);
+
+        calendarField = f.pickerField(R.string.setting_calendar, calendarLabel(), false,
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        pickCalendar();
+                    }
+                });
+        f.caption(getString(R.string.calendar_google_hint));
+
+        folderField = f.pickerField(R.string.setting_export_folder, folderLabel(), false,
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startActivityForResult(SafExporter.pickFolderIntent(),
+                                REQUEST_PICK_FOLDER);
+                    }
+                });
+
+        tourFormatSpinner = f.spinner(R.string.setting_tour_date_format,
+                new String[]{"2026-09-12", "12.09.2026", "12.09."},
+                indexOf(TOUR_FORMATS, settings.getTourDateFormat()), false);
+
+        languageSpinner = f.spinner(R.string.setting_ui_language,
+                new String[]{getString(R.string.language_system), "English", "Deutsch", "Espanol"},
+                indexOf(UI_LANGUAGE_TAGS, settings.getUiLanguage()), false);
+
+        strictBox = f.check(R.string.setting_strict_lexoffice,
+                settings.isStrictLexofficeExport());
+        f.caption(getString(R.string.setting_strict_lexoffice_desc));
+
+        updatePreviews();
+    }
+
+    private void watch(final EditText field, final TextView preview, final boolean isNumber) {
+        field.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int a, int b, int c) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int a, int b, int c) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                preview.setText(getString(R.string.pattern_preview,
+                        isNumber ? previewNumber(s.toString()) : previewFileName(s.toString())));
+            }
+        });
+    }
+
+    private void updatePreviews() {
+        fileNamePreview.setText(getString(R.string.pattern_preview,
+                previewFileName(fileNameField.getText().toString())));
+        numberPreview.setText(getString(R.string.pattern_preview,
+                previewNumber(numberField.getText().toString())));
+    }
+
+    /** A live preview built from plausible values, so the effect of a pattern is visible at once. */
+    private PatternFormatter samples() {
+        return new PatternFormatter()
+                .put(PatternFormatter.ISSUER_NAME, "Nick Shaforostov")
+                .put(PatternFormatter.CUSTOMER_NAME, "Club Muster GmbH")
+                .put(PatternFormatter.PLACE, "Muster Club")
+                .put(PatternFormatter.CITY, "Hamburg")
+                .put(PatternFormatter.INVOICE_NO, "2026-001")
+                .put(PatternFormatter.FORMAT, "zugferd")
+                .putSequence(1)
+                .putDate(Dates.today())
+                .putGigDate(Dates.today());
+    }
+
+    private String previewFileName(String pattern) {
+        return samples().formatFileName(pattern) + ".pdf";
+    }
+
+    private String previewNumber(String pattern) {
+        return samples().format(pattern);
+    }
+
+    private String tokenLegend() {
+        StringBuilder sb = new StringBuilder();
+        for (String token : PatternFormatter.TOKENS) {
+            if (sb.length() > 0) sb.append("  ");
+            sb.append('%').append(token).append('%');
+        }
+        return sb.toString();
+    }
+
+    private void pickCalendar() {
+        final CalendarMirror mirror = new CalendarMirror(this);
+        if (!mirror.hasPermission()) {
+            requestPermissions(new String[]{Manifest.permission.READ_CALENDAR,
+                    Manifest.permission.WRITE_CALENDAR}, REQUEST_CALENDAR_PERMISSION);
+            return;
+        }
+        final List<CalendarMirror.CalendarInfo> calendars = mirror.writableCalendars();
+        final String[] labels = new String[calendars.size() + 1];
+        labels[0] = getString(R.string.setting_calendar_off);
+        for (int i = 0; i < calendars.size(); i++) labels[i + 1] = calendars.get(i).toString();
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.setting_calendar)
+                .setItems(labels, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        settings.setCalendarId(which == 0 ? -1L : calendars.get(which - 1).id);
+                        calendarField.setText(calendarLabel());
+                    }
+                })
+                .show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != REQUEST_CALENDAR_PERMISSION) return;
+        boolean granted = grantResults.length > 0;
+        for (int result : grantResults) {
+            if (result != android.content.pm.PackageManager.PERMISSION_GRANTED) granted = false;
+        }
+        if (granted) {
+            pickCalendar();
+        } else {
+            Ui.toast(this, R.string.calendar_permission_denied);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_PICK_FOLDER && data != null && data.getData() != null) {
+            SafExporter.persistPermission(this, data.getData());
+            settings.setExportTreeUri(data.getData().toString());
+            folderField.setText(folderLabel());
+        }
+    }
+
+    private void save() {
+        settings.setOutputFormat(OutputFormat.values()[FormBuilder.selectionOf(formatSpinner)]);
+        settings.setFileNamePattern(fileNameField.getText().toString());
+        settings.setInvoiceNumberPattern(numberField.getText().toString());
+        settings.setTourDateFormat(TOUR_FORMATS[FormBuilder.selectionOf(tourFormatSpinner)]);
+        settings.setStrictLexofficeExport(strictBox.isChecked());
+
+        String language = UI_LANGUAGE_TAGS[FormBuilder.selectionOf(languageSpinner)];
+        boolean languageChanged = !language.equals(settings.getUiLanguage());
+        settings.setUiLanguage(language);
+
+        if (languageChanged) {
+            // attachBaseContext reads the setting, so the screen has to be rebuilt to show it.
+            recreate();
+        } else {
+            finish();
+        }
+    }
+
+    private String calendarLabel() {
+        long id = settings.getCalendarId();
+        if (id <= 0L) return getString(R.string.setting_calendar_off);
+        for (CalendarMirror.CalendarInfo info : new CalendarMirror(this).writableCalendars()) {
+            if (info.id == id) return info.toString();
+        }
+        return getString(R.string.setting_calendar_off);
+    }
+
+    private String folderLabel() {
+        String name = SafExporter.displayName(this, settings.getExportTreeUri());
+        return name == null ? getString(R.string.not_set) : name;
+    }
+
+    private String[] formatLabels() {
+        OutputFormat[] formats = OutputFormat.values();
+        List<String> labels = new ArrayList<String>(formats.length);
+        for (OutputFormat format : formats) {
+            switch (format) {
+                case ZUGFERD_EN16931:
+                    labels.add(getString(R.string.format_zugferd_en16931));
+                    break;
+                case XRECHNUNG_UBL: labels.add(getString(R.string.format_xrechnung_ubl)); break;
+                case XRECHNUNG_CII: labels.add(getString(R.string.format_xrechnung_cii)); break;
+                case XRECHNUNG_23_UBL:
+                    labels.add(getString(R.string.format_xrechnung_23_ubl));
+                    break;
+                case PDF_ONLY: labels.add(getString(R.string.format_pdf_only)); break;
+                case MAX_COMPAT: labels.add(getString(R.string.format_max_compat)); break;
+                case ZUGFERD_XRECHNUNG:
+                default: labels.add(getString(R.string.format_zugferd_xrechnung));
+            }
+        }
+        return labels.toArray(new String[0]);
+    }
+
+    private static int indexOf(String[] values, String value) {
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].equals(value)) return i;
+        }
+        return 0;
+    }
+}
