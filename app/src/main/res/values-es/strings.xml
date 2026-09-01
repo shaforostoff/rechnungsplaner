@@ -1,2 +1,32 @@
 <resources>
+    <string name="inv_title">Factura</string>
+    <string name="inv_number">Número de factura</string>
+    <string name="inv_date">Fecha de factura</string>
+    <string name="inv_service_date">Fecha de prestación</string>
+    <string name="inv_service_period">Periodo de prestación</string>
+    <string name="inv_due_date">Fecha de vencimiento</string>
+    <string name="inv_customer_no">Número de cliente</string>
+    <string name="inv_your_reference">Su referencia</string>
+
+    <string name="inv_col_description">Descripción</string>
+    <string name="inv_col_qty">Cant.</string>
+    <string name="inv_col_unit_price">Precio unit.</string>
+    <string name="inv_col_vat">IVA</string>
+    <string name="inv_col_amount">Importe</string>
+
+    <string name="inv_net">Base imponible</string>
+    <string name="inv_vat">IVA</string>
+    <string name="inv_total">Total</string>
+
+    <string name="inv_payment_heading">Pago</string>
+    <string name="inv_account_holder">Titular de la cuenta</string>
+    <string name="inv_reference">Concepto</string>
+    <string name="inv_payable_by">Pagadero hasta el %1$s sin deducción.</string>
+
+    <string name="inv_vat_id">NIF-IVA</string>
+    <string name="inv_tax_number">Número fiscal</string>
+    <string name="inv_page">Página %1$d de %2$d</string>
+
+    <string name="inv_unit_piece">ud.</string>
+    <string name="inv_unit_hour">h</string>
 </resources>

@@ -1,2 +1,32 @@
 <resources>
+    <string name="inv_title">Rechnung</string>
+    <string name="inv_number">Rechnungsnummer</string>
+    <string name="inv_date">Rechnungsdatum</string>
+    <string name="inv_service_date">Leistungsdatum</string>
+    <string name="inv_service_period">Leistungszeitraum</string>
+    <string name="inv_due_date">Fällig am</string>
+    <string name="inv_customer_no">Kundennummer</string>
+    <string name="inv_your_reference">Ihre Referenz</string>
+
+    <string name="inv_col_description">Beschreibung</string>
+    <string name="inv_col_qty">Menge</string>
+    <string name="inv_col_unit_price">Einzelpreis</string>
+    <string name="inv_col_vat">MwSt.</string>
+    <string name="inv_col_amount">Betrag</string>
+
+    <string name="inv_net">Netto</string>
+    <string name="inv_vat">MwSt.</string>
+    <string name="inv_total">Gesamt</string>
+
+    <string name="inv_payment_heading">Zahlung</string>
+    <string name="inv_account_holder">Kontoinhaber</string>
+    <string name="inv_reference">Verwendungszweck</string>
+    <string name="inv_payable_by">Zahlbar bis %1$s ohne Abzug.</string>
+
+    <string name="inv_vat_id">USt-IdNr.</string>
+    <string name="inv_tax_number">Steuernummer</string>
+    <string name="inv_page">Seite %1$d von %2$d</string>
+
+    <string name="inv_unit_piece">Stk.</string>
+    <string name="inv_unit_hour">Std.</string>
 </resources>

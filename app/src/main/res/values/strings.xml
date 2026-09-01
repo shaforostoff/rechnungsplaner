@@ -1,3 +1,40 @@
 <resources>
     <string name="app_name" translatable="false">Rechnungsplaner</string>
+
+    <!-- Labels drawn on the invoice PDF. These follow the *invoice's* language, which is a
+         per-customer setting, not the device locale: a German club gets a German invoice even
+         while the app itself is in English. -->
+    <string name="inv_title">Invoice</string>
+    <string name="inv_number">Invoice no.</string>
+    <string name="inv_date">Invoice date</string>
+    <string name="inv_service_date">Service date</string>
+    <string name="inv_service_period">Service period</string>
+    <string name="inv_due_date">Due date</string>
+    <string name="inv_customer_no">Customer no.</string>
+    <string name="inv_your_reference">Your reference</string>
+
+    <string name="inv_col_pos" translatable="false">#</string>
+    <string name="inv_col_description">Description</string>
+    <string name="inv_col_qty">Qty</string>
+    <string name="inv_col_unit_price">Unit price</string>
+    <string name="inv_col_vat">VAT</string>
+    <string name="inv_col_amount">Amount</string>
+
+    <string name="inv_net">Net</string>
+    <string name="inv_vat">VAT</string>
+    <string name="inv_total">Total</string>
+
+    <string name="inv_payment_heading">Payment</string>
+    <string name="inv_account_holder">Account holder</string>
+    <string name="inv_iban" translatable="false">IBAN</string>
+    <string name="inv_bic" translatable="false">BIC</string>
+    <string name="inv_reference">Reference</string>
+    <string name="inv_payable_by">Payable by %1$s without deduction.</string>
+
+    <string name="inv_vat_id">VAT ID</string>
+    <string name="inv_tax_number">Tax number</string>
+    <string name="inv_page">Page %1$d of %2$d</string>
+
+    <string name="inv_unit_piece">pcs</string>
+    <string name="inv_unit_hour">h</string>
 </resources>
