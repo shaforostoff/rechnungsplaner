@@ -38,6 +38,20 @@ public final class Ui {
                 .show();
     }
 
+    /**
+     * Whether a field that mirrors another should keep following it.
+     *
+     * <p>True while the mirror is empty or still shows what the source said <em>before</em> the
+     * current edit -- meaning the user has not given it a value of its own. Comparing against the
+     * previous text rather than the new one is what lets a mirror track typing keystroke by
+     * keystroke and stop the moment the two are deliberately different.
+     */
+    public static boolean stillMirrors(String mirrored, String sourceBefore) {
+        String mine = mirrored == null ? "" : mirrored.trim();
+        String theirs = sourceBefore == null ? "" : sourceBefore.trim();
+        return mine.isEmpty() || mine.equals(theirs);
+    }
+
     /** Cents as a plain editable number, e.g. {@code 35000} to {@code "350,00"} in a German UI. */
     public static String centsToEditable(long cents) {
         NumberFormat f = NumberFormat.getNumberInstance();

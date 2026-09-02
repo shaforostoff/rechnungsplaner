@@ -1,7 +1,9 @@
 package com.shaforostoff.rechnungsplaner.ui;
 
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -92,6 +94,7 @@ public class IssuerEditActivity extends BaseActivity {
         bicField = f.field(R.string.label_bic, issuer.bic, false,
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
         accountHolderField = f.field(R.string.label_account_holder, issuer.accountHolder, false);
+        mirrorNameIntoAccountHolder();
 
         taxSpinner = f.spinner(R.string.label_default_tax_mode, TaxModeLabels.modes(this),
                 issuer.defaultTaxMode == null ? 0 : issuer.defaultTaxMode.ordinal(), false);
@@ -148,6 +151,37 @@ public class IssuerEditActivity extends BaseActivity {
         } catch (Exception e) {
             return fallback;
         }
+    }
+
+    /**
+     * Keeps the account holder in step with the name while the two still agree.
+     *
+     * <p>They are the same person unless the account is not -- an agency collecting on your
+     * behalf, or an account still in a former name -- so typing the name twice is the common case
+     * and the divergence is the exception. Comparing against the name as it was *before* the
+     * keystroke is what makes this work while typing: each edit sees a holder that matches, and
+     * follows along. Once the holder says something else, it is the user's and stays put.
+     */
+    private void mirrorNameIntoAccountHolder() {
+        nameField.addTextChangedListener(new TextWatcher() {
+            private String nameBefore = "";
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                nameBefore = s.toString();
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (Ui.stillMirrors(text(accountHolderField), nameBefore)) {
+                    accountHolderField.setText(s.toString());
+                }
+            }
+        });
     }
 
     private static String text(EditText field) {
