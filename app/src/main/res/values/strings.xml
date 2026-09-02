@@ -63,7 +63,7 @@
     <string name="status_invoiced">Invoiced</string>
     <string name="status_paid">Paid</string>
 
-    <string name="taxmode_inherit">Inherit (customer, then my details)</string>
+    <string name="taxmode_inherit_value">Inherit: %1$s</string>
     <string name="taxmode_kleinunternehmer">Small business, § 19 UStG</string>
     <string name="taxmode_standard_19">19 %</string>
     <string name="taxmode_reduced_7">7 % (artistic performance)</string>

@@ -107,7 +107,10 @@ public class CustomerEditActivity extends BaseActivity {
                 Ui.centsToEditable(customer.defaultFeeCents), false,
                 InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
-        taxSpinner = f.spinner(R.string.label_tax_mode, taxModeLabels(),
+        // A customer inherits from the issuer only, so the label is fixed for as long as this
+        // screen is open.
+        taxSpinner = f.spinner(R.string.label_tax_mode,
+                TaxModeLabels.withInherit(this, new IssuerDao(this).load(), null),
                 customer.defaultTaxMode == null ? 0 : customer.defaultTaxMode.ordinal() + 1, false);
         languageSpinner = f.spinner(R.string.label_invoice_language, languageLabels(),
                 languageIndex(customer.invoiceLanguage), false);
@@ -164,25 +167,6 @@ public class CustomerEditActivity extends BaseActivity {
         // the new record instead of making the user pick it out of the list again.
         setResult(RESULT_OK, new Intent().putExtra(EXTRA_SAVED_ID, customer.id));
         finish();
-    }
-
-    private String[] taxModeLabels() {
-        TaxMode[] modes = TaxMode.values();
-        String[] labels = new String[modes.length + 1];
-        labels[0] = getString(R.string.taxmode_inherit);
-        for (int i = 0; i < modes.length; i++) labels[i + 1] = taxModeLabel(modes[i]);
-        return labels;
-    }
-
-    private String taxModeLabel(TaxMode mode) {
-        switch (mode) {
-            case STANDARD_19: return getString(R.string.taxmode_standard_19);
-            case REDUCED_7: return getString(R.string.taxmode_reduced_7);
-            case REVERSE_CHARGE: return getString(R.string.taxmode_reverse_charge);
-            case INTRA_EU: return getString(R.string.taxmode_intra_eu);
-            case KLEINUNTERNEHMER:
-            default: return getString(R.string.taxmode_kleinunternehmer);
-        }
     }
 
     private String[] languageLabels() {

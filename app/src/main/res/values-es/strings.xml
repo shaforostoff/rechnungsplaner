@@ -58,7 +58,7 @@
     <string name="status_invoiced">Facturada</string>
     <string name="status_paid">Pagada</string>
 
-    <string name="taxmode_inherit">Heredar (cliente, luego mis datos)</string>
+    <string name="taxmode_inherit_value">Heredar: %1$s</string>
     <string name="taxmode_kleinunternehmer">Pequeña empresa, § 19 UStG</string>
     <string name="taxmode_standard_19">19 %</string>
     <string name="taxmode_reduced_7">7 % (actuación artística)</string>

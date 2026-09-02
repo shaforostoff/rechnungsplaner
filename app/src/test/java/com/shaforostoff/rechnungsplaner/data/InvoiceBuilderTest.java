@@ -123,6 +123,24 @@ public class InvoiceBuilderTest {
     }
 
     @Test
+    public void withoutGigsTheChainAnswersWhatInheritingWouldPick() {
+        // The gig editor labels its "inherit" entry with this, passing no gigs to ask what would
+        // apply if the gig itself set nothing. A wrong answer here is a label that lies.
+        Issuer i = issuer();
+        i.defaultTaxMode = null;
+        assertEquals(TaxMode.KLEINUNTERNEHMER, InvoiceBuilder.resolveTaxMode(i, null, null));
+
+        i.defaultTaxMode = TaxMode.STANDARD_19;
+        assertEquals(TaxMode.STANDARD_19, InvoiceBuilder.resolveTaxMode(i, null, null));
+
+        Customer c = club();
+        assertEquals(TaxMode.STANDARD_19, InvoiceBuilder.resolveTaxMode(i, c, null));
+
+        c.defaultTaxMode = TaxMode.REDUCED_7;
+        assertEquals(TaxMode.REDUCED_7, InvoiceBuilder.resolveTaxMode(i, c, null));
+    }
+
+    @Test
     public void customerLanguageBeatsIssuerDefault() {
         Issuer i = issuer();
         Customer c = club();

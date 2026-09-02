@@ -183,10 +183,7 @@ public class FormBuilder {
     public Spinner spinner(int labelRes, String[] entries, int selectedIndex, boolean required) {
         label(labelRes, required);
         Spinner spinner = new Spinner(ctx);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(ctx,
-                android.R.layout.simple_spinner_item, entries);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
+        spinner.setAdapter(adapterFor(ctx, entries));
         if (selectedIndex >= 0 && selectedIndex < entries.length) {
             spinner.setSelection(selectedIndex);
         }
@@ -286,6 +283,23 @@ public class FormBuilder {
     }
 
     /** Convenience for reading a spinner without repeating the cast at every call site. */
+    /**
+     * Replaces a spinner's entries while keeping the current selection, for a label that depends on
+     * another field -- the tax mode's inherit entry changes as soon as another customer is picked.
+     */
+    public static void setEntries(Spinner spinner, String[] entries) {
+        int selection = selectionOf(spinner);
+        spinner.setAdapter(adapterFor(spinner.getContext(), entries));
+        if (selection < entries.length) spinner.setSelection(selection);
+    }
+
+    private static ArrayAdapter<String> adapterFor(Context ctx, String[] entries) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(ctx,
+                android.R.layout.simple_spinner_item, entries);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        return adapter;
+    }
+
     public static int selectionOf(Spinner spinner) {
         int position = spinner.getSelectedItemPosition();
         return position == AdapterView.INVALID_POSITION ? 0 : position;

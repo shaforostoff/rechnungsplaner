@@ -93,7 +93,7 @@ public class IssuerEditActivity extends BaseActivity {
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
         accountHolderField = f.field(R.string.label_account_holder, issuer.accountHolder, false);
 
-        taxSpinner = f.spinner(R.string.label_default_tax_mode, taxModeLabels(),
+        taxSpinner = f.spinner(R.string.label_default_tax_mode, TaxModeLabels.modes(this),
                 issuer.defaultTaxMode == null ? 0 : issuer.defaultTaxMode.ordinal(), false);
         exemptionField = f.field(R.string.label_exemption_text, issuer.exemptionText, false,
                 InputType.TYPE_CLASS_TEXT, getString(R.string.hint_exemption_text));
@@ -133,22 +133,6 @@ public class IssuerEditActivity extends BaseActivity {
 
         issuers.save(issuer);
         finish();
-    }
-
-    private String[] taxModeLabels() {
-        TaxMode[] modes = TaxMode.values();
-        String[] labels = new String[modes.length];
-        for (int i = 0; i < modes.length; i++) {
-            switch (modes[i]) {
-                case STANDARD_19: labels[i] = getString(R.string.taxmode_standard_19); break;
-                case REDUCED_7: labels[i] = getString(R.string.taxmode_reduced_7); break;
-                case REVERSE_CHARGE: labels[i] = getString(R.string.taxmode_reverse_charge); break;
-                case INTRA_EU: labels[i] = getString(R.string.taxmode_intra_eu); break;
-                case KLEINUNTERNEHMER:
-                default: labels[i] = getString(R.string.taxmode_kleinunternehmer);
-            }
-        }
-        return labels;
     }
 
     private static int languageIndex(String tag) {

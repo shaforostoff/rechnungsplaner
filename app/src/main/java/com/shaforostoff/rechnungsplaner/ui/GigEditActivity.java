@@ -21,6 +21,7 @@ import com.shaforostoff.rechnungsplaner.data.Customer;
 import com.shaforostoff.rechnungsplaner.data.CustomerDao;
 import com.shaforostoff.rechnungsplaner.data.Gig;
 import com.shaforostoff.rechnungsplaner.data.GigDao;
+import com.shaforostoff.rechnungsplaner.data.IssuerDao;
 import com.shaforostoff.rechnungsplaner.data.SettingsStore;
 import com.shaforostoff.rechnungsplaner.data.TaxMode;
 import com.shaforostoff.rechnungsplaner.util.Dates;
@@ -44,6 +45,7 @@ public class GigEditActivity extends BaseActivity {
     }
 
     private GigDao gigs;
+    private IssuerDao issuers;
     private CustomerDao customers;
     private SettingsStore settings;
     private Gig gig;
@@ -77,6 +79,7 @@ public class GigEditActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         gigs = new GigDao(this);
         customers = new CustomerDao(this);
+        issuers = new IssuerDao(this);
         settings = new SettingsStore(this);
 
         long id = getIntent().getLongExtra(EXTRA_GIG_ID, -1L);
@@ -335,6 +338,9 @@ public class GigEditActivity extends BaseActivity {
             placeField.setText(customer.placeName);
         }
         if (isEmpty(cityField) && customer.city != null) cityField.setText(customer.city);
+        // A different customer can mean a different inherited tax mode, and the whole point of
+        // naming it in the label is that it is current.
+        FormBuilder.setEntries(taxSpinner, taxModeLabels());
         if (Ui.editableToCents(placeholderText(feeField)) == 0L && customer.defaultFeeCents > 0L) {
             feeField.setText(Ui.centsToEditable(customer.defaultFeeCents));
         }
@@ -350,23 +356,12 @@ public class GigEditActivity extends BaseActivity {
                 getResources().getConfiguration().getLocales().get(0).getLanguage());
     }
 
+    /**
+     * The mode list, whose inherit entry names what this gig would actually be taxed at. It depends
+     * on the selected customer, so it is rebuilt rather than computed once.
+     */
     private String[] taxModeLabels() {
-        TaxMode[] modes = TaxMode.values();
-        String[] labels = new String[modes.length + 1];
-        labels[0] = getString(R.string.taxmode_inherit);
-        for (int i = 0; i < modes.length; i++) labels[i + 1] = taxModeLabel(modes[i]);
-        return labels;
-    }
-
-    private String taxModeLabel(TaxMode mode) {
-        switch (mode) {
-            case STANDARD_19: return getString(R.string.taxmode_standard_19);
-            case REDUCED_7: return getString(R.string.taxmode_reduced_7);
-            case REVERSE_CHARGE: return getString(R.string.taxmode_reverse_charge);
-            case INTRA_EU: return getString(R.string.taxmode_intra_eu);
-            case KLEINUNTERNEHMER:
-            default: return getString(R.string.taxmode_kleinunternehmer);
-        }
+        return TaxModeLabels.withInherit(this, issuers.load(), customers.byId(gig.customerId));
     }
 
     private String[] statusLabels() {
