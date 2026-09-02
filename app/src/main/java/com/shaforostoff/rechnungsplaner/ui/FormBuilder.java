@@ -282,7 +282,6 @@ public class FormBuilder {
                 LinearLayout.LayoutParams.WRAP_CONTENT);
     }
 
-    /** Convenience for reading a spinner without repeating the cast at every call site. */
     /**
      * Replaces a spinner's entries while keeping the current selection, for a label that depends on
      * another field -- the tax mode's inherit entry changes as soon as another customer is picked.

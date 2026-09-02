@@ -8,8 +8,8 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -26,7 +26,15 @@ import com.shaforostoff.rechnungsplaner.util.PatternFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Output, naming, calendar and language preferences. */
+/**
+ * Output, naming, calendar and language preferences.
+ *
+ * <p>There is no Save button: every field is written back in {@link #onPause()}. A tab screen has
+ * nothing behind it in the task, so a Save that finished the screen closed the app instead of
+ * returning anywhere -- and a preferences screen that keeps what was typed is the platform habit
+ * anyway. The title action goes to import/export, which is the one thing reached from here often
+ * enough to be worth a shortcut.
+ */
 public class SettingsActivity extends BaseActivity {
 
     private static final int REQUEST_PICK_FOLDER = 71;
@@ -59,10 +67,10 @@ public class SettingsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         settings = new SettingsStore(this);
         setScreenTitle(R.string.tab_settings);
-        addTitleAction(R.string.action_save, new View.OnClickListener() {
+        addTitleAction(R.string.title_import_export, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                save();
+                startActivity(new Intent(SettingsActivity.this, ExportActivity.class));
             }
         });
 
@@ -107,12 +115,37 @@ public class SettingsActivity extends BaseActivity {
         languageSpinner = f.spinner(R.string.setting_ui_language,
                 new String[]{getString(R.string.language_system), "English", "Deutsch", "Espanol"},
                 indexOf(UI_LANGUAGE_TAGS, settings.getUiLanguage()), false);
+        watchLanguage();
 
         strictBox = f.check(R.string.setting_strict_lexoffice,
                 settings.isStrictLexofficeExport());
         f.caption(getString(R.string.setting_strict_lexoffice_desc));
 
         updatePreviews();
+    }
+
+    /**
+     * The one setting that has to take effect before the screen is left, since its whole effect is
+     * on this screen's own labels.
+     *
+     * <p>Comparing against the stored value also swallows the callback a spinner fires for its
+     * initial selection, which would otherwise recreate the activity on every open.
+     */
+    private void watchLanguage() {
+        languageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String chosen = UI_LANGUAGE_TAGS[position];
+                if (chosen.equals(settings.getUiLanguage())) return;
+                settings.setUiLanguage(chosen);
+                // attachBaseContext reads the setting, so the screen has to be rebuilt to show it.
+                recreate();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
     }
 
     private void watch(final EditText field, final TextView preview, final boolean isNumber) {
@@ -221,23 +254,22 @@ public class SettingsActivity extends BaseActivity {
         }
     }
 
-    private void save() {
+    /**
+     * Leaving the screen -- by back, by a tab, by the import/export action, or by the language
+     * change recreating it -- is what commits the fields.
+     *
+     * <p>The calendar and the export folder are absent because their pickers write immediately:
+     * both hold a value this screen only displays and never edits.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
         settings.setOutputFormat(OutputFormat.values()[FormBuilder.selectionOf(formatSpinner)]);
         settings.setFileNamePattern(fileNameField.getText().toString());
         settings.setInvoiceNumberPattern(numberField.getText().toString());
         settings.setTourDateFormat(TOUR_FORMATS[FormBuilder.selectionOf(tourFormatSpinner)]);
         settings.setStrictLexofficeExport(strictBox.isChecked());
-
-        String language = UI_LANGUAGE_TAGS[FormBuilder.selectionOf(languageSpinner)];
-        boolean languageChanged = !language.equals(settings.getUiLanguage());
-        settings.setUiLanguage(language);
-
-        if (languageChanged) {
-            // attachBaseContext reads the setting, so the screen has to be rebuilt to show it.
-            recreate();
-        } else {
-            finish();
-        }
+        settings.setUiLanguage(UI_LANGUAGE_TAGS[FormBuilder.selectionOf(languageSpinner)]);
     }
 
     private String calendarLabel() {

@@ -24,7 +24,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-/** The two bulk exports and the contacts import. */
+/** The two bulk exports, the contacts import, and the way in from the device calendar. */
 public class ExportActivity extends BaseActivity {
 
     private static final int REQUEST_PICK_IMPORT = 61;
@@ -35,7 +35,7 @@ public class ExportActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         settings = new SettingsStore(this);
-        setScreenTitle(R.string.title_export);
+        setScreenTitle(R.string.title_import_export);
 
         FormBuilder f = form();
 
@@ -69,6 +69,15 @@ public class ExportActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 pickImportFile();
+            }
+        });
+
+        f.section(R.string.title_import_calendar);
+        f.caption(getString(R.string.import_calendar_desc));
+        f.secondaryButton(R.string.action_import, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(ExportActivity.this, CalendarImportActivity.class));
             }
         });
     }

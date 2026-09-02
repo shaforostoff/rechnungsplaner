@@ -47,6 +47,9 @@ executed. Specifically unverified:
   gigs go back to billable, that a gig already marked paid keeps that status, and that the number
   counter is untouched are all argued in code but not executed. The identity rule it depends on
   (`Invoice.takeIdentityFrom`) is tested.
+- Settings now commit in `onPause` rather than from a Save button, which removes the only path
+  that closed the app from a tab screen. That the lifecycle actually fires before the process
+  goes away is the platform's contract, not something asserted here.
 - `CalendarMirror`, `ShareProvider`, `SafExporter` and every screen are compile-verified only.
   This includes the field mechanics whose *decisions* are tested -- that the account holder mirrors
   the name is pinned as a rule, but nothing has confirmed the `TextWatcher` is wired to the right
@@ -104,3 +107,6 @@ failure modes differ between the three, so passing one says little about the oth
 7. Export the tour list with two customers in one city: those two lines show venues, the rest
    show cities.
 8. Export contacts, clear app data, re-import: customers and issuer come back intact.
+9. Settings has no Save button: change the invoice format, the file-name pattern and the strict
+   lexoffice box, leave by the bottom bar, come back -- all three held. Then change the UI
+   language and confirm the screen relabels itself on the spot without closing the app.

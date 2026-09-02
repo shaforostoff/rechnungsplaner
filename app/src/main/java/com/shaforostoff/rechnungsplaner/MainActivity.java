@@ -4,11 +4,8 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.shaforostoff.rechnungsplaner.data.Customer;
@@ -16,10 +13,8 @@ import com.shaforostoff.rechnungsplaner.data.CustomerDao;
 import com.shaforostoff.rechnungsplaner.data.Gig;
 import com.shaforostoff.rechnungsplaner.data.GigDao;
 import com.shaforostoff.rechnungsplaner.ui.BaseActivity;
-import com.shaforostoff.rechnungsplaner.ui.CalendarImportActivity;
 import com.shaforostoff.rechnungsplaner.ui.ExportActivity;
 import com.shaforostoff.rechnungsplaner.ui.GigEditActivity;
-import com.shaforostoff.rechnungsplaner.ui.IssuerEditActivity;
 import com.shaforostoff.rechnungsplaner.ui.MonthCalendarView;
 import com.shaforostoff.rechnungsplaner.ui.Ui;
 import com.shaforostoff.rechnungsplaner.util.Dates;
@@ -53,10 +48,10 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
                 calendar.select(Dates.today());
             }
         });
-        addTitleAction(R.string.action_more, new View.OnClickListener() {
+        addTitleAction(R.string.title_import_export, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showOverflow(v);
+                startActivity(new Intent(MainActivity.this, ExportActivity.class));
             }
         });
 
@@ -203,31 +198,5 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
             case PLANNED:
             default: return getString(R.string.status_planned);
         }
-    }
-
-    private void showOverflow(View anchor) {
-        PopupMenu menu = new PopupMenu(this, anchor);
-        menu.getMenu().add(Menu.NONE, 1, Menu.NONE, R.string.menu_issuer);
-        menu.getMenu().add(Menu.NONE, 2, Menu.NONE, R.string.menu_export);
-        menu.getMenu().add(Menu.NONE, 3, Menu.NONE, R.string.menu_import_calendar);
-        menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
-                    case 1:
-                        startActivity(new Intent(MainActivity.this, IssuerEditActivity.class));
-                        return true;
-                    case 2:
-                        startActivity(new Intent(MainActivity.this, ExportActivity.class));
-                        return true;
-                    case 3:
-                        startActivity(new Intent(MainActivity.this, CalendarImportActivity.class));
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-        });
-        menu.show();
     }
 }

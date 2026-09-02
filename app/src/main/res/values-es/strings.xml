@@ -8,7 +8,6 @@
     <string name="action_cancel">Cancelar</string>
     <string name="action_delete">Eliminar</string>
     <string name="action_share">Compartir</string>
-    <string name="action_more">Más</string>
     <string name="action_copy">Copiar</string>
     <string name="action_import">Importar</string>
     <string name="action_export">Exportar</string>
@@ -27,8 +26,6 @@
     <string name="no_gigs_on_day">Ninguna sesión este día.</string>
     <string name="add_gig">Añadir sesión</string>
     <string name="menu_issuer">Mis datos</string>
-    <string name="menu_export">Exportar e importar</string>
-    <string name="menu_import_calendar">Importar del calendario</string>
     <string name="menu_today">Hoy</string>
 
     <string name="title_new_gig">Nueva sesión</string>
@@ -136,7 +133,7 @@
     <string name="mail_body">Estimados señores:\n\nadjunto la factura %1$s.\n\nUn saludo\n%2$s</string>
     <string name="select_gigs_to_bill">Elige las sesiones a facturar</string>
 
-    <string name="title_export">Exportar e importar</string>
+    <string name="title_import_export">Importar/Exportar</string>
     <string name="export_tour_list">Lista de gira</string>
     <string name="export_tour_list_desc">Todas las sesiones próximas, una línea cada una. Donde una ciudad tiene varios clientes, se nombra la sala.</string>
     <string name="export_contacts">Archivo de contactos</string>
@@ -150,6 +147,7 @@
     <string name="import_failed">No se pudo leer el archivo: %1$s</string>
 
     <string name="title_import_calendar">Importar del calendario</string>
+    <string name="import_calendar_desc">Adopta entradas del calendario que aún no son sesiones y vuelve a vincular las creadas por esta app.</string>
     <string name="calendar_nothing_to_import">No hay nada en el calendario que no sea ya una sesión.</string>
     <string name="calendar_relink_desc">Creado antes por esta app</string>
 

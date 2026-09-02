@@ -11,7 +11,6 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_delete">Delete</string>
     <string name="action_share">Share</string>
-    <string name="action_more">More</string>
     <string name="action_copy">Copy</string>
     <string name="action_import">Import</string>
     <string name="action_export">Export</string>
@@ -31,8 +30,6 @@
     <string name="no_gigs_on_day">No DJ-set on this day.</string>
     <string name="add_gig">Add DJ-set</string>
     <string name="menu_issuer">My details</string>
-    <string name="menu_export">Export and import</string>
-    <string name="menu_import_calendar">Import from calendar</string>
     <string name="menu_today">Today</string>
 
     <!-- ===== DJ-set ===== -->
@@ -146,8 +143,8 @@
     <string name="mail_body">Dear Sir or Madam,\n\nplease find invoice %1$s attached.\n\nKind regards\n%2$s</string>
     <string name="select_gigs_to_bill">Choose the DJ-sets to bill</string>
 
-    <!-- ===== Export and import ===== -->
-    <string name="title_export">Export and import</string>
+    <!-- ===== Import and export ===== -->
+    <string name="title_import_export">Import/Export</string>
     <string name="export_tour_list">Tour list</string>
     <string name="export_tour_list_desc">All upcoming DJ-sets, one line each. Where a city has more than one customer, the venue is named instead.</string>
     <string name="export_contacts">Contacts archive</string>
@@ -162,6 +159,7 @@
 
     <!-- ===== Calendar import ===== -->
     <string name="title_import_calendar">Import from calendar</string>
+    <string name="import_calendar_desc">Adopts calendar entries that are not DJ-sets yet, and re-links any this app created before.</string>
     <string name="calendar_nothing_to_import">Nothing in the calendar that is not already a DJ-set.</string>
     <string name="calendar_relink_desc">Created by this app earlier</string>
 

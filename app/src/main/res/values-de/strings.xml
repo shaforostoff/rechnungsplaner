@@ -8,7 +8,6 @@
     <string name="action_cancel">Abbrechen</string>
     <string name="action_delete">Löschen</string>
     <string name="action_share">Teilen</string>
-    <string name="action_more">Mehr</string>
     <string name="action_copy">Kopieren</string>
     <string name="action_import">Importieren</string>
     <string name="action_export">Exportieren</string>
@@ -27,8 +26,6 @@
     <string name="no_gigs_on_day">Kein DJ-Set an diesem Tag.</string>
     <string name="add_gig">DJ-Set hinzufügen</string>
     <string name="menu_issuer">Meine Daten</string>
-    <string name="menu_export">Export und Import</string>
-    <string name="menu_import_calendar">Aus Kalender importieren</string>
     <string name="menu_today">Heute</string>
 
     <string name="title_new_gig">Neues DJ-Set</string>
@@ -136,7 +133,7 @@
     <string name="mail_body">Sehr geehrte Damen und Herren,\n\nanbei die Rechnung %1$s.\n\nMit freundlichen Grüßen\n%2$s</string>
     <string name="select_gigs_to_bill">DJ-Sets zum Abrechnen wählen</string>
 
-    <string name="title_export">Export und Import</string>
+    <string name="title_import_export">Import/Export</string>
     <string name="export_tour_list">Tourliste</string>
     <string name="export_tour_list_desc">Alle kommenden DJ-Sets, eine Zeile pro Set. Wo eine Stadt mehrere Kunden hat, steht stattdessen die Location.</string>
     <string name="export_contacts">Kontakt-Archiv</string>
@@ -150,6 +147,7 @@
     <string name="import_failed">Datei konnte nicht gelesen werden: %1$s</string>
 
     <string name="title_import_calendar">Aus Kalender importieren</string>
+    <string name="import_calendar_desc">Übernimmt Kalendereinträge, die noch keine DJ-Sets sind, und verknüpft die von dieser App erstellten neu.</string>
     <string name="calendar_nothing_to_import">Im Kalender steht nichts, was nicht schon ein DJ-Set ist.</string>
     <string name="calendar_relink_desc">Früher von dieser App angelegt</string>
 
