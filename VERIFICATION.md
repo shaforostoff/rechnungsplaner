@@ -38,10 +38,11 @@ executed. Specifically unverified:
 - `PdfA3Packer` has never seen real `android.graphics.pdf.PdfDocument` output. It handles both
   cross-reference flavours and refuses anything it cannot rewrite safely, but Skia's exact
   structure is an assumption until it runs.
-- The schema-2 migration was run against the real version-1 invoice table taken from git, using
-  the `sqlite3` binary in the Android SDK: the three `ALTER TABLE` steps succeed and an existing
-  invoice keeps its values while the new columns take their defaults. What is *not* verified is
-  that `onUpgrade` is reached correctly on a device.
+- The database is recreated on a version change rather than migrated, which is deliberate while
+  the app is pre-release and **must change before it ships**: an issued invoice has to be kept for
+  ten years. The drop-and-recreate was run against the real schema with the `sqlite3` binary in the
+  Android SDK -- the drop order does not trip a foreign key, and every table comes back -- but that
+  `onUpgrade` is reached at all on a device is unverified.
 - `InvoiceDao.reissue` runs against SQLite, so its transaction is unverified here: that dropped
   gigs go back to billable, that a gig already marked paid keeps that status, and that the number
   counter is untouched are all argued in code but not executed. The identity rule it depends on

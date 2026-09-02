@@ -146,17 +146,31 @@ public class Db extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Migrations are ALTER TABLE steps, never a drop-and-recreate: this database holds issued
-        // invoices that must be retained for the statutory ten years. Each step is guarded by the
-        // version it arrived in and left in place, so an install skipping releases still runs them
-        // in order.
-        if (oldVersion < 2) {
-            // BG-3, the reference an invoice reissued under a new number makes to the one it
-            // replaces.
-            db.execSQL("ALTER TABLE " + T_INVOICE
-                    + " ADD COLUMN replaces_id INTEGER NOT NULL DEFAULT -1");
-            db.execSQL("ALTER TABLE " + T_INVOICE + " ADD COLUMN replaces_number TEXT");
-            db.execSQL("ALTER TABLE " + T_INVOICE + " ADD COLUMN replaces_date TEXT");
+        // Pre-release, so the schema is recreated rather than migrated: there is no installed base
+        // to preserve, and hand-written ALTER steps for a database nobody has yet are upkeep with
+        // nobody to benefit from them. A version bump wipes and rebuilds.
+        //
+        // This must change before the app ships. An issued invoice has to be retained for ten
+        // years under section 147 AO, and dropping the table would take it along -- so the first
+        // release fixes a schema and every change after it becomes an ALTER TABLE step here,
+        // guarded by the version it arrived in.
+        recreate(db);
+    }
+
+    @Override
+    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Moving between branches walks the version backwards, which SQLiteOpenHelper treats as
+        // fatal unless told otherwise. Same answer as an upgrade while there is nothing to keep.
+        recreate(db);
+    }
+
+    private void recreate(SQLiteDatabase db) {
+        for (String table : new String[]{T_INVOICE_FILE, T_INVOICE_LINE, T_INVOICE, T_GIG,
+                T_CUSTOMER, T_ISSUER, T_COUNTER}) {
+            // Children before parents: foreign keys are on, and the order is the reverse of
+            // creation for that reason.
+            db.execSQL("DROP TABLE IF EXISTS " + table);
         }
+        onCreate(db);
     }
 }
