@@ -188,7 +188,14 @@ public class InvoiceRenderer {
         return Math.max(y, ry);
     }
 
-    /** Column geometry, measured from the widest header so no locale clips. */
+    /**
+     * Column geometry: each numeric column is as wide as its own header needs, measured rather
+     * than guessed because the German labels are markedly longer than the English ones.
+     *
+     * <p>The right edges tile leftwards from the page margin, each one its own width clear of the
+     * next. Getting that wrong by a single column is what made "Einzelpreis" -- the longest of the
+     * four labels -- print over "Menge": it was being given the quantity column's width.
+     */
     private float[] columns() {
         float right = PAGE_WIDTH - MARGIN;
         float amount = Math.max(60f, bold.measureText(res.getString(R.string.inv_col_amount)) + 12f);
@@ -196,14 +203,24 @@ public class InvoiceRenderer {
         float unit = Math.max(58f,
                 bold.measureText(res.getString(R.string.inv_col_unit_price)) + 12f);
         float qty = Math.max(42f, bold.measureText(res.getString(R.string.inv_col_qty)) + 12f);
-        float posRight = MARGIN + 16f;
+        return columnEdges(right, MARGIN, MARGIN + 16f, qty, unit, vat, amount);
+    }
+
+    /**
+     * The tiling itself, kept free of {@link Paint} and {@link android.content.res.Resources} so
+     * the one part of this renderer that is arithmetic rather than drawing can be tested without a
+     * device.
+     */
+    static float[] columnEdges(float right, float left, float descriptionLeft,
+                               float qty, float unit, float vat, float amount) {
         return new float[]{
-                MARGIN,                                   // 0 pos left
-                posRight,                                 // 1 pos right / description left
-                right - amount - vat - unit - qty,        // 2 qty right
-                right - amount - vat - unit,              // 3 unit-price right
-                right - amount - vat,                     // 4 vat right
-                right,                                    // 5 amount right
+                left,                                     // 0 pos left
+                descriptionLeft,                          // 1 description left
+                right - amount - vat - unit - qty,        // 2 description right limit
+                right - amount - vat - unit,              // 3 qty right
+                right - amount - vat,                     // 4 unit-price right
+                right - amount,                           // 5 vat right
+                right,                                    // 6 amount right
         };
     }
 
@@ -212,10 +229,10 @@ public class InvoiceRenderer {
 
         c.drawText(res.getString(R.string.inv_col_pos), col[0], y, bold);
         c.drawText(res.getString(R.string.inv_col_description), col[1] + 6f, y, bold);
-        rightText(c, res.getString(R.string.inv_col_qty), col[2], y, bold);
-        rightText(c, res.getString(R.string.inv_col_unit_price), col[3], y, bold);
-        rightText(c, res.getString(R.string.inv_col_vat), col[4], y, bold);
-        rightText(c, res.getString(R.string.inv_col_amount), col[5], y, bold);
+        rightText(c, res.getString(R.string.inv_col_qty), col[3], y, bold);
+        rightText(c, res.getString(R.string.inv_col_unit_price), col[4], y, bold);
+        rightText(c, res.getString(R.string.inv_col_vat), col[5], y, bold);
+        rightText(c, res.getString(R.string.inv_col_amount), col[6], y, bold);
         y += 5f;
         c.drawLine(MARGIN, y, PAGE_WIDTH - MARGIN, y, rule);
         y += LINE;
@@ -225,10 +242,10 @@ public class InvoiceRenderer {
             float descriptionWidth = col[2] - col[1] - 20f;
             List<String> wrapped = wrap(describe(line), descriptionWidth, body);
             c.drawText(wrapped.get(0), col[1] + 6f, y, body);
-            rightText(c, quantity(line), col[2], y, body);
-            rightText(c, money.format(line.unitPriceCents / 100.0), col[3], y, body);
-            rightText(c, Money.percent(line.ratePermille) + " %", col[4], y, body);
-            rightText(c, money.format(line.netCents / 100.0), col[5], y, body);
+            rightText(c, quantity(line), col[3], y, body);
+            rightText(c, money.format(line.unitPriceCents / 100.0), col[4], y, body);
+            rightText(c, Money.percent(line.ratePermille) + " %", col[5], y, body);
+            rightText(c, money.format(line.netCents / 100.0), col[6], y, body);
             y += LINE;
             for (int i = 1; i < wrapped.size(); i++) {
                 c.drawText(wrapped.get(i), col[1] + 6f, y, small);

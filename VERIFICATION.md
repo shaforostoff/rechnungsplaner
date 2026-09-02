@@ -2,7 +2,7 @@
 
 What the automated suite covers, and what it deliberately does not.
 
-## Covered by `./gradlew test` (141 tests, no device needed)
+## Covered by `./gradlew test` (145 tests, no device needed)
 
 The `einvoice`, `data`, `exchange`, `util` and `pdf` packages avoid `android.*` imports
 specifically so they can be tested on the JVM. The `ui` package cannot be, but its pure decisions
@@ -21,6 +21,7 @@ specifically so they can be tested on the JVM. The `ui` package cannot be, but i
 | Contacts archive | Round-trip, plus reading a contact straight from the lexoffice API shape |
 | Fee fields | Both decimal separators, grouping, junk and overflow; and that what a field shows reads back as the same cents |
 | Gig status | A past date starts as played, including across a year boundary |
+| Invoice table columns | Each column has its own width of clearance, so no header prints over the one before it |
 | Non-ASCII text | "Stresemannstraße", an ampersand beside umlauts, a non-Latin-1 city and an astral character survive both writers, parsed back with a real XML parser; and the same payload comes out of a packed PDF byte-identical |
 
 ## Not covered, and why
@@ -28,8 +29,9 @@ specifically so they can be tested on the JVM. The `ui` package cannot be, but i
 **No device or emulator was available**, so nothing that needs the Android runtime has been
 executed. Specifically unverified:
 
-- `InvoiceRenderer` has never drawn a page. The layout arithmetic, the pagination threshold and
-  the measured column widths are unexercised.
+- `InvoiceRenderer` has never drawn a page. The pagination threshold and the text wrapping are
+  unexercised; the column tiling is now tested on its own, since it is arithmetic rather than
+  drawing, but the widths feeding it still come from `Paint.measureText` on a device.
 - `PdfA3Packer` has never seen real `android.graphics.pdf.PdfDocument` output. It handles both
   cross-reference flavours and refuses anything it cannot rewrite safely, but Skia's exact
   structure is an assumption until it runs.
