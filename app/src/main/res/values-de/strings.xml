@@ -117,6 +117,10 @@
     <string name="action_create">Erstellen</string>
     <string name="action_create_anyway">Trotzdem erstellen</string>
     <string name="invoice_created">Rechnung %1$s erstellt</string>
+    <string name="action_recreate">Rechnung neu erstellen</string>
+    <string name="action_overwrite">Überschreiben</string>
+    <string name="confirm_overwrite_invoice">Rechnung %1$s ersetzen? Die Nummer bleibt, die bereits erzeugten Dateien werden gelöscht.</string>
+    <string name="invoice_recreated">Rechnung %1$s ersetzt</string>
     <string name="hybrid_degraded">Die XML konnte nicht in die PDF eingebettet werden und wurde als eigene Datei geschrieben. Beide senden.</string>
     <string name="action_save_to_folder">In Ordner speichern</string>
     <string name="saved_to_folder">Im gewählten Ordner gespeichert</string>

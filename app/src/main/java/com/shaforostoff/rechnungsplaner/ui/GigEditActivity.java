@@ -168,6 +168,17 @@ public class GigEditActivity extends BaseActivity {
                                 gig.invoiceId));
                     }
                 });
+                f.secondaryButton(R.string.action_recreate, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // Save first: correcting the fee here is one of the reasons to redo the
+                        // invoice, and it would be read from the database a moment from now.
+                        if (save()) {
+                            startActivity(InvoiceActivity.reissueIntent(GigEditActivity.this,
+                                    gig.invoiceId));
+                        }
+                    }
+                });
             } else {
                 f.primaryButton(R.string.action_create_invoice, new View.OnClickListener() {
                     @Override

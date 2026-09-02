@@ -84,6 +84,17 @@ public class InvoiceWriter {
      */
     public Result write(Issuer issuer, Customer customer, Invoice invoice, OutputFormat format)
             throws IOException {
+        return write(issuer, customer, invoice, format, false);
+    }
+
+    /**
+     * @param replaceExisting clears the invoice's previous files first. A reissue keeps the invoice
+     *                        number, so a leftover PDF is a second document contradicting the
+     *                        first under one number -- and since sharing lists the archive
+     *                        directory, it would be attached alongside the corrected one.
+     */
+    public Result write(Issuer issuer, Customer customer, Invoice invoice, OutputFormat format,
+                        boolean replaceExisting) throws IOException {
         Result result = new Result();
         EnInvoice en = InvoiceMapper.toEnInvoice(issuer, customer, invoice);
         Profile profile = format.profile == null ? Profile.XRECHNUNG_30 : format.profile;
@@ -91,6 +102,13 @@ public class InvoiceWriter {
 
         String baseName = baseName(issuer, customer, invoice, format);
         File dir = archiveDir(invoice.id);
+        if (replaceExisting) {
+            File[] stale = dir.listFiles();
+            if (stale != null) {
+                for (File file : stale) file.delete();
+            }
+            invoices.clearFiles(invoice.id);
+        }
         long now = System.currentTimeMillis();
 
         if (format.producesPdf) {

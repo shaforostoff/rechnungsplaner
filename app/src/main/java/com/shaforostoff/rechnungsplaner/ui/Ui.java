@@ -25,11 +25,20 @@ public final class Ui {
         Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show();
     }
 
-    public static void confirm(Context ctx, int messageRes, final Runnable onConfirmed) {
+    public static void confirm(Context ctx, int messageRes, Runnable onConfirmed) {
+        confirm(ctx, ctx.getString(messageRes), R.string.action_delete, onConfirmed);
+    }
+
+    /**
+     * @param confirmRes the affirmative button's label, which should name what is about to happen
+     *                   -- a dialog whose only button says "Delete" cannot ask anything else
+     */
+    public static void confirm(Context ctx, CharSequence message, int confirmRes,
+                               final Runnable onConfirmed) {
         new AlertDialog.Builder(ctx)
-                .setMessage(messageRes)
+                .setMessage(message)
                 .setNegativeButton(R.string.action_cancel, null)
-                .setPositiveButton(R.string.action_delete, new DialogInterface.OnClickListener() {
+                .setPositiveButton(confirmRes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         onConfirmed.run();

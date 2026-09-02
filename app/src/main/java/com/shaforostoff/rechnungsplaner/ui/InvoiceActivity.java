@@ -50,6 +50,7 @@ public class InvoiceActivity extends BaseActivity {
 
     private static final String EXTRA_GIG_ID = "gig_id";
     private static final String EXTRA_INVOICE_ID = "invoice_id";
+    private static final String EXTRA_REISSUE = "reissue";
     private static final int REQUEST_PICK_FOLDER = 41;
 
     public static Intent draftIntent(Context ctx, long gigId) {
@@ -58,6 +59,12 @@ public class InvoiceActivity extends BaseActivity {
 
     public static Intent openIntent(Context ctx, long invoiceId) {
         return new Intent(ctx, InvoiceActivity.class).putExtra(EXTRA_INVOICE_ID, invoiceId);
+    }
+
+    /** Opens an issued invoice as an editable draft that will overwrite it, number included. */
+    public static Intent reissueIntent(Context ctx, long invoiceId) {
+        return new Intent(ctx, InvoiceActivity.class).putExtra(EXTRA_INVOICE_ID, invoiceId)
+                .putExtra(EXTRA_REISSUE, true);
     }
 
     private SettingsStore settings;
@@ -73,6 +80,11 @@ public class InvoiceActivity extends BaseActivity {
     private final List<Boolean> selected = new ArrayList<Boolean>();
 
     private boolean issued;
+    /**
+     * The issued invoice being corrected, or null for a new one. Held whole rather than as copied
+     * fields because each rebuild replaces {@link #invoice} and has to take its identity again.
+     */
+    private Invoice replacing;
     private Spinner formatSpinner;
     private List<File> lastFiles = new ArrayList<File>();
 
@@ -85,18 +97,76 @@ public class InvoiceActivity extends BaseActivity {
         issuer = new IssuerDao(this).load();
 
         long invoiceId = getIntent().getLongExtra(EXTRA_INVOICE_ID, -1L);
+        boolean wantsReissue = getIntent().getBooleanExtra(EXTRA_REISSUE, false);
         if (invoiceId > 0L) {
             invoice = invoices.byId(invoiceId);
             issued = invoice != null;
+        }
+        if (invoice != null && wantsReissue && !buildCorrection()) {
+            finish();
+            return;
         }
         if (invoice == null && !buildDraft()) {
             finish();
             return;
         }
-        customer = new CustomerDao(this).byId(invoice.customerId);
+        if (replacing == null) customer = new CustomerDao(this).byId(invoice.customerId);
 
-        setScreenTitle(issued ? invoice.number : getString(R.string.title_invoice));
+        setScreenTitle(invoice.number == null ? getString(R.string.title_invoice) : invoice.number);
         render();
+    }
+
+    /**
+     * Loads an issued invoice back into a draft that will overwrite it.
+     *
+     * <p>Everything is recomputed from current data -- the gigs' fees, the customer's details, the
+     * issuer's address -- because that is the whole point: the reasons to redo an invoice are all
+     * "something was wrong or stale when it was first written". What is deliberately <em>not</em>
+     * recomputed is the invoice's identity: the number, the issue date and therefore the document
+     * this is a correction of.
+     *
+     * @return false when the invoice's gigs have gone, leaving nothing to rebuild from
+     */
+    private boolean buildCorrection() {
+        if (issuer.isEmpty()) {
+            Ui.toast(this, R.string.issuer_incomplete);
+            startActivity(new Intent(this, IssuerEditActivity.class));
+            return false;
+        }
+        List<Gig> onInvoice = gigs.forInvoice(invoice.id);
+        if (onInvoice.isEmpty()) return false;
+
+        replacing = invoice;
+        issued = false;
+
+        // The gig's customer rather than the invoice's: reassigning a gig to the booker who
+        // actually pays is one of the corrections this exists for.
+        CustomerDao customers = new CustomerDao(this);
+        Gig first = onInvoice.get(0);
+        customer = customers.byId(first.customerId);
+        if (customer == null) customer = customers.byId(invoice.customerId);
+
+        billedGigs.clear();
+        billedGigs.addAll(onInvoice);
+
+        selectableGigs.clear();
+        selected.clear();
+        if (customer != null) {
+            for (Gig other : gigs.billableFor(customer.id)) {
+                if (containsGig(onInvoice, other.id)) continue;
+                selectableGigs.add(other);
+                selected.add(Boolean.FALSE);
+            }
+        }
+        rebuildInvoice();
+        return true;
+    }
+
+    private static boolean containsGig(List<Gig> gigs, long id) {
+        for (Gig g : gigs) {
+            if (g.id == id) return true;
+        }
+        return false;
     }
 
     /** @return false when there is nothing to bill, which should not happen from the gig screen */
@@ -133,9 +203,16 @@ public class InvoiceActivity extends BaseActivity {
         for (int i = 0; i < selectableGigs.size(); i++) {
             if (selected.get(i).booleanValue()) chosen.add(selectableGigs.get(i));
         }
-        invoice = InvoiceBuilder.build(issuer, customer, chosen, Dates.today());
-        invoice.number = invoices.peekNextNumber(settings.getInvoiceNumberPattern(),
-                invoice.issueDate);
+        // A correction keeps the original issue date: it is the same document, and moving the date
+        // would move the payment deadline with it.
+        invoice = InvoiceBuilder.build(issuer, customer, chosen,
+                replacing == null ? Dates.today() : replacing.issueDate);
+        if (replacing == null) {
+            invoice.number = invoices.peekNextNumber(settings.getInvoiceNumberPattern(),
+                    invoice.issueDate);
+        } else {
+            invoice.takeIdentityFrom(replacing);
+        }
     }
 
     private void render() {
@@ -175,15 +252,40 @@ public class InvoiceActivity extends BaseActivity {
             f.caption(getString(R.string.two_part_label, getString(R.string.label_filename),
                     new InvoiceWriter(this).baseName(issuer, customer, invoice,
                             settings.getOutputFormat())));
-            f.primaryButton(hasErrors() ? R.string.action_create_anyway : R.string.action_create,
-                    new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            issue();
-                        }
-                    });
+            int label = replacing != null ? R.string.action_overwrite
+                    : hasErrors() ? R.string.action_create_anyway : R.string.action_create;
+            f.primaryButton(label, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (replacing == null) {
+                        issue();
+                        return;
+                    }
+                    // Overwriting replaces a document that may already have been sent, so it is
+                    // worth one tap of confirmation naming the number being replaced.
+                    Ui.confirm(InvoiceActivity.this,
+                            getString(R.string.confirm_overwrite_invoice, replacing.number),
+                            R.string.action_overwrite, new Runnable() {
+                                @Override
+                                public void run() {
+                                    issue();
+                                }
+                            });
+                }
+            });
         } else {
             f.section(R.string.action_share);
+            // Only offered when there are gigs to rebuild from: a correction recomputes the
+            // lines from them, so without any there is nothing to recompute.
+            if (!gigs.forInvoice(invoice.id).isEmpty()) {
+                f.secondaryButton(R.string.action_recreate, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startActivity(reissueIntent(InvoiceActivity.this, invoice.id));
+                        finish();
+                    }
+                });
+            }
             f.primaryButton(R.string.action_share, new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -305,21 +407,29 @@ public class InvoiceActivity extends BaseActivity {
         }
 
         // Snapshot before writing: the files must reflect the parties as they are now, and so must
-        // any re-export years later.
-        invoice.number = null;
+        // any re-export years later. A correction re-snapshots for the same reason -- picking up
+        // the address the first version got wrong is what it is for.
         invoice.issuerSnapshot = LexofficeContacts.issuerToJson(issuer, false);
         invoice.customerSnapshot = customer == null ? null
                 : LexofficeContacts.customerToJson(customer, false);
-        invoices.issue(invoice, settings.getInvoiceNumberPattern(), gigIds);
+        if (replacing != null) {
+            invoices.reissue(invoice, gigIds);
+        } else {
+            invoice.number = null;
+            invoices.issue(invoice, settings.getInvoiceNumberPattern(), gigIds);
+        }
 
         try {
             InvoiceWriter.Result result = new InvoiceWriter(this)
-                    .write(issuer, customer, invoice, format);
+                    .write(issuer, customer, invoice, format, replacing != null);
             lastFiles = result.files;
             issued = true;
+            boolean corrected = replacing != null;
+            replacing = null;
             setScreenTitle(invoice.number);
             render();
-            Ui.toast(this, getString(R.string.invoice_created, invoice.number));
+            Ui.toast(this, getString(corrected ? R.string.invoice_recreated
+                    : R.string.invoice_created, invoice.number));
             if (result.hybridDegraded) {
                 Ui.toast(this, getString(R.string.hybrid_degraded));
             }

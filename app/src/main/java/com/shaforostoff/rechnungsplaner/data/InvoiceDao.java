@@ -66,6 +66,78 @@ public class InvoiceDao {
     }
 
     /**
+     * Rewrites an already-issued invoice in place, keeping its number.
+     *
+     * <p>A correction of one document rather than a second one: same row, same number, same
+     * {@code created_at}, and the counter untouched. That is right for the case this exists for --
+     * a fee that changed, a customer whose details arrived late, an address that was stale when
+     * the invoice was first written -- and wrong for an invoice the customer has already paid
+     * against, which German practice cancels with a credit note instead. The UI owns that
+     * distinction, as it does for {@link #deleteDraft}.
+     *
+     * @param gigIds the gigs the corrected invoice bills, which need not be the original set
+     */
+    public void reissue(Invoice invoice, List<Long> gigIds) {
+        if (invoice.id <= 0L) {
+            throw new IllegalArgumentException("reissue needs an invoice that exists");
+        }
+        if (invoice.number == null || invoice.number.trim().isEmpty()) {
+            throw new IllegalArgumentException("reissue must keep the original number");
+        }
+        List<Long> billed = gigIds == null ? new ArrayList<Long>() : gigIds;
+        SQLiteDatabase w = db.getWritableDatabase();
+        w.beginTransaction();
+        try {
+            String id = Long.toString(invoice.id);
+            w.update(Db.T_INVOICE, values(invoice), "_id = ?", new String[]{id});
+            w.delete(Db.T_INVOICE_LINE, "invoice_id = ?", new String[]{id});
+
+            int lineNo = 1;
+            for (InvoiceLine line : invoice.lines) {
+                line.invoiceId = invoice.id;
+                line.lineNo = lineNo++;
+                line.id = w.insertOrThrow(Db.T_INVOICE_LINE, null, values(line));
+            }
+
+            List<Long> wereBilled = gigIdsFor(w, invoice.id);
+            for (Long gigId : wereBilled) {
+                if (billed.contains(gigId)) continue;
+                // Dropped from the invoice, so back to billable -- otherwise it stays marked
+                // invoiced while pointing at an invoice that no longer bills it.
+                ContentValues v = new ContentValues();
+                v.put("invoice_id", -1L);
+                v.put("status", Gig.Status.PLAYED.name());
+                w.update(Db.T_GIG, v, "_id = ?", new String[]{Long.toString(gigId)});
+            }
+            for (Long gigId : billed) {
+                // A gig that was already on this invoice is left alone: if it is marked paid, the
+                // payment happened and correcting the document does not undo it.
+                if (wereBilled.contains(gigId)) continue;
+                ContentValues v = new ContentValues();
+                v.put("invoice_id", invoice.id);
+                v.put("status", Gig.Status.INVOICED.name());
+                w.update(Db.T_GIG, v, "_id = ?", new String[]{Long.toString(gigId)});
+            }
+
+            w.setTransactionSuccessful();
+        } finally {
+            w.endTransaction();
+        }
+    }
+
+    private static List<Long> gigIdsFor(SQLiteDatabase w, long invoiceId) {
+        List<Long> out = new ArrayList<Long>();
+        Cursor c = w.query(Db.T_GIG, new String[]{"_id"}, "invoice_id = ?",
+                new String[]{Long.toString(invoiceId)}, null, null, null);
+        try {
+            while (c.moveToNext()) out.add(Long.valueOf(c.getLong(0)));
+        } finally {
+            c.close();
+        }
+        return out;
+    }
+
+    /**
      * Consumes the next number in the year's series.
      *
      * <p>Section 14 UStG wants the series unique, not gapless, so a number burnt by a cancelled
@@ -176,6 +248,12 @@ public class InvoiceDao {
         v.put("created_at", file.createdAt == 0L ? System.currentTimeMillis() : file.createdAt);
         file.id = db.getWritableDatabase().insert(Db.T_INVOICE_FILE, null, v);
         return file.id;
+    }
+
+    /** Forgets the files recorded for an invoice, for when they are about to be replaced. */
+    public void clearFiles(long invoiceId) {
+        db.getWritableDatabase().delete(Db.T_INVOICE_FILE, "invoice_id = ?",
+                new String[]{Long.toString(invoiceId)});
     }
 
     public List<InvoiceFile> filesFor(long invoiceId) {

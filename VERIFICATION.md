@@ -2,7 +2,7 @@
 
 What the automated suite covers, and what it deliberately does not.
 
-## Covered by `./gradlew test` (145 tests, no device needed)
+## Covered by `./gradlew test` (150 tests, no device needed)
 
 The `einvoice`, `data`, `exchange`, `util` and `pdf` packages avoid `android.*` imports
 specifically so they can be tested on the JVM. The `ui` package cannot be, but its pure decisions
@@ -21,6 +21,7 @@ specifically so they can be tested on the JVM. The `ui` package cannot be, but i
 | Contacts archive | Round-trip, plus reading a contact straight from the lexoffice API shape |
 | Fee fields | Both decimal separators, grouping, junk and overflow; and that what a field shows reads back as the same cents |
 | Gig status | A past date starts as played, including across a year boundary |
+| Invoice corrections | Redoing an issued invoice keeps its number, row and issue date while recomputing fees, snapshots and periods |
 | Invoice table columns | Each column has its own width of clearance, so no header prints over the one before it |
 | Non-ASCII text | "Stresemannstraße", an ampersand beside umlauts, a non-Latin-1 city and an astral character survive both writers, parsed back with a real XML parser; and the same payload comes out of a packed PDF byte-identical |
 
@@ -35,6 +36,10 @@ executed. Specifically unverified:
 - `PdfA3Packer` has never seen real `android.graphics.pdf.PdfDocument` output. It handles both
   cross-reference flavours and refuses anything it cannot rewrite safely, but Skia's exact
   structure is an assumption until it runs.
+- `InvoiceDao.reissue` runs against SQLite, so its transaction is unverified here: that dropped
+  gigs go back to billable, that a gig already marked paid keeps that status, and that the number
+  counter is untouched are all argued in code but not executed. The identity rule it depends on
+  (`Invoice.takeIdentityFrom`) is tested.
 - `CalendarMirror`, `ShareProvider`, `SafExporter` and every screen are compile-verified only.
   This includes the field mechanics whose *decisions* are tested -- that the account holder mirrors
   the name is pinned as a rule, but nothing has confirmed the `TextWatcher` is wired to the right
