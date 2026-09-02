@@ -69,7 +69,6 @@
     <string name="title_edit_customer">Kunde</string>
     <string name="customers_empty">Noch keine Kunden. Leg einen an, wenn das erste Set gebucht ist.</string>
     <string name="label_official_name">Firmenname</string>
-    <string name="hint_official_name_later">Nach dem ersten Gig erfragen</string>
     <string name="label_street">Straße</string>
     <string name="label_postcode">PLZ</string>
     <string name="label_country">Land</string>

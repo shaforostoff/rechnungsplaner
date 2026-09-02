@@ -69,7 +69,6 @@
     <string name="title_edit_customer">Cliente</string>
     <string name="customers_empty">Aún no hay clientes. Añade uno al reservar tu primera sesión.</string>
     <string name="label_official_name">Razón social</string>
-    <string name="hint_official_name_later">Pídelo después de la primera sesión</string>
     <string name="label_street">Calle</string>
     <string name="label_postcode">Código postal</string>
     <string name="label_country">País</string>

@@ -85,8 +85,7 @@ public class CustomerEditActivity extends BaseActivity {
 
         placeField = f.field(R.string.label_place, customer.placeName, false);
         officialNameField = f.field(R.string.label_official_name, customer.officialName, true,
-                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS,
-                getString(R.string.hint_official_name_later));
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         streetField = f.field(R.string.label_street, customer.street, true);
         postcodeField = f.field(R.string.label_postcode, customer.postcode, true,
                 InputType.TYPE_CLASS_TEXT);

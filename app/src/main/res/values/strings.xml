@@ -75,7 +75,6 @@
     <string name="title_edit_customer">Customer</string>
     <string name="customers_empty">No customers yet. Add one when you book your first set.</string>
     <string name="label_official_name">Registered name</string>
-    <string name="hint_official_name_later">Ask for this after the first gig</string>
     <string name="label_street">Street</string>
     <string name="label_postcode">Post code</string>
     <string name="label_country">Country</string>
