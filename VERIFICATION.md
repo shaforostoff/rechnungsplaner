@@ -2,10 +2,11 @@
 
 What the automated suite covers, and what it deliberately does not.
 
-## Covered by `./gradlew test` (111 tests, no device needed)
+## Covered by `./gradlew test` (136 tests, no device needed)
 
 The `einvoice`, `data`, `exchange`, `util` and `pdf` packages avoid `android.*` imports
-specifically so they can be tested on the JVM.
+specifically so they can be tested on the JVM. The `ui` package cannot be, but its pure decisions
+-- money parsing, the mirrored-field rule -- are static methods that load and run there anyway.
 
 | Area | What is pinned |
 |---|---|
@@ -18,6 +19,8 @@ specifically so they can be tested on the JVM.
 | Attachment discovery | poppler `pdfdetach` finds and extracts `factur-x.xml` (skipped if poppler absent) |
 | Tour list | The per-city, per-customer disambiguation rule |
 | Contacts archive | Round-trip, plus reading a contact straight from the lexoffice API shape |
+| Fee fields | Both decimal separators, grouping, junk and overflow; and that what a field shows reads back as the same cents |
+| Gig status | A past date starts as played, including across a year boundary |
 
 ## Not covered, and why
 
@@ -30,6 +33,9 @@ executed. Specifically unverified:
   cross-reference flavours and refuses anything it cannot rewrite safely, but Skia's exact
   structure is an assumption until it runs.
 - `CalendarMirror`, `ShareProvider`, `SafExporter` and every screen are compile-verified only.
+  This includes the field mechanics whose *decisions* are tested -- that the account holder mirrors
+  the name is pinned as a rule, but nothing has confirmed the `TextWatcher` is wired to the right
+  two fields.
 
 **Strict PDF/A-3b conformance is claimed in the XMP but not proven.** The output intent, the
 generated sRGB profile and the metadata stream are built to the requirements, but only veraPDF

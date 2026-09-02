@@ -67,6 +67,11 @@ public final class Ui {
      * <p>Accepts both separators regardless of locale: someone typing "350.00" on a German phone
      * means three hundred and fifty euros, and refusing that would be pedantic. The last separator
      * in the string is the decimal one, so "1.234,56" and "1,234.56" both work.
+     *
+     * <p>How many digits follow that last separator decides what it was. Up to two are cents.
+     * Exactly three is ambiguous -- "1.234" is a grouped thousand to a German and one euro
+     * twenty-three point four to nobody -- so grouping wins. More than three cannot be grouping in
+     * any locale, so it is someone typing past the cents and the surplus is dropped.
      */
     public static long editableToCents(String text) {
         if (text == null) return 0L;
@@ -79,7 +84,8 @@ public final class Ui {
 
         String digits;
         String fraction = "";
-        if (decimalAt >= 0 && cleaned.length() - decimalAt - 1 <= 2) {
+        int trailing = decimalAt < 0 ? -1 : cleaned.length() - decimalAt - 1;
+        if (decimalAt >= 0 && trailing != 3) {
             digits = cleaned.substring(0, decimalAt);
             fraction = cleaned.substring(decimalAt + 1);
         } else {
@@ -107,7 +113,12 @@ public final class Ui {
         return f.format(cents / 100.0);
     }
 
-    /** {@code 21:30} from minutes since midnight, or an empty string for "not set". */
+    /**
+     * {@code 21:30} in the device's zone from an instant, or an empty string for "not set".
+     *
+     * <p>Twenty-four hour whatever the locale: these times belong to sets that run past midnight,
+     * where "4:00" without the 0 leaves which day it falls on open to reading.
+     */
     public static String timeOfDay(long millis) {
         if (millis <= 0L) return "";
         java.util.Calendar c = java.util.Calendar.getInstance();
