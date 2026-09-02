@@ -54,7 +54,7 @@ public class Db extends SQLiteOpenHelper {
                 + "iban TEXT, bic TEXT, account_holder TEXT,"
                 + "default_tax_mode TEXT NOT NULL DEFAULT 'KLEINUNTERNEHMER',"
                 + "exemption_text TEXT,"
-                + "default_due_days INTEGER NOT NULL DEFAULT 30,"
+                + "default_due_days INTEGER NOT NULL DEFAULT 60,"
                 + "payment_terms_text TEXT,"
                 + "default_invoice_language TEXT NOT NULL DEFAULT 'de')");
 

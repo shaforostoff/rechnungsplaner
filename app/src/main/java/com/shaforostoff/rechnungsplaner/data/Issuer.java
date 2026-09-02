@@ -25,7 +25,7 @@ public class Issuer {
     public TaxMode defaultTaxMode = TaxMode.KLEINUNTERNEHMER;
     /** Overrides the statutory wording from {@link TaxMode} when the user prefers their own. */
     public String exemptionText = "";
-    public int defaultDueDays = 30;
+    public int defaultDueDays = 60;
     public String paymentTermsText = "";
     /** Invoice-document language used when a customer has no preference of their own. */
     public String defaultInvoiceLanguage = "de";
