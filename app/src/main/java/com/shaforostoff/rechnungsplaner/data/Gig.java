@@ -1,5 +1,7 @@
 package com.shaforostoff.rechnungsplaner.data;
 
+import com.shaforostoff.rechnungsplaner.util.Dates;
+
 /**
  * One DJ-set.
  *
@@ -21,6 +23,18 @@ public class Gig {
             }
             return fallback;
         }
+    }
+
+    /**
+     * The status a newly entered gig starts in: a set whose date has already passed has been
+     * played, so entering last month's gig should not require correcting the status by hand.
+     *
+     * <p>Today counts as not yet played -- a set is entered before it happens, not during it -- and
+     * ISO dates compare lexicographically, so no parsing is needed.
+     */
+    public static Status defaultStatusFor(String isoDate) {
+        if (!Dates.isValid(isoDate)) return Status.PLANNED;
+        return isoDate.compareTo(Dates.today()) < 0 ? Status.PLAYED : Status.PLANNED;
     }
 
     public long id = -1L;

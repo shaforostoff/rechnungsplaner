@@ -63,6 +63,13 @@ public class GigEditActivity extends BaseActivity {
 
     private final List<Customer> customerChoices = new ArrayList<Customer>();
 
+    /**
+     * The status this screen picked from the date, or null once the gig is the user's to decide.
+     * Comparing against it is how {@link #pickDate()} knows whether it may still move the status:
+     * an existing gig never gets one, so re-dating an invoiced set cannot silently unbill it.
+     */
+    private Gig.Status autoStatus;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,6 +84,8 @@ public class GigEditActivity extends BaseActivity {
             gig = new Gig();
             String date = getIntent().getStringExtra(EXTRA_DATE);
             gig.date = Dates.isValid(date) ? date : Dates.today();
+            gig.status = Gig.defaultStatusFor(gig.date);
+            autoStatus = gig.status;
         }
         setScreenTitle(isNew ? R.string.title_new_gig : R.string.title_edit_gig);
         addTitleAction(R.string.action_save, new View.OnClickListener() {
@@ -224,6 +233,7 @@ public class GigEditActivity extends BaseActivity {
                 gig.endMillis = shiftToDate(gig.endMillis, previous, gig.date);
                 dateField.setText(displayDate());
                 updateMidnightHint();
+                followDateWithStatus();
             }
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
     }
@@ -253,6 +263,21 @@ public class GigEditActivity extends BaseActivity {
                 updateMidnightHint();
             }
         }, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true).show();
+    }
+
+    /**
+     * Keeps the status in step with the date until the user overrules it. Moving a set from last
+     * month to next month should stop calling it played, but only while the shown status is the one
+     * this screen chose -- a deliberate pick is left alone.
+     */
+    private void followDateWithStatus() {
+        if (autoStatus == null) return;
+        if (FormBuilder.selectionOf(statusSpinner) != autoStatus.ordinal()) {
+            autoStatus = null;
+            return;
+        }
+        autoStatus = Gig.defaultStatusFor(gig.date);
+        statusSpinner.setSelection(autoStatus.ordinal());
     }
 
     private void updateMidnightHint() {

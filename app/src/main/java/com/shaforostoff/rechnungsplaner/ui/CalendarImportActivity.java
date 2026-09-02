@@ -135,6 +135,7 @@ public class CalendarImportActivity extends BaseActivity {
     private void adopt(CalendarMirror.AdoptableEvent event) {
         Gig gig = new Gig();
         gig.date = event.date;
+        gig.status = Gig.defaultStatusFor(event.date);
         gig.startMillis = event.startMillis;
         gig.endMillis = event.endMillis;
         gig.placeName = event.location;
