@@ -174,7 +174,8 @@ public class InvoiceBuilderTest {
                 "2026-09-05");
 
         assertEquals("en", inv.language);
-        assertEquals("Kleinunternehmer gemäß § 19 UStG", inv.exemptionText);
+        assertEquals("In dieser Rechnung ist gemäß § 19 Abs. 1 UStG keine Umsatzsteuer enthalten.",
+                inv.exemptionText);
         assertEquals(TaxCategory.E, inv.lines.get(0).taxCategory);
         assertEquals(0L, inv.taxTotalCents);
     }

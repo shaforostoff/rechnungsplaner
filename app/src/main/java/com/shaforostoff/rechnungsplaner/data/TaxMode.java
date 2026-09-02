@@ -13,7 +13,8 @@ import com.shaforostoff.rechnungsplaner.einvoice.TaxCategory;
 public enum TaxMode {
 
     /** No VAT charged. The seller then needs a Steuernummer rather than a USt-IdNr. */
-    KLEINUNTERNEHMER(TaxCategory.E, 0, "Kleinunternehmer gemäß § 19 UStG", null),
+    KLEINUNTERNEHMER(TaxCategory.E, 0,
+            "In dieser Rechnung ist gemäß § 19 Abs. 1 UStG keine Umsatzsteuer enthalten.", null),
 
     /** The standard German rate. */
     STANDARD_19(TaxCategory.S, 190, null, null),
