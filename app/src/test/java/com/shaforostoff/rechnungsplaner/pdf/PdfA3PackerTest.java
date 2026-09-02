@@ -1,5 +1,6 @@
 package com.shaforostoff.rechnungsplaner.pdf;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -39,15 +40,52 @@ public class PdfA3PackerTest {
                 "Rechnung 2026-001", "Nick Shaforostov",
                 "D:20260905120000+02'00'", "2026-09-05T12:00:00+02:00");
 
+        write(fixture, packed);
+        return packed;
+    }
+
+    /** Keeps a copy where veraPDF, Mustang or pdfdetach can be pointed at it. */
+    private static void write(String name, byte[] packed) throws IOException {
         File out = new File("build/packed");
         out.mkdirs();
-        OutputStream os = new FileOutputStream(new File(out, fixture));
+        OutputStream os = new FileOutputStream(new File(out, name));
         try {
             os.write(packed);
         } finally {
             os.close();
         }
-        return packed;
+    }
+
+    @Test
+    public void anAttachmentWithUmlautsIsEmbeddedByteForByte() throws Exception {
+        // The packer handles the PDF as an ISO-8859-1 string so that bytes round-trip, which is
+        // only safe because that mapping is one-to-one over 0x00-0xFF. This is the test of that
+        // claim: a UTF-8 invoice is multi-byte, and /Length has to be the byte count rather than
+        // the character count or a reader truncates the attachment mid-address.
+        byte[] xml = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<rsm:CrossIndustryInvoice>Stresemannstra\u00dfe, \u0141\u00f3d\u017a"
+                + "</rsm:CrossIndustryInvoice>\n").getBytes("UTF-8");
+        byte[] source = Files.readAllBytes(resource("classic-xref.pdf").toPath());
+        byte[] packed = PdfA3Packer.pack(source, xml, "XRECHNUNG", "Rechnung 2026-001",
+                "M\u00fcller & S\u00f6hne", "D:20260905120000+02'00'",
+                "2026-09-05T12:00:00+02:00");
+
+        write("umlauts.pdf", packed);
+
+        String text = new String(packed, LATIN1);
+        int dict = text.indexOf("/Type /EmbeddedFile");
+        assertTrue("no embedded file", dict > 0);
+        assertTrue("the length must count bytes, not characters",
+                text.substring(dict, dict + 120).contains("/Length " + xml.length));
+
+        // Read it back the way a consumer does: from the stream keyword, for /Length bytes.
+        int start = text.indexOf("stream\n", dict) + "stream\n".length();
+        byte[] extracted = new byte[xml.length];
+        System.arraycopy(packed, start, extracted, 0, xml.length);
+        assertArrayEquals("the attachment came back changed", xml, extracted);
+        String decoded = new String(extracted, "UTF-8");
+        assertTrue("and it still reads as the UTF-8 it claims to be",
+                decoded.contains("Stresemannstra\u00dfe, \u0141\u00f3d\u017a"));
     }
 
     private static String catalogOf(byte[] pdf) throws Exception {
