@@ -1,5 +1,8 @@
 package com.shaforostoff.rechnungsplaner.ui;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,6 +13,7 @@ import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 
 import com.shaforostoff.rechnungsplaner.util.Dates;
 
@@ -25,6 +29,11 @@ import java.util.Map;
  *
  * <p>Weeks start on Monday, which is what a German calendar looks like and is not what
  * {@link java.util.Calendar} numbers days as.
+ *
+ * <p>Paging follows the finger: a horizontal drag slides the grid and brings the neighbouring
+ * month in behind it, and letting go either completes the move or snaps back. That is why the
+ * loaded date range covers three months rather than one -- a month that arrives without its
+ * markers and then sprouts them a moment later looks broken.
  */
 public class MonthCalendarView extends View {
 
@@ -37,6 +46,11 @@ public class MonthCalendarView extends View {
 
     private static final int ROWS = 6;
     private static final int COLUMNS = 7;
+
+    /** Below this the drag snaps back rather than completing the month change. */
+    private static final float COMMIT_FRACTION = 0.33f;
+    private static final int SETTLE_MIN_MS = 130;
+    private static final int SETTLE_MAX_MS = 260;
 
     private final Paint dayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint headerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -52,6 +66,11 @@ public class MonthCalendarView extends View {
     private final String today = Dates.today();
     private Map<String, Integer> gigCounts = Collections.emptyMap();
     private Listener listener;
+
+    /** How far the grid is currently shifted from its resting place, in pixels. */
+    private float dragX;
+    private boolean dragging;
+    private ValueAnimator settle;
 
     private final GestureDetector gestures;
 
@@ -90,6 +109,9 @@ public class MonthCalendarView extends View {
 
             @Override
             public boolean onSingleTapUp(MotionEvent e) {
+                // A tap landing while the grid is mid-slide would pick the day now under the
+                // finger using coordinates for a month that is about to change.
+                if (isSettling()) return false;
                 if (!selectAt(e.getX(), e.getY())) return false;
                 // Routing through performClick is what lets accessibility services announce the
                 // tap; handling it only in the gesture detector makes the grid silent to them.
@@ -98,13 +120,35 @@ public class MonthCalendarView extends View {
             }
 
             @Override
+            public boolean onScroll(MotionEvent down, MotionEvent move, float distanceX,
+                                    float distanceY) {
+                if (!dragging) {
+                    // A mostly-vertical drag belongs to the scrolling page around us, and asking
+                    // for it would trap the finger in the calendar.
+                    if (Math.abs(distanceX) <= Math.abs(distanceY)) return false;
+                    dragging = true;
+                    cancelSettle();
+                    // Once the horizontal drag is ours, stop the ScrollView taking it over the
+                    // moment the finger drifts off the horizontal.
+                    if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
+                }
+                // Clamped to one screen either way: only one neighbour is drawn, so dragging
+                // further would expose blank space.
+                dragX = clamp(dragX - distanceX);
+                invalidate();
+                return true;
+            }
+
+            @Override
             public boolean onFling(MotionEvent down, MotionEvent up, float velocityX,
                                    float velocityY) {
                 if (down == null || up == null) return false;
                 if (Math.abs(velocityX) < Math.abs(velocityY)) return false;
-                // A fling left means "next month", matching the direction the content moves.
-                showMonth(velocityX < 0 ? nextMonthYear() : previousMonthYear(),
-                        velocityX < 0 ? nextMonth() : previousMonth());
+                dragging = false;
+                // A flick completes the month change however short the drag was: the gesture says
+                // "next", and the distance travelled is beside the point.
+                // Flinging left means the content moves left, revealing the next month.
+                settleTo(velocityX < 0 ? -1 : 1);
                 return true;
             }
         });
@@ -140,6 +184,10 @@ public class MonthCalendarView extends View {
     }
 
     public void showMonth(int year, int month) {
+        // "Today", or selecting a date in another month, jumps rather than slides -- so drop any
+        // drag or animation in progress instead of landing at an offset.
+        cancelSettle();
+        dragX = 0f;
         this.year = year;
         this.month = month;
         invalidate();
@@ -159,13 +207,20 @@ public class MonthCalendarView extends View {
         if (listener != null) listener.onDaySelected(isoDate);
     }
 
-    /** The inclusive date range the grid currently covers, for querying gigs in one go. */
+    /**
+     * The inclusive date range that can appear on screen, for querying gigs in one go.
+     *
+     * <p>Three months rather than one: a drag brings a neighbour into view before it becomes the
+     * current month, and it has to arrive with its markers already drawn.
+     */
     public String firstVisibleDate() {
-        return Dates.iso(year, month, 1);
+        return Dates.iso(previousMonthYear(), previousMonth(), 1);
     }
 
     public String lastVisibleDate() {
-        return Dates.iso(year, month, Dates.daysInMonth(year, month));
+        int y = nextMonthYear();
+        int m = nextMonth();
+        return Dates.iso(y, m, Dates.daysInMonth(y, m));
     }
 
     @Override
@@ -179,7 +234,21 @@ public class MonthCalendarView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return gestures.onTouchEvent(event) || super.onTouchEvent(event);
+        // The detector first, so a fling has already decided what to do before the release below
+        // gets a chance to settle the same drag a second time.
+        boolean handled = gestures.onTouchEvent(event);
+        int action = event.getActionMasked();
+        if (dragging && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)) {
+            dragging = false;
+            int width = getWidth();
+            // A cancel is the gesture being taken away rather than finished, so it snaps back
+            // however far the drag had got.
+            boolean commit = action == MotionEvent.ACTION_UP && width > 0
+                    && Math.abs(dragX) > width * COMMIT_FRACTION;
+            settleTo(!commit ? 0 : dragX > 0f ? 1 : -1);
+            handled = true;
+        }
+        return handled || super.onTouchEvent(event);
     }
 
     @Override
@@ -191,13 +260,28 @@ public class MonthCalendarView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         float columnWidth = getWidth() / (float) COLUMNS;
-        float headerHeight = headerPaint.getTextSize() * 2.2f;
-        float rowHeight = (getHeight() - headerHeight) / ROWS;
 
+        // The weekday row is the same for every month, so it stays put while the grid slides
+        // underneath it.
         for (int c = 0; c < COLUMNS; c++) {
             canvas.drawText(weekdayInitials[c], (c + 0.5f) * columnWidth,
                     headerPaint.getTextSize() * 1.3f, headerPaint);
         }
+
+        drawMonth(canvas, year, month, dragX);
+        // Only the neighbour the drag is uncovering needs drawing, and it sits exactly one screen
+        // away from the current one.
+        if (dragX > 0f) {
+            drawMonth(canvas, previousMonthYear(), previousMonth(), dragX - getWidth());
+        } else if (dragX < 0f) {
+            drawMonth(canvas, nextMonthYear(), nextMonth(), dragX + getWidth());
+        }
+    }
+
+    private void drawMonth(Canvas canvas, int year, int month, float offsetX) {
+        float columnWidth = getWidth() / (float) COLUMNS;
+        float headerHeight = headerPaint.getTextSize() * 2.2f;
+        float rowHeight = (getHeight() - headerHeight) / ROWS;
 
         int leading = Dates.mondayBasedDayOfWeek(year, month, 1);
         int days = Dates.daysInMonth(year, month);
@@ -207,7 +291,7 @@ public class MonthCalendarView extends View {
             int index = leading + day - 1;
             int row = index / COLUMNS;
             int column = index % COLUMNS;
-            float cx = (column + 0.5f) * columnWidth;
+            float cx = offsetX + (column + 0.5f) * columnWidth;
             float cy = headerHeight + (row + 0.5f) * rowHeight;
             String date = Dates.iso(year, month, day);
 
@@ -236,6 +320,82 @@ public class MonthCalendarView extends View {
                 }
             }
         }
+    }
+
+    private boolean isSettling() {
+        return settle != null && settle.isRunning();
+    }
+
+    private float clamp(float offset) {
+        int width = getWidth();
+        if (width <= 0) return 0f;
+        return Math.max(-width, Math.min(width, offset));
+    }
+
+    /**
+     * Animates the grid to rest.
+     *
+     * @param direction 0 to snap back to the current month, 1 to complete a move to the previous
+     *                  month, -1 to the next -- matching the sign of the offset that reveals it
+     */
+    private void settleTo(final int direction) {
+        cancelSettle();
+        int width = getWidth();
+        if (width <= 0) {
+            dragX = 0f;
+            invalidate();
+            return;
+        }
+
+        float target = direction * (float) width;
+        // Time proportional to the distance left, so a nearly-complete drag finishes promptly
+        // instead of crawling the last few pixels.
+        int duration = (int) (SETTLE_MIN_MS + (SETTLE_MAX_MS - SETTLE_MIN_MS)
+                * Math.abs(target - dragX) / width);
+
+        settle = ValueAnimator.ofFloat(dragX, target);
+        settle.setDuration(duration);
+        settle.setInterpolator(new DecelerateInterpolator());
+        settle.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                dragX = ((Float) animation.getAnimatedValue()).floatValue();
+                invalidate();
+            }
+        });
+        settle.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                // Done with it, and released before showMonth below reaches cancelSettle.
+                settle = null;
+                // Back to no offset first: the month that is now current draws in the same place
+                // the outgoing one was sliding towards, so nothing jumps.
+                dragX = 0f;
+                if (direction == 0) {
+                    invalidate();
+                } else if (direction > 0) {
+                    showMonth(previousMonthYear(), previousMonth());
+                } else {
+                    showMonth(nextMonthYear(), nextMonth());
+                }
+            }
+        });
+        settle.start();
+    }
+
+    private void cancelSettle() {
+        if (settle == null) return;
+        // Listeners off before cancelling: onAnimationEnd fires on cancel too, and it would
+        // commit a month change the user has just grabbed back.
+        settle.removeAllListeners();
+        settle.cancel();
+        settle = null;
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        cancelSettle();
+        super.onDetachedFromWindow();
     }
 
     private boolean selectAt(float x, float y) {
