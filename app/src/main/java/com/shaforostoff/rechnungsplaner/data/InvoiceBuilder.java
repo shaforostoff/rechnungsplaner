@@ -123,18 +123,19 @@ public final class InvoiceBuilder {
     }
 
     /** What a gig line says on the invoice, in the invoice's own language. */
+    /**
+     * The line text: what was performed and when.
+     *
+     * <p>No venue and no city. Neither is required content under § 14 UStG -- the parties are
+     * named in the header and the date is what the tax office is after -- and the venue is the
+     * user's own record of the booking rather than something the booker needs billing for.
+     */
     public static String describeGig(Gig gig, String language) {
-        String where = joinPlace(gig.placeName, gig.city);
         String date = Dates.forLanguage(gig.date, language);
         String lang = language == null ? "de" : language.toLowerCase(java.util.Locale.US);
-        if (lang.startsWith("en")) {
-            return where.isEmpty() ? "DJ set on " + date : "DJ set on " + date + ", " + where;
-        }
-        if (lang.startsWith("es")) {
-            return where.isEmpty() ? "Sesión de DJ el " + date
-                    : "Sesión de DJ el " + date + ", " + where;
-        }
-        return where.isEmpty() ? "DJ-Set am " + date : "DJ-Set am " + date + ", " + where;
+        if (lang.startsWith("en")) return "DJ set on " + date;
+        if (lang.startsWith("es")) return "Sesión de DJ el " + date;
+        return "DJ-Set am " + date;
     }
 
     private static String travelLabel(String language) {
@@ -167,14 +168,6 @@ public final class InvoiceBuilder {
     private static String shortName(String description) {
         int comma = description.indexOf(',');
         return comma > 0 ? description.substring(0, comma) : description;
-    }
-
-    private static String joinPlace(String place, String city) {
-        boolean p = notEmpty(place);
-        boolean c = notEmpty(city);
-        if (p && c) return place.trim() + ", " + city.trim();
-        if (p) return place.trim();
-        return c ? city.trim() : "";
     }
 
     private static List<Gig> sortedByDate(List<Gig> gigs) {

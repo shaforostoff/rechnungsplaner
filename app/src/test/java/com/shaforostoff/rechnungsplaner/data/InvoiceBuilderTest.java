@@ -157,12 +157,10 @@ public class InvoiceBuilderTest {
     @Test
     public void lineDescriptionFollowsTheInvoiceLanguage() {
         Gig g = gig("2026-08-15", 35000L);
-        assertEquals("DJ-Set am 15.08.2026, Muster Club, Hamburg",
-                InvoiceBuilder.describeGig(g, "de"));
-        assertEquals("DJ set on 2026-08-15, Muster Club, Hamburg",
-                InvoiceBuilder.describeGig(g, "en"));
-        assertEquals("Sesión de DJ el 15.08.2026, Muster Club, Hamburg",
-                InvoiceBuilder.describeGig(g, "es"));
+        // The venue and city the gig carries stay out of it, deliberately.
+        assertEquals("DJ-Set am 15.08.2026", InvoiceBuilder.describeGig(g, "de"));
+        assertEquals("DJ set on 2026-08-15", InvoiceBuilder.describeGig(g, "en"));
+        assertEquals("Sesión de DJ el 15.08.2026", InvoiceBuilder.describeGig(g, "es"));
     }
 
     @Test
