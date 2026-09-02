@@ -1,5 +1,6 @@
 package com.shaforostoff.rechnungsplaner.ui;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
@@ -32,6 +33,14 @@ public class InvoiceListActivity extends BaseActivity {
         invoices = new InvoiceDao(this);
         customers = new CustomerDao(this);
         setScreenTitle(R.string.tab_invoices);
+        // Your own details appear on every invoice here, so this is where noticing a wrong IBAN or
+        // tax number happens. Until now the only way in was the calendar's overflow menu.
+        addTitleAction(R.string.menu_issuer, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(InvoiceListActivity.this, IssuerEditActivity.class));
+            }
+        });
     }
 
     @Override
