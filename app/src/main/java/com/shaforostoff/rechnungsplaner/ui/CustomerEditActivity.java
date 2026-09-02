@@ -26,6 +26,12 @@ public class CustomerEditActivity extends BaseActivity {
 
     private static final String EXTRA_ID = "customer_id";
 
+    /**
+     * The id of the customer that was saved, returned to whoever started this screen for a result.
+     * Set on every save, edits included, so a caller can refresh rather than having to guess.
+     */
+    public static final String EXTRA_SAVED_ID = "saved_customer_id";
+
     public static Intent createIntent(Context ctx) {
         return new Intent(ctx, CustomerEditActivity.class);
     }
@@ -154,6 +160,9 @@ public class CustomerEditActivity extends BaseActivity {
         customer.note = text(noteField);
 
         customers.save(customer);
+        // Hand the id back: a caller that opened this screen to fill a customer field can select
+        // the new record instead of making the user pick it out of the list again.
+        setResult(RESULT_OK, new Intent().putExtra(EXTRA_SAVED_ID, customer.id));
         finish();
     }
 

@@ -61,6 +61,8 @@ public class GigEditActivity extends BaseActivity {
     private EditText notesField;
     private TextView midnightHint;
 
+    private static final int REQUEST_NEW_CUSTOMER = 1;
+
     private final List<Customer> customerChoices = new ArrayList<Customer>();
 
     /**
@@ -287,6 +289,17 @@ public class GigEditActivity extends BaseActivity {
         midnightHint.setVisibility(crosses ? View.VISIBLE : View.GONE);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQUEST_NEW_CUSTOMER || resultCode != RESULT_OK || data == null) return;
+
+        // Creating a customer from here was always in service of filling this field, so select it
+        // rather than sending the user back through the picker for a record they just typed in.
+        Customer saved = customers.byId(data.getLongExtra(CustomerEditActivity.EXTRA_SAVED_ID, -1L));
+        if (saved != null) applyCustomer(saved);
+    }
+
     private void pickCustomer() {
         customerChoices.clear();
         customerChoices.addAll(customers.all(false));
@@ -303,7 +316,9 @@ public class GigEditActivity extends BaseActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (which == labels.length - 1) {
-                            startActivity(CustomerEditActivity.createIntent(GigEditActivity.this));
+                            startActivityForResult(
+                                    CustomerEditActivity.createIntent(GigEditActivity.this),
+                                    REQUEST_NEW_CUSTOMER);
                             return;
                         }
                         applyCustomer(customerChoices.get(which));
