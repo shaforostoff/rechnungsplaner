@@ -28,6 +28,8 @@ public final class InvoiceMapper {
         out.currency = invoice.currency == null ? "EUR" : invoice.currency;
         out.buyerReference = invoice.buyerReference;
         out.note = invoice.note;
+        out.precedingNumber = invoice.replacesNumber;
+        out.precedingIssueDate = invoice.replacesDate;
         out.deliveryDate = invoice.deliveryDate;
         out.periodStart = invoice.periodStart;
         out.periodEnd = invoice.periodEnd;

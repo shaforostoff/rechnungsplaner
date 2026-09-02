@@ -16,7 +16,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class Db extends SQLiteOpenHelper {
 
     private static final String NAME = "rechnungsplaner.db";
-    private static final int VERSION = 1;
+    private static final int VERSION = 2;
 
     public static final String T_ISSUER = "issuer";
     public static final String T_CUSTOMER = "customer";
@@ -110,6 +110,8 @@ public class Db extends SQLiteOpenHelper {
                 + "prepaid_cents INTEGER NOT NULL DEFAULT 0,"
                 + "due_payable_cents INTEGER NOT NULL DEFAULT 0,"
                 + "issuer_snapshot TEXT, customer_snapshot TEXT,"
+                + "replaces_id INTEGER NOT NULL DEFAULT -1,"
+                + "replaces_number TEXT, replaces_date TEXT,"
                 + "created_at INTEGER NOT NULL DEFAULT 0)");
         db.execSQL("CREATE INDEX idx_invoice_customer ON " + T_INVOICE + "(customer_id)");
         db.execSQL("CREATE INDEX idx_invoice_date ON " + T_INVOICE + "(issue_date)");
@@ -144,8 +146,17 @@ public class Db extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Version 1 is the first release; migrations get added here as ALTER TABLE steps rather
-        // than a drop-and-recreate, because this database holds issued invoices that must be
-        // retained for the statutory ten years.
+        // Migrations are ALTER TABLE steps, never a drop-and-recreate: this database holds issued
+        // invoices that must be retained for the statutory ten years. Each step is guarded by the
+        // version it arrived in and left in place, so an install skipping releases still runs them
+        // in order.
+        if (oldVersion < 2) {
+            // BG-3, the reference an invoice reissued under a new number makes to the one it
+            // replaces.
+            db.execSQL("ALTER TABLE " + T_INVOICE
+                    + " ADD COLUMN replaces_id INTEGER NOT NULL DEFAULT -1");
+            db.execSQL("ALTER TABLE " + T_INVOICE + " ADD COLUMN replaces_number TEXT");
+            db.execSQL("ALTER TABLE " + T_INVOICE + " ADD COLUMN replaces_date TEXT");
+        }
     }
 }

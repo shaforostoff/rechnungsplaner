@@ -131,6 +131,13 @@
     <string name="action_overwrite">Overwrite</string>
     <string name="confirm_overwrite_invoice">Replace invoice %1$s? It keeps its number, and the files already generated for it are deleted.</string>
     <string name="invoice_recreated">Invoice %1$s replaced</string>
+    <string name="recreate_same_number">Not sent yet — replace it, keeping number %1$s</string>
+    <string name="recreate_new_number">Already sent — issue a correction with a new number</string>
+    <string name="action_issue_correction">Issue correction</string>
+    <string name="confirm_supersede_invoice">Issue a corrected invoice replacing %1$s? %1$s stays in your records, and the new one states that it replaces it.</string>
+    <string name="invoice_supersedes">Invoice %1$s issued, replacing %2$s</string>
+    <string name="label_replaces">Replaces</string>
+    <string name="label_replaced_by">Replaced by</string>
     <string name="hybrid_degraded">The XML could not be embedded in the PDF, so it was written as a separate file. Send both.</string>
     <string name="action_save_to_folder">Save to folder</string>
     <string name="saved_to_folder">Saved to the chosen folder</string>

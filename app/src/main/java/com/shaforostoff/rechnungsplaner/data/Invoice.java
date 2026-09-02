@@ -54,6 +54,17 @@ public class Invoice {
     public List<InvoiceLine> lines = new ArrayList<InvoiceLine>();
 
     /**
+     * The invoice this one corrects, when it was issued to replace one already sent.
+     *
+     * <p>The number and date are copied rather than looked up, for the same reason the party
+     * details are: the document states what it corrects, and that statement must not change if
+     * the earlier invoice is later touched.
+     */
+    public long replacesId = -1L;
+    public String replacesNumber;
+    public String replacesDate;
+
+    /**
      * Makes this freshly built invoice a correction of {@code original} rather than a new
      * document: same row, same number, same creation time.
      *
@@ -67,5 +78,18 @@ public class Invoice {
         this.id = original.id;
         this.number = original.number;
         this.createdAt = original.createdAt;
+    }
+
+    /**
+     * Records that this invoice supersedes {@code sent} under a new number.
+     *
+     * <p>The opposite of {@link #takeIdentityFrom}: that one corrects a document in place, this
+     * one issues a second document that says what the first got wrong. Which is right depends on
+     * whether the first has left the building -- a question only the user can answer.
+     */
+    public void supersede(Invoice sent) {
+        this.replacesId = sent.id;
+        this.replacesNumber = sent.number;
+        this.replacesDate = sent.issueDate;
     }
 }

@@ -21,6 +21,8 @@ import com.shaforostoff.rechnungsplaner.data.Customer;
 import com.shaforostoff.rechnungsplaner.data.CustomerDao;
 import com.shaforostoff.rechnungsplaner.data.Gig;
 import com.shaforostoff.rechnungsplaner.data.GigDao;
+import com.shaforostoff.rechnungsplaner.data.Invoice;
+import com.shaforostoff.rechnungsplaner.data.InvoiceDao;
 import com.shaforostoff.rechnungsplaner.data.IssuerDao;
 import com.shaforostoff.rechnungsplaner.data.SettingsStore;
 import com.shaforostoff.rechnungsplaner.data.TaxMode;
@@ -174,8 +176,8 @@ public class GigEditActivity extends BaseActivity {
                         // Save first: correcting the fee here is one of the reasons to redo the
                         // invoice, and it would be read from the database a moment from now.
                         if (save()) {
-                            startActivity(InvoiceActivity.reissueIntent(GigEditActivity.this,
-                                    gig.invoiceId));
+                            InvoiceActivity.askHowToRecreate(GigEditActivity.this, gig.invoiceId,
+                                    invoiceNumber(), false);
                         }
                     }
                 });
@@ -373,6 +375,12 @@ public class GigEditActivity extends BaseActivity {
      */
     private String[] taxModeLabels() {
         return TaxModeLabels.withInherit(this, issuers.load(), customers.byId(gig.customerId));
+    }
+
+    /** The gig's invoice number, for the dialog that offers to redo it. */
+    private String invoiceNumber() {
+        Invoice invoice = new InvoiceDao(this).byId(gig.invoiceId);
+        return invoice == null ? "" : invoice.number;
     }
 
     private String[] statusLabels() {

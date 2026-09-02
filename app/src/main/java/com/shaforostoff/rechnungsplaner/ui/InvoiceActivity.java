@@ -1,6 +1,9 @@
 package com.shaforostoff.rechnungsplaner.ui;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -51,6 +54,7 @@ public class InvoiceActivity extends BaseActivity {
     private static final String EXTRA_GIG_ID = "gig_id";
     private static final String EXTRA_INVOICE_ID = "invoice_id";
     private static final String EXTRA_REISSUE = "reissue";
+    private static final String EXTRA_NEW_NUMBER = "new_number";
     private static final int REQUEST_PICK_FOLDER = 41;
 
     public static Intent draftIntent(Context ctx, long gigId) {
@@ -61,10 +65,46 @@ public class InvoiceActivity extends BaseActivity {
         return new Intent(ctx, InvoiceActivity.class).putExtra(EXTRA_INVOICE_ID, invoiceId);
     }
 
-    /** Opens an issued invoice as an editable draft that will overwrite it, number included. */
-    public static Intent reissueIntent(Context ctx, long invoiceId) {
+    /**
+     * Opens an issued invoice as an editable draft that will replace it.
+     *
+     * @param newNumber true to issue a second document referencing the first, which is what an
+     *                  invoice already in the customer's hands needs; false to correct the
+     *                  existing one in place, keeping its number
+     */
+    public static Intent reissueIntent(Context ctx, long invoiceId, boolean newNumber) {
         return new Intent(ctx, InvoiceActivity.class).putExtra(EXTRA_INVOICE_ID, invoiceId)
-                .putExtra(EXTRA_REISSUE, true);
+                .putExtra(EXTRA_REISSUE, true)
+                .putExtra(EXTRA_NEW_NUMBER, newNumber);
+    }
+
+    /**
+     * Asks which kind of redo this is, then starts it.
+     *
+     * <p>The choice cannot be inferred: it turns on whether the invoice has already been sent,
+     * which the app has no way of knowing. So the options name the consequence rather than the
+     * mechanism -- one keeps the number, the other spends a new one.
+     *
+     * @param closeHost true when the caller is showing the invoice being replaced, and would be
+     *                  left displaying stale totals behind the new screen
+     */
+    public static void askHowToRecreate(final Activity host, final long invoiceId,
+                                        final String number, final boolean closeHost) {
+        String[] options = {
+                host.getString(R.string.recreate_same_number, number),
+                host.getString(R.string.recreate_new_number),
+        };
+        new AlertDialog.Builder(host)
+                .setTitle(R.string.action_recreate)
+                .setNegativeButton(R.string.action_cancel, null)
+                .setItems(options, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        host.startActivity(reissueIntent(host, invoiceId, which == 1));
+                        if (closeHost) host.finish();
+                    }
+                })
+                .show();
     }
 
     private SettingsStore settings;
@@ -85,6 +125,8 @@ public class InvoiceActivity extends BaseActivity {
      * fields because each rebuild replaces {@link #invoice} and has to take its identity again.
      */
     private Invoice replacing;
+    /** True when {@link #replacing} is to be superseded by a new document rather than corrected. */
+    private boolean withNewNumber;
     private Spinner formatSpinner;
     private List<File> lastFiles = new ArrayList<File>();
 
@@ -137,6 +179,7 @@ public class InvoiceActivity extends BaseActivity {
         if (onInvoice.isEmpty()) return false;
 
         replacing = invoice;
+        withNewNumber = getIntent().getBooleanExtra(EXTRA_NEW_NUMBER, false);
         issued = false;
 
         // The gig's customer rather than the invoice's: reassigning a gig to the booker who
@@ -203,11 +246,20 @@ public class InvoiceActivity extends BaseActivity {
         for (int i = 0; i < selectableGigs.size(); i++) {
             if (selected.get(i).booleanValue()) chosen.add(selectableGigs.get(i));
         }
-        // A correction keeps the original issue date: it is the same document, and moving the date
-        // would move the payment deadline with it.
+        // Correcting in place keeps the original issue date: it is the same document, and moving
+        // the date would move the payment deadline with it. A replacement under a new number is a
+        // new document and is dated today, which restarts the payment period -- as it should,
+        // since this is the bill the customer will actually pay against.
+        boolean inPlace = replacing != null && !withNewNumber;
         invoice = InvoiceBuilder.build(issuer, customer, chosen,
-                replacing == null ? Dates.today() : replacing.issueDate);
+                inPlace ? replacing.issueDate : Dates.today());
         if (replacing == null) {
+            invoice.number = invoices.peekNextNumber(settings.getInvoiceNumberPattern(),
+                    invoice.issueDate);
+        } else if (withNewNumber) {
+            invoice.supersede(replacing);
+            invoice.note = InvoiceBuilder.correctionNote(replacing.number, replacing.issueDate,
+                    invoice.language);
             invoice.number = invoices.peekNextNumber(settings.getInvoiceNumberPattern(),
                     invoice.issueDate);
         } else {
@@ -252,8 +304,10 @@ public class InvoiceActivity extends BaseActivity {
             f.caption(getString(R.string.two_part_label, getString(R.string.label_filename),
                     new InvoiceWriter(this).baseName(issuer, customer, invoice,
                             settings.getOutputFormat())));
-            int label = replacing != null ? R.string.action_overwrite
-                    : hasErrors() ? R.string.action_create_anyway : R.string.action_create;
+            final int label = replacing == null
+                    ? (hasErrors() ? R.string.action_create_anyway : R.string.action_create)
+                    : withNewNumber ? R.string.action_issue_correction
+                            : R.string.action_overwrite;
             f.primaryButton(label, new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -261,11 +315,12 @@ public class InvoiceActivity extends BaseActivity {
                         issue();
                         return;
                     }
-                    // Overwriting replaces a document that may already have been sent, so it is
-                    // worth one tap of confirmation naming the number being replaced.
+                    // Both kinds of replacement affect a document that may be in someone else's
+                    // hands, so both confirm, naming the invoice concerned.
+                    int message = withNewNumber ? R.string.confirm_supersede_invoice
+                            : R.string.confirm_overwrite_invoice;
                     Ui.confirm(InvoiceActivity.this,
-                            getString(R.string.confirm_overwrite_invoice, replacing.number),
-                            R.string.action_overwrite, new Runnable() {
+                            getString(message, replacing.number), label, new Runnable() {
                                 @Override
                                 public void run() {
                                     issue();
@@ -281,8 +336,7 @@ public class InvoiceActivity extends BaseActivity {
                 f.secondaryButton(R.string.action_recreate, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        startActivity(reissueIntent(InvoiceActivity.this, invoice.id));
-                        finish();
+                        askHowToRecreate(InvoiceActivity.this, invoice.id, invoice.number, true);
                     }
                 });
             }
@@ -316,6 +370,13 @@ public class InvoiceActivity extends BaseActivity {
         }
         card.addView(line(getString(R.string.label_customer),
                 customer == null ? "-" : customer.displayName(), false));
+        if (invoice.replacesNumber != null) {
+            card.addView(line(getString(R.string.label_replaces), invoice.replacesNumber, false));
+        }
+        String replacedBy = issued ? invoices.replacementNumberOf(invoice.id) : null;
+        if (replacedBy != null) {
+            card.addView(line(getString(R.string.label_replaced_by), replacedBy, false));
+        }
 
         View spacer = new View(this);
         card.addView(spacer, new LinearLayout.LayoutParams(
@@ -412,24 +473,33 @@ public class InvoiceActivity extends BaseActivity {
         invoice.issuerSnapshot = LexofficeContacts.issuerToJson(issuer, false);
         invoice.customerSnapshot = customer == null ? null
                 : LexofficeContacts.customerToJson(customer, false);
-        if (replacing != null) {
+        boolean inPlace = replacing != null && !withNewNumber;
+        String superseded = withNewNumber && replacing != null ? replacing.number : null;
+        if (inPlace) {
             invoices.reissue(invoice, gigIds);
         } else {
+            // A new document either way, so the series advances. The gigs move to it, which is
+            // what leaves the superseded invoice with its lines but no gigs of its own.
             invoice.number = null;
             invoices.issue(invoice, settings.getInvoiceNumberPattern(), gigIds);
         }
 
         try {
+            // Only an in-place correction replaces files. A superseding invoice has its own id and
+            // its own directory, and the document it replaces stays in the archive: it was sent,
+            // so it is part of the record.
             InvoiceWriter.Result result = new InvoiceWriter(this)
-                    .write(issuer, customer, invoice, format, replacing != null);
+                    .write(issuer, customer, invoice, format, inPlace);
             lastFiles = result.files;
             issued = true;
-            boolean corrected = replacing != null;
             replacing = null;
+            withNewNumber = false;
             setScreenTitle(invoice.number);
             render();
-            Ui.toast(this, getString(corrected ? R.string.invoice_recreated
-                    : R.string.invoice_created, invoice.number));
+            Ui.toast(this, superseded != null
+                    ? getString(R.string.invoice_supersedes, invoice.number, superseded)
+                    : getString(inPlace ? R.string.invoice_recreated : R.string.invoice_created,
+                            invoice.number));
             if (result.hybridDegraded) {
                 Ui.toast(this, getString(R.string.hybrid_degraded));
             }

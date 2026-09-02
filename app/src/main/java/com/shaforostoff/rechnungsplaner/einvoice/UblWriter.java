@@ -47,6 +47,16 @@ public final class UblWriter {
             x.end();
         }
 
+        if (Str.notEmpty(inv.precedingNumber)) {
+            // Sequence-critical: BillingReference sits between InvoicePeriod and the parties.
+            x.start("cac:BillingReference");
+            x.start("cac:InvoiceDocumentReference");
+            x.leaf("cbc:ID", inv.precedingNumber);
+            x.leaf("cbc:IssueDate", inv.precedingIssueDate);
+            x.end();
+            x.end();
+        }
+
         x.start("cac:AccountingSupplierParty");
         party(x, inv.seller, true);
         x.end();

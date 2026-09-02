@@ -148,4 +148,49 @@ public class InvoiceCorrectionTest {
         assertFalse("a multi-gig invoice states the span, not one delivery date",
                 "2026-08-15".equals(corrected.deliveryDate));
     }
+
+    @Test
+    public void supersedingRecordsWhatIsBeingReplacedAndTakesANewIdentity() {
+        Invoice sent = asIssued();
+        Invoice replacement = InvoiceBuilder.build(issuerBeforeMoving(), club(),
+                Arrays.<Gig>asList(gig(40000L)), "2026-11-20");
+        replacement.supersede(sent);
+
+        // A second document: its own row and its own number, to be allocated on issue.
+        assertEquals(-1L, replacement.id);
+        assertEquals(12L, replacement.replacesId);
+        assertEquals("2026-001", replacement.replacesNumber);
+        assertEquals("2026-09-05", replacement.replacesDate);
+
+        // Dated today, so the payment period restarts from the bill that will actually be paid.
+        assertEquals("2026-11-20", replacement.issueDate);
+        assertEquals("2027-01-19", replacement.dueDate);
+    }
+
+    @Test
+    public void theCorrectionNoteNamesTheReplacedInvoiceInTheDocumentLanguage() {
+        // Printed on the page, for the bookkeeper who will otherwise see two bills for one gig.
+        assertEquals("Korrigierte Rechnung, ersetzt Rechnung 2026-001 vom 05.09.2026.",
+                InvoiceBuilder.correctionNote("2026-001", "2026-09-05", "de"));
+        assertEquals("Corrected invoice, replacing invoice 2026-001 of 2026-09-05.",
+                InvoiceBuilder.correctionNote("2026-001", "2026-09-05", "en"));
+        assertEquals("Factura rectificativa, sustituye a la factura 2026-001 del 05.09.2026.",
+                InvoiceBuilder.correctionNote("2026-001", "2026-09-05", "es"));
+    }
+
+    @Test
+    public void theReferenceReachesTheEmittedInvoice() {
+        // The whole point of recording it: BG-3 in the XML, so an importer files the replacement
+        // against the original instead of counting the revenue twice.
+        Invoice sent = asIssued();
+        Invoice replacement = InvoiceBuilder.build(issuerBeforeMoving(), club(),
+                Arrays.<Gig>asList(gig(40000L)), "2026-11-20");
+        replacement.supersede(sent);
+        replacement.number = "2026-004";
+
+        com.shaforostoff.rechnungsplaner.einvoice.EnInvoice en =
+                InvoiceMapper.toEnInvoice(issuerBeforeMoving(), club(), replacement);
+        assertEquals("2026-001", en.precedingNumber);
+        assertEquals("2026-09-05", en.precedingIssueDate);
+    }
 }

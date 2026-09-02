@@ -124,6 +124,26 @@ public final class InvoiceBuilder {
 
     /** What a gig line says on the invoice, in the invoice's own language. */
     /**
+     * The note naming the invoice this one corrects, in the document's language.
+     *
+     * <p>BG-3 states the same thing in a field, but only a machine reads that. The club's
+     * bookkeeper reads the page, and a second invoice for a gig already billed needs to say on its
+     * face what it is.
+     */
+    public static String correctionNote(String number, String isoDate, String language) {
+        String lang = language == null ? "de" : language.toLowerCase(java.util.Locale.US);
+        String date = Dates.forLanguage(isoDate, lang);
+        if (lang.startsWith("en")) {
+            return "Corrected invoice, replacing invoice " + number + " of " + date + ".";
+        }
+        if (lang.startsWith("es")) {
+            return "Factura rectificativa, sustituye a la factura " + number + " del " + date
+                    + ".";
+        }
+        return "Korrigierte Rechnung, ersetzt Rechnung " + number + " vom " + date + ".";
+    }
+
+    /**
      * The line text: what was performed and when.
      *
      * <p>No venue and no city. Neither is required content under § 14 UStG -- the parties are

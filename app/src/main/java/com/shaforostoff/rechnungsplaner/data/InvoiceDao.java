@@ -250,6 +250,21 @@ public class InvoiceDao {
         return file.id;
     }
 
+    /**
+     * The number of the invoice that superseded this one, or null while it is still the current
+     * one. Looked up rather than stored on the old row, so there is one fact and not two.
+     */
+    public String replacementNumberOf(long invoiceId) {
+        Cursor c = db.getReadableDatabase().query(Db.T_INVOICE, new String[]{"number"},
+                "replaces_id = ?", new String[]{Long.toString(invoiceId)}, null, null,
+                "issue_date DESC, _id DESC", "1");
+        try {
+            return c.moveToFirst() ? c.getString(0) : null;
+        } finally {
+            c.close();
+        }
+    }
+
     /** Forgets the files recorded for an invoice, for when they are about to be replaced. */
     public void clearFiles(long invoiceId) {
         db.getWritableDatabase().delete(Db.T_INVOICE_FILE, "invoice_id = ?",
@@ -303,6 +318,9 @@ public class InvoiceDao {
         v.put("due_payable_cents", i.duePayableCents);
         v.put("issuer_snapshot", i.issuerSnapshot);
         v.put("customer_snapshot", i.customerSnapshot);
+        v.put("replaces_id", i.replacesId);
+        v.put("replaces_number", i.replacesNumber);
+        v.put("replaces_date", i.replacesDate);
         v.put("created_at", i.createdAt);
         return v;
     }
@@ -353,6 +371,9 @@ public class InvoiceDao {
         i.duePayableCents = c.getLong(c.getColumnIndexOrThrow("due_payable_cents"));
         i.issuerSnapshot = c.getString(c.getColumnIndexOrThrow("issuer_snapshot"));
         i.customerSnapshot = c.getString(c.getColumnIndexOrThrow("customer_snapshot"));
+        i.replacesId = c.getLong(c.getColumnIndexOrThrow("replaces_id"));
+        i.replacesNumber = c.getString(c.getColumnIndexOrThrow("replaces_number"));
+        i.replacesDate = c.getString(c.getColumnIndexOrThrow("replaces_date"));
         i.createdAt = c.getLong(c.getColumnIndexOrThrow("created_at"));
         return i;
     }

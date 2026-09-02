@@ -2,7 +2,7 @@
 
 What the automated suite covers, and what it deliberately does not.
 
-## Covered by `./gradlew test` (150 tests, no device needed)
+## Covered by `./gradlew test` (158 tests, no device needed)
 
 The `einvoice`, `data`, `exchange`, `util` and `pdf` packages avoid `android.*` imports
 specifically so they can be tested on the JVM. The `ui` package cannot be, but its pure decisions
@@ -22,6 +22,8 @@ specifically so they can be tested on the JVM. The `ui` package cannot be, but i
 | Fee fields | Both decimal separators, grouping, junk and overflow; and that what a field shows reads back as the same cents |
 | Gig status | A past date starts as played, including across a year boundary |
 | Invoice corrections | Redoing an issued invoice keeps its number, row and issue date while recomputing fees, snapshots and periods |
+| Superseding invoices | A replacement takes a new number and today's date, records what it replaces, and states it in the document language |
+| BG-3 placement | The preceding-invoice reference sits where each syntax requires -- before the parties in UBL, after the totals in CII -- and is absent entirely when there is nothing to reference |
 | Invoice table columns | Each column has its own width of clearance, so no header prints over the one before it |
 | Non-ASCII text | "Stresemannstraße", an ampersand beside umlauts, a non-Latin-1 city and an astral character survive both writers, parsed back with a real XML parser; and the same payload comes out of a packed PDF byte-identical |
 
@@ -36,6 +38,10 @@ executed. Specifically unverified:
 - `PdfA3Packer` has never seen real `android.graphics.pdf.PdfDocument` output. It handles both
   cross-reference flavours and refuses anything it cannot rewrite safely, but Skia's exact
   structure is an assumption until it runs.
+- The schema-2 migration was run against the real version-1 invoice table taken from git, using
+  the `sqlite3` binary in the Android SDK: the three `ALTER TABLE` steps succeed and an existing
+  invoice keeps its values while the new columns take their defaults. What is *not* verified is
+  that `onUpgrade` is reached correctly on a device.
 - `InvoiceDao.reissue` runs against SQLite, so its transaction is unverified here: that dropped
   gigs go back to billable, that a gig already marked paid keeps that status, and that the number
   counter is untouched are all argued in code but not executed. The identity rule it depends on

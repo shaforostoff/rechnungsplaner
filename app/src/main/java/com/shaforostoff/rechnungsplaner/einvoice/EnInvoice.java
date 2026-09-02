@@ -28,6 +28,15 @@ public class EnInvoice {
     /** BT-22, a free-text note. */
     public String note;
 
+    /**
+     * BG-3: the invoice this one corrects. BT-25 is its number, BT-26 its date.
+     *
+     * <p>Without it, a corrected invoice reaching an accounting system is just a second invoice
+     * for work already billed, and the revenue is counted twice.
+     */
+    public String precedingNumber;
+    public String precedingIssueDate;
+
     /** BT-72, the delivery/performance date. Used when the invoice covers a single gig. */
     public String deliveryDate;
     /** BT-73, the start of BG-14. Used when the invoice covers several gigs. */

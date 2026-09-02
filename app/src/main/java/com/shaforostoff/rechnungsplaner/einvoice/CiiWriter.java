@@ -162,6 +162,15 @@ public final class CiiWriter {
         x.leaf("ram:DuePayableAmount", Money.amount(inv.duePayableCents));
         x.end();
 
+        if (Str.notEmpty(inv.precedingNumber)) {
+            // Sequence-critical the other way round from UBL: in CII the reference to the
+            // corrected invoice comes after the totals, at the end of the settlement group.
+            x.start("ram:InvoiceReferencedDocument");
+            x.leaf("ram:IssuerAssignedID", inv.precedingNumber);
+            dateTime(x, "ram:FormattedIssueDateTime", inv.precedingIssueDate);
+            x.end();
+        }
+
         x.end();
         x.end();
         x.end();

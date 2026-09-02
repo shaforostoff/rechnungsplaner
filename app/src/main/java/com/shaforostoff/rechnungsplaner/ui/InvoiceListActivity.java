@@ -1,6 +1,7 @@
 package com.shaforostoff.rechnungsplaner.ui;
 
 import android.content.Intent;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
@@ -70,6 +71,26 @@ public class InvoiceListActivity extends BaseActivity {
         number.setTextSize(16f);
         number.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
         row.addView(number);
+
+        // Which of two invoices for the same gig is the current one is not guessable from a date,
+        // so a superseded one says so on its face and is struck through.
+        String replacedBy = invoices.replacementNumberOf(invoice.id);
+        if (replacedBy != null) {
+            number.setPaintFlags(number.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            TextView replaced = new TextView(this);
+            replaced.setText(getString(R.string.two_part_label,
+                    getString(R.string.label_replaced_by), replacedBy));
+            replaced.setTextSize(12f);
+            replaced.setTextColor(getColor(R.color.warning));
+            row.addView(replaced);
+        } else if (invoice.replacesNumber != null) {
+            TextView replaces = new TextView(this);
+            replaces.setText(getString(R.string.two_part_label,
+                    getString(R.string.label_replaces), invoice.replacesNumber));
+            replaces.setTextSize(12f);
+            replaces.setTextColor(getColor(R.color.text_secondary));
+            row.addView(replaces);
+        }
 
         Customer customer = customers.byId(invoice.customerId);
         StringBuilder detail = new StringBuilder();

@@ -121,6 +121,13 @@
     <string name="action_overwrite">Sobrescribir</string>
     <string name="confirm_overwrite_invoice">¿Reemplazar la factura %1$s? Conserva su número y se eliminan los archivos ya generados.</string>
     <string name="invoice_recreated">Factura %1$s reemplazada</string>
+    <string name="recreate_same_number">Aún no enviada — reemplazarla y conservar el número %1$s</string>
+    <string name="recreate_new_number">Ya enviada — emitir una rectificativa con número nuevo</string>
+    <string name="action_issue_correction">Emitir rectificativa</string>
+    <string name="confirm_supersede_invoice">¿Emitir una factura rectificativa que sustituya a %1$s? %1$s se conserva en tus registros y la nueva indica que la sustituye.</string>
+    <string name="invoice_supersedes">Factura %1$s emitida, sustituye a %2$s</string>
+    <string name="label_replaces">Sustituye a</string>
+    <string name="label_replaced_by">Sustituida por</string>
     <string name="hybrid_degraded">No se pudo incrustar el XML en el PDF, así que se guardó aparte. Envía ambos.</string>
     <string name="action_save_to_folder">Guardar en carpeta</string>
     <string name="saved_to_folder">Guardado en la carpeta elegida</string>
