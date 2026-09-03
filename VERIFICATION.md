@@ -38,11 +38,16 @@ executed. Specifically unverified:
 - `PdfA3Packer` has never seen real `android.graphics.pdf.PdfDocument` output. It handles both
   cross-reference flavours and refuses anything it cannot rewrite safely, but Skia's exact
   structure is an assumption until it runs.
-- The database is recreated on a version change rather than migrated, which is deliberate while
-  the app is pre-release and **must change before it ships**: an issued invoice has to be kept for
-  ten years. The drop-and-recreate was run against the real schema with the `sqlite3` binary in the
-  Android SDK -- the drop order does not trip a foreign key, and every table comes back -- but that
-  `onUpgrade` is reached at all on a device is unverified.
+- The database is migrated additively rather than recreated, as of schema 3. It used to drop every
+  table on a version change, which was fine while nothing was installed anywhere and became a
+  data-loss bug the moment a phone held an invoice series carried over from other software. Both
+  paths were executed against the `sqlite3` binary in the Android SDK: the v2-to-v3 step keeps the
+  row and its values, adds both columns as NULL and leaves the index standing, and the whole
+  `onCreate` schema -- all 16 statements, 7 tables -- runs clean on a fresh database with the new
+  columns writable. Re-running an unguarded `ALTER` was executed too and fails with `duplicate
+  column name`, which is what `hasColumn` is there for. Still unverified: that `onUpgrade` is
+  reached at all on a device, and that an older build tolerates the columns `onDowngrade` now
+  leaves in place -- harmless by inspection, since every read is by column name, but not run.
 - `InvoiceDao.reissue` runs against SQLite, so its transaction is unverified here: that dropped
   gigs go back to billable, that a gig already marked paid keeps that status, and that the number
   counter is untouched are all argued in code but not executed. The identity rule it depends on
@@ -137,32 +142,44 @@ failure modes differ between the three, so passing one says little about the oth
 8. Export contacts, clear app data, re-import: customers and issuer come back intact. Check the
    size of the shared zip before anything else -- it was silently zero, and every assertion about
    its contents passed while it was.
-9. Settings has no Save button: change the invoice format, the file-name pattern and the strict
+9. Share wording. Settings shows the message that will be sent, not an empty box. Change one word,
+   share an invoice, and confirm the mail app receives the edited text with `%invoiceno%` and
+   `%issuername%` filled in. Then clear both fields, switch the app language, and confirm the
+   wording is that language's -- and that merely opening Settings did not pin the old one. Then
+   give one customer their own subject and message: theirs must be used while every other customer
+   still gets the Settings wording, and clearing their two fields must fall back again. Export
+   contacts and re-import, and confirm both survived. A message containing a literal `%` must
+   share, not crash.
+10. Upgrading with data -- do this one first, and on a copy. With customers, gigs and an issued
+    invoice already on the phone, install this build over the previous one and confirm nothing was
+    lost: the invoice and its number, the customer numbers, the gig-to-invoice links. The schema
+    step is additive as of version 3, where every bump before it wiped.
+11. Settings has no Save button: change the invoice format, the file-name pattern and the strict
    lexoffice box, leave by the bottom bar, come back -- all three held. Then change the UI
    language and confirm the screen relabels itself on the spot without closing the app.
-10. Customer numbers. Leave the pattern empty and confirm a new customer gets none, and that a
+12. Customer numbers. Leave the pattern empty and confirm a new customer gets none, and that a
     number typed by hand is kept exactly as typed, leading zeros included. Then import contacts
     carrying numbers `10001..10004`, set the pattern to `%seq%`, and confirm the preview in
     settings reads `10005` and that the next customer created gets it. Finally type `10009` by
     hand on one customer and confirm the following automatic number is `10010`, not `10006` --
     that is the `MAX` scan, and it is the whole reason the series survives an import.
-11. Mid-year switch. With no invoices in the app, create one and type the number following the
+13. Mid-year switch. With no invoices in the app, create one and type the number following the
     last the old software issued, say `2026-038`; the hint must read that the next invoice becomes
     `2026-039`, and it must. Then tick a second gig onto a draft after typing a number and confirm
     the number survives the re-render. Type `2026-038` again on a later invoice and confirm it is
     refused by name rather than crashing on the UNIQUE column. Type `2026/038` against the default
     pattern and confirm the hint says the series will not follow it -- and that it does not.
     Finally correct an issued invoice in place and confirm its number is not editable at all.
-12. Stale gig writes. Create an invoice from a gig and press back to the gig screen, which is
+14. Stale gig writes. Create an invoice from a gig and press back to the gig screen, which is
     still on the stack: it must now offer "Open invoice" and "Recreate", not "Create invoice".
     Change the fee there, save, reopen, and confirm the gig is still invoiced, still points at
     the same invoice, and that the calendar event was updated rather than duplicated.
-13. Relinking. On a gig that is not invoiced, "Link to an existing invoice" must offer only that
+15. Relinking. On a gig that is not invoiced, "Link to an existing invoice" must offer only that
     customer's invoices, each showing how many DJ-sets it bills -- a stranded one shows zero.
     Pick it, confirm the buttons become "Open invoice" and "Recreate", then Recreate under the
     same number and confirm the rebuilt document carries the corrected fee and the original
     number. A gig marked paid must still be paid afterwards.
-14. Duplicate customer numbers. Give a second customer a number another one already has and
+16. Duplicate customer numbers. Give a second customer a number another one already has and
     confirm the save is refused and names the holder. Repeat with the holder archived, and with
     the case changed (`k-007` against `K-007`), which must also be refused. Then confirm a
     customer keeps its own number when saved unchanged.
