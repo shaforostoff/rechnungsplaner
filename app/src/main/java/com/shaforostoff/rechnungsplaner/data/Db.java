@@ -1,6 +1,7 @@
 package com.shaforostoff.rechnungsplaner.data;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -16,7 +17,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class Db extends SQLiteOpenHelper {
 
     private static final String NAME = "rechnungsplaner.db";
-    private static final int VERSION = 2;
+    private static final int VERSION = 3;
 
     public static final String T_ISSUER = "issuer";
     public static final String T_CUSTOMER = "customer";
@@ -67,6 +68,7 @@ public class Db extends SQLiteOpenHelper {
                 + "vat_id TEXT, buyer_reference TEXT, customer_number TEXT,"
                 + "default_fee_cents INTEGER NOT NULL DEFAULT 0,"
                 + "default_tax_mode TEXT, invoice_language TEXT,"
+                + "share_subject TEXT, share_message TEXT,"
                 + "note TEXT, lexoffice_id TEXT,"
                 + "archived INTEGER NOT NULL DEFAULT 0)");
         db.execSQL("CREATE INDEX idx_customer_city ON " + T_CUSTOMER + "(city)");
@@ -145,33 +147,59 @@ public class Db extends SQLiteOpenHelper {
                 + "key TEXT PRIMARY KEY, value INTEGER NOT NULL DEFAULT 0)");
     }
 
+    /**
+     * Additive steps, each guarded by the version it arrived in.
+     *
+     * <p>This used to drop every table and rebuild, on the grounds that nothing was installed
+     * anywhere. That stopped being true: there is a phone with an invoice series carried over
+     * from other software, customers numbered to match books that predate this app, and gigs
+     * linked back to their invoices by hand. Dropping the tables to add a column would be the
+     * app destroying the one thing it exists to keep -- and section 147 AO requires an issued
+     * invoice to survive ten years, not until the next schema change.
+     */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Pre-release, so the schema is recreated rather than migrated: there is no installed base
-        // to preserve, and hand-written ALTER steps for a database nobody has yet are upkeep with
-        // nobody to benefit from them. A version bump wipes and rebuilds.
-        //
-        // This must change before the app ships. An issued invoice has to be retained for ten
-        // years under section 147 AO, and dropping the table would take it along -- so the first
-        // release fixes a schema and every change after it becomes an ALTER TABLE step here,
-        // guarded by the version it arrived in.
-        recreate(db);
+        if (oldVersion < 3) {
+            // Per-customer share wording, overriding the global setting. Null means inherit, so
+            // an existing customer needs no backfill.
+            addColumn(db, T_CUSTOMER, "share_subject", "TEXT");
+            addColumn(db, T_CUSTOMER, "share_message", "TEXT");
+        }
     }
 
+    /**
+     * Nothing, deliberately.
+     *
+     * <p>Moving between branches walks the version backwards, which SQLiteOpenHelper treats as
+     * fatal unless told otherwise. An older build reads its columns by name and is unbothered by
+     * ones it has never heard of, so leaving them in place costs nothing and keeps the data --
+     * where the rebuild this used to do would have thrown it away to reach an older shape.
+     */
     @Override
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Moving between branches walks the version backwards, which SQLiteOpenHelper treats as
-        // fatal unless told otherwise. Same answer as an upgrade while there is nothing to keep.
-        recreate(db);
     }
 
-    private void recreate(SQLiteDatabase db) {
-        for (String table : new String[]{T_INVOICE_FILE, T_INVOICE_LINE, T_INVOICE, T_GIG,
-                T_CUSTOMER, T_ISSUER, T_COUNTER}) {
-            // Children before parents: foreign keys are on, and the order is the reverse of
-            // creation for that reason.
-            db.execSQL("DROP TABLE IF EXISTS " + table);
+    /**
+     * Adds a column unless it is already there.
+     *
+     * <p>Idempotent because the version can travel: a downgrade leaves the column in place, and
+     * the upgrade back would otherwise re-run the step and fail on the duplicate.
+     */
+    private static void addColumn(SQLiteDatabase db, String table, String column, String type) {
+        if (hasColumn(db, table, column)) return;
+        db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + column + " " + type);
+    }
+
+    private static boolean hasColumn(SQLiteDatabase db, String table, String column) {
+        Cursor c = db.rawQuery("PRAGMA table_info(" + table + ")", null);
+        try {
+            int nameAt = c.getColumnIndex("name");
+            while (c.moveToNext()) {
+                if (column.equals(c.getString(nameAt))) return true;
+            }
+        } finally {
+            c.close();
         }
-        onCreate(db);
+        return false;
     }
 }

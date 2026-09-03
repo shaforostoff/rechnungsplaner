@@ -59,6 +59,8 @@ public class CustomerEditActivity extends BaseActivity {
     private EditText defaultFeeField;
     private Spinner taxSpinner;
     private Spinner languageSpinner;
+    private EditText shareSubjectField;
+    private EditText shareMessageField;
     private EditText noteField;
 
     private static final String[] LANGUAGE_TAGS = {null, "de", "en", "es"};
@@ -114,6 +116,10 @@ public class CustomerEditActivity extends BaseActivity {
                 customer.defaultTaxMode == null ? 0 : customer.defaultTaxMode.ordinal() + 1, false);
         languageSpinner = f.spinner(R.string.label_invoice_language, languageLabels(),
                 languageIndex(customer.invoiceLanguage), false);
+        shareSubjectField = f.field(R.string.label_share_subject, customer.shareSubject, false);
+        shareMessageField = f.multiline(R.string.label_share_message, customer.shareMessage);
+        f.caption(getString(R.string.label_share_desc));
+
         noteField = f.multiline(R.string.label_note, customer.note);
 
         if (!isNew) {
@@ -169,6 +175,8 @@ public class CustomerEditActivity extends BaseActivity {
         int taxIndex = FormBuilder.selectionOf(taxSpinner);
         customer.defaultTaxMode = taxIndex == 0 ? null : TaxMode.values()[taxIndex - 1];
         customer.invoiceLanguage = LANGUAGE_TAGS[FormBuilder.selectionOf(languageSpinner)];
+        customer.shareSubject = text(shareSubjectField);
+        customer.shareMessage = text(shareMessageField);
         customer.note = text(noteField);
 
         customers.save(customer, new SettingsStore(this).getCustomerNumberPattern());

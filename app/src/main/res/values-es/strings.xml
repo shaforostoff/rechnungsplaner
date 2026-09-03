@@ -81,6 +81,9 @@
     <string name="label_customer_number">Número de cliente</string>
     <string name="label_default_fee">Caché habitual</string>
     <string name="label_invoice_language">Idioma de la factura</string>
+    <string name="label_share_subject">Asunto al compartir para este cliente</string>
+    <string name="label_share_message">Mensaje al compartir para este cliente</string>
+    <string name="label_share_desc">Deja ambos vacíos para usar el texto de Ajustes. Útil para un contratante al que tuteas, o uno que lee un idioma distinto al del resto.</string>
     <string name="label_note">Nota</string>
     <string name="ready_to_invoice">Listo para facturar</string>
     <string name="customer_archived">Archivado</string>

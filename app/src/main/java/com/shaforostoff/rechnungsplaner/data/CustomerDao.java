@@ -280,6 +280,8 @@ public class CustomerDao {
         v.put("default_fee_cents", c.defaultFeeCents);
         v.put("default_tax_mode", c.defaultTaxMode == null ? null : c.defaultTaxMode.name());
         v.put("invoice_language", c.invoiceLanguage);
+        v.put("share_subject", c.shareSubject);
+        v.put("share_message", c.shareMessage);
         v.put("note", c.note);
         v.put("lexoffice_id", c.lexofficeId);
         v.put("archived", c.archived ? 1 : 0);
@@ -305,6 +307,8 @@ public class CustomerDao {
         out.defaultTaxMode = TaxMode.fromName(
                 c.getString(c.getColumnIndexOrThrow("default_tax_mode")), null);
         out.invoiceLanguage = c.getString(c.getColumnIndexOrThrow("invoice_language"));
+        out.shareSubject = c.getString(c.getColumnIndexOrThrow("share_subject"));
+        out.shareMessage = c.getString(c.getColumnIndexOrThrow("share_message"));
         out.note = c.getString(c.getColumnIndexOrThrow("note"));
         out.lexofficeId = c.getString(c.getColumnIndexOrThrow("lexoffice_id"));
         out.archived = c.getInt(c.getColumnIndexOrThrow("archived")) != 0;

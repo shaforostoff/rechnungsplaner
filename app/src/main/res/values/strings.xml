@@ -87,6 +87,9 @@
     <string name="label_customer_number">Customer number</string>
     <string name="label_default_fee">Usual fee</string>
     <string name="label_invoice_language">Invoice language</string>
+    <string name="label_share_subject">Share subject for this customer</string>
+    <string name="label_share_message">Share message for this customer</string>
+    <string name="label_share_desc">Leave both empty to use the wording from Settings. Useful for a booker you are on first-name terms with, or one who reads a different language from the rest.</string>
     <string name="label_note">Note</string>
     <string name="ready_to_invoice">Ready to invoice</string>
     <string name="customer_archived">Archived</string>

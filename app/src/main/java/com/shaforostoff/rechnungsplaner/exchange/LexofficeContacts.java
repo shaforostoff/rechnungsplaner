@@ -20,7 +20,7 @@ import com.shaforostoff.rechnungsplaner.util.Json;
 public final class LexofficeContacts {
 
     /** Bumped if the extension block ever changes shape, so an importer can tell. */
-    public static final int EXTENSION_VERSION = 1;
+    public static final int EXTENSION_VERSION = 2;
     private static final String EXTENSION_KEY = "_rechnungsplaner";
 
     private LexofficeContacts() {
@@ -85,6 +85,8 @@ public final class LexofficeContacts {
             if (c.defaultTaxMode != null) ext.put("defaultTaxMode", c.defaultTaxMode.name());
             ext.put("invoiceLanguage", c.invoiceLanguage);
             ext.put("customerNumber", c.customerNumber);
+            ext.put("shareSubject", c.shareSubject);
+            ext.put("shareMessage", c.shareMessage);
             root.put(EXTENSION_KEY, ext);
         }
         return root.toJson();
@@ -210,6 +212,8 @@ public final class LexofficeContacts {
             c.defaultTaxMode = TaxMode.fromName(Json.string(ext, "defaultTaxMode"), null);
             c.invoiceLanguage = Json.string(ext, "invoiceLanguage");
             c.customerNumber = Json.string(ext, "customerNumber");
+            c.shareSubject = Json.string(ext, "shareSubject");
+            c.shareMessage = Json.string(ext, "shareMessage");
         }
         // lexoffice keeps its own customer number under the customer role, as a JSON number.
         // Reading it is what lets an export straight from the API bring an existing numbering

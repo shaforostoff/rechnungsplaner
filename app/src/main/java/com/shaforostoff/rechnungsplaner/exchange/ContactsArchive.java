@@ -287,6 +287,8 @@ public class ContactsArchive {
         out.vatId = pick(incoming.vatId, out.vatId);
         out.buyerReference = pick(incoming.buyerReference, out.buyerReference);
         out.customerNumber = pick(incoming.customerNumber, out.customerNumber);
+        out.shareSubject = pick(incoming.shareSubject, out.shareSubject);
+        out.shareMessage = pick(incoming.shareMessage, out.shareMessage);
         out.invoiceLanguage = pick(incoming.invoiceLanguage, out.invoiceLanguage);
         out.note = pick(incoming.note, out.note);
         out.lexofficeId = pick(incoming.lexofficeId, out.lexofficeId);

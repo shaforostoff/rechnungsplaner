@@ -37,6 +37,15 @@ public class Customer {
     public TaxMode defaultTaxMode;
     /** Null means fall back to the issuer's default. */
     public String invoiceLanguage;
+    /**
+     * Wording the invoice is shared with, overriding the global setting. Null means inherit.
+     *
+     * <p>Separate from {@link #invoiceLanguage} rather than derived from it: the language decides
+     * what the document says, and these decide what is written to this particular booker, which
+     * is a matter of how well you know them as much as which language they read.
+     */
+    public String shareSubject;
+    public String shareMessage;
 
     public String note;
     /** Preserved across a lexoffice export and re-import so records match up again. */

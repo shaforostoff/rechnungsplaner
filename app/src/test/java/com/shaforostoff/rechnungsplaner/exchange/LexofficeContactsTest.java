@@ -33,6 +33,8 @@ public class LexofficeContactsTest {
         c.defaultTaxMode = TaxMode.STANDARD_19;
         c.invoiceLanguage = "de";
         c.note = "Load-in via the back door.";
+        c.shareSubject = "Rechnung %invoiceno% - %place%";
+        c.shareMessage = "Hallo Erika,\n\nanbei die Rechnung.\n\nBis bald\n%issuername%";
         return c;
     }
 
@@ -80,6 +82,19 @@ public class LexofficeContactsTest {
         Customer reduced = club();
         reduced.defaultTaxMode = TaxMode.REDUCED_7;
         assertFalse("seven per cent is still VAT", taxFree(reduced, kleinunternehmer()));
+    }
+
+    @Test
+    public void aCustomerInheritingTheShareWordingCarriesNoneOfItsOwn() throws Exception {
+        Customer inherits = club();
+        inherits.shareSubject = null;
+        inherits.shareMessage = null;
+
+        Customer after = LexofficeContacts.customerFrom(Json.parse(
+                LexofficeContacts.customerToJson(inherits, kleinunternehmer(), false)));
+
+        assertNull(after.shareSubject);
+        assertNull(after.shareMessage);
     }
 
     @Test
@@ -166,6 +181,8 @@ public class LexofficeContactsTest {
         assertEquals(before.defaultTaxMode, after.defaultTaxMode);
         assertEquals(before.invoiceLanguage, after.invoiceLanguage);
         assertEquals(before.note, after.note);
+        assertEquals(before.shareSubject, after.shareSubject);
+        assertEquals(before.shareMessage, after.shareMessage);
     }
 
     @Test

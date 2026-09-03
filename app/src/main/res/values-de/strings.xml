@@ -81,6 +81,9 @@
     <string name="label_customer_number">Kundennummer</string>
     <string name="label_default_fee">Übliche Gage</string>
     <string name="label_invoice_language">Rechnungssprache</string>
+    <string name="label_share_subject">Betreff beim Teilen für diesen Kunden</string>
+    <string name="label_share_message">Nachricht beim Teilen für diesen Kunden</string>
+    <string name="label_share_desc">Beide leer lassen, um den Text aus den Einstellungen zu verwenden. Nützlich für einen Booker, den man duzt, oder einen, der eine andere Sprache liest als die übrigen.</string>
     <string name="label_note">Notiz</string>
     <string name="ready_to_invoice">Bereit zur Abrechnung</string>
     <string name="customer_archived">Archiviert</string>
