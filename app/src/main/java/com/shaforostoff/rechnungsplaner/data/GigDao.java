@@ -75,12 +75,12 @@ public class GigDao {
         if (gig.syncUuid == null || gig.syncUuid.isEmpty()) {
             gig.syncUuid = UUID.randomUUID().toString();
         }
-        ContentValues v = values(gig);
         SQLiteDatabase w = db.getWritableDatabase();
         if (gig.id > 0L) {
-            w.update(Db.T_GIG, v, "_id = ?", new String[]{Long.toString(gig.id)});
+            w.update(Db.T_GIG, editableValues(gig), "_id = ?",
+                    new String[]{Long.toString(gig.id)});
         } else {
-            gig.id = w.insert(Db.T_GIG, null, v);
+            gig.id = w.insert(Db.T_GIG, null, values(gig));
         }
         return gig.id;
     }
@@ -109,6 +109,29 @@ public class GigDao {
         return out;
     }
 
+    /**
+     * What an update may write: everything except the fields another screen owns.
+     *
+     * <p>A {@link Gig} in hand is easily older than the row it came from. The gig screen stays on
+     * the back stack while an invoice is created from it, so a gig invoiced a moment ago is still
+     * un-invoiced in the object that screen is holding -- and writing every column back from it
+     * unbilled the gig, reset its status, and orphaned its calendar event. The invoice link
+     * belongs to {@link InvoiceDao}, the calendar link to {@link #setCalendarEvent}, and the sync
+     * uuid never changes once set, so an update leaves all four alone.
+     *
+     * <p>Derived from {@link #values} rather than listed again, so a new column is covered by
+     * default and only has to be named here if it turns out to be someone else's.
+     */
+    private static ContentValues editableValues(Gig g) {
+        ContentValues v = values(g);
+        v.remove("invoice_id");
+        v.remove("calendar_id");
+        v.remove("calendar_event_id");
+        v.remove("sync_uuid");
+        return v;
+    }
+
+    /** Every column, for an insert. */
     private static ContentValues values(Gig g) {
         ContentValues v = new ContentValues();
         v.put("date", g.date);

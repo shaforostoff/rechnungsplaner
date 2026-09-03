@@ -54,6 +54,12 @@ executed. Specifically unverified:
   lexoffice contact brings the old numbering across is pinned by tests, but `CustomerDao`'s series
   needs SQLite: that the counter and the `MAX(CAST(...))` scan of existing numbers agree on where
   the series stands, and that the `GLOB` pair really admits only all-digit numbers, are unverified.
+- Saving a gig used to write every column back from an object that could be older than the row,
+  which unbilled an already-invoiced gig and orphaned its calendar event. An update now writes
+  only the fields the gig screen owns. The rule is a column list in `GigDao.editableValues`, and
+  nothing enforces it: a column added to `values` is covered by default, but one that later
+  becomes another screen's has to be named there by hand. Neither the rule nor the refresh in
+  `onResume` is executed here -- both need SQLite and a live back stack.
 - The contacts archive exported as a zero-byte zip: it is written straight into the directory
   `ShareProvider` serves, and `Sharing.stage` then copied it onto itself, truncating it through
   the target before the first read. The guard against that is `Paths.isSameFile`, and the
@@ -147,7 +153,11 @@ failure modes differ between the three, so passing one says little about the oth
     refused by name rather than crashing on the UNIQUE column. Type `2026/038` against the default
     pattern and confirm the hint says the series will not follow it -- and that it does not.
     Finally correct an issued invoice in place and confirm its number is not editable at all.
-12. Duplicate customer numbers. Give a second customer a number another one already has and
+12. Stale gig writes. Create an invoice from a gig and press back to the gig screen, which is
+    still on the stack: it must now offer "Open invoice" and "Recreate", not "Create invoice".
+    Change the fee there, save, reopen, and confirm the gig is still invoiced, still points at
+    the same invoice, and that the calendar event was updated rather than duplicated.
+13. Duplicate customer numbers. Give a second customer a number another one already has and
     confirm the save is refused and names the holder. Repeat with the holder archived, and with
     the case changed (`k-007` against `K-007`), which must also be refused. Then confirm a
     customer keeps its own number when saved unchanged.

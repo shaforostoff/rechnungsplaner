@@ -108,6 +108,38 @@ public class GigEditActivity extends BaseActivity {
         buildForm(isNew);
     }
 
+    /**
+     * Picks up what another screen did to this gig while this one waited behind it.
+     *
+     * <p>Creating an invoice leaves this screen on the back stack, so the gig it holds still says
+     * un-invoiced when the user comes back -- and it would go on offering to create an invoice
+     * that already exists. The row itself is no longer at risk, since an update writes only the
+     * fields this screen owns, but the buttons have to catch up.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (gig.id <= 0L) return;
+        Gig fresh = gigs.byId(gig.id);
+        if (fresh == null) {
+            // Deleted from somewhere else, so there is nothing left for this screen to edit.
+            finish();
+            return;
+        }
+        boolean wasInvoiced = gig.isInvoiced();
+        gig.invoiceId = fresh.invoiceId;
+        gig.calendarId = fresh.calendarId;
+        gig.calendarEventId = fresh.calendarEventId;
+        gig.syncUuid = fresh.syncUuid;
+        if (fresh.isInvoiced() == wasInvoiced) return;
+
+        // Only when the invoice link actually changed, which is the one case worth losing an
+        // unsaved edit over -- and in that flow the edits were saved on the way out anyway.
+        gig.status = fresh.status;
+        body().removeAllViews();
+        buildForm(false);
+    }
+
     private void buildForm(boolean isNew) {
         FormBuilder f = form();
 
