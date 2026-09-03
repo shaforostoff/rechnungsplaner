@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import com.shaforostoff.rechnungsplaner.util.Paths;
 import com.shaforostoff.rechnungsplaner.util.ShareProvider;
 
 import java.io.File;
@@ -37,6 +38,12 @@ public final class Sharing {
      */
     public static Uri stage(Context ctx, File file) throws IOException {
         File target = new File(ShareProvider.shareDir(ctx), file.getName());
+        // Some things are generated straight into the served directory -- the contacts archive is.
+        // Copying one onto itself opens the source and truncates it through the target in the same
+        // breath, so the read finds nothing: that is how the contacts export became a zero-byte
+        // zip. Already staged is already staged.
+        if (Paths.isSameFile(file, target)) return ShareProvider.uriFor(target.getName());
+
         InputStream in = new FileInputStream(file);
         try {
             OutputStream out = new FileOutputStream(target);

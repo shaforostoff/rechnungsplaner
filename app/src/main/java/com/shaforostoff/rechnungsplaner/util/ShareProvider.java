@@ -10,7 +10,6 @@ import android.provider.OpenableColumns;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Locale;
 
 /**
@@ -98,14 +97,8 @@ public class ShareProvider extends ContentProvider {
         if (name == null) throw new FileNotFoundException("no file named");
         File dir = shareDir(getContext());
         File file = new File(dir, name);
-        try {
-            // Canonical paths, so "../" in a crafted Uri cannot escape the share directory.
-            if (!file.getCanonicalPath().startsWith(dir.getCanonicalPath() + File.separator)) {
-                throw new FileNotFoundException("outside the share directory");
-            }
-        } catch (IOException e) {
-            throw new FileNotFoundException("unresolvable path");
-        }
+        // So "../" in a crafted Uri cannot walk out of the share directory.
+        if (!Paths.isInside(dir, file)) throw new FileNotFoundException("outside the share dir");
         if (!file.isFile()) throw new FileNotFoundException(name);
         return file;
     }

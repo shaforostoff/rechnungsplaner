@@ -54,6 +54,12 @@ executed. Specifically unverified:
   lexoffice contact brings the old numbering across is pinned by tests, but `CustomerDao`'s series
   needs SQLite: that the counter and the `MAX(CAST(...))` scan of existing numbers agree on where
   the series stands, and that the `GLOB` pair really admits only all-digit numbers, are unverified.
+- The contacts archive exported as a zero-byte zip: it is written straight into the directory
+  `ShareProvider` serves, and `Sharing.stage` then copied it onto itself, truncating it through
+  the target before the first read. The guard against that is `Paths.isSameFile`, and the
+  platform behaviour it turns on -- a copy whose source and target are one path empties the file
+  -- is pinned by a test, so the hazard is exercised rather than described. That the fixed share
+  now arrives intact at a mail app is still a device check.
 - Reading a sequence back out of a hand-typed invoice number is tested, including the round trip
   that matters: every sequence the formatter can render comes back as itself, across four patterns.
   What is not tested is `InvoiceDao.adoptSequence` moving the counter with it, or `numberExists`
@@ -120,7 +126,9 @@ failure modes differ between the three, so passing one says little about the oth
    labels and number formatting change, the UI does not, and the XML amounts stay dot-decimal.
 7. Export the tour list with two customers in one city: those two lines show venues, the rest
    show cities.
-8. Export contacts, clear app data, re-import: customers and issuer come back intact.
+8. Export contacts, clear app data, re-import: customers and issuer come back intact. Check the
+   size of the shared zip before anything else -- it was silently zero, and every assertion about
+   its contents passed while it was.
 9. Settings has no Save button: change the invoice format, the file-name pattern and the strict
    lexoffice box, leave by the bottom bar, come back -- all three held. Then change the UI
    language and confirm the screen relabels itself on the spot without closing the app.
