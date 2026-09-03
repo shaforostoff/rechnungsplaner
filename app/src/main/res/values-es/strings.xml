@@ -162,6 +162,7 @@
     <string name="setting_ui_language">Idioma de la app</string>
     <string name="setting_customer_number_pattern">Patrón de número de cliente</string>
     <string name="setting_customer_number_desc">Déjalo vacío para escribir los números de cliente a mano. Aquí solo valen los comodines de secuencia y fecha, y la serie continúa por encima del número solo-dígitos más alto que ya exista — así, al importar tus contactos antiguos se conserva su numeración.</string>
+    <string name="customer_number_taken">El número de cliente %1$s ya pertenece a %2$s</string>
     <string name="customer_number_manual">Vista previa: entrada manual</string>
     <string name="setting_strict_lexoffice">Exportación lexoffice estricta</string>
     <string name="setting_strict_lexoffice_desc">Omite los campos propios de la app (sala, caché habitual, idioma de factura).</string>

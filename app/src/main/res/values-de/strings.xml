@@ -162,6 +162,7 @@
     <string name="setting_ui_language">App-Sprache</string>
     <string name="setting_customer_number_pattern">Muster für Kundennummern</string>
     <string name="setting_customer_number_desc">Leer lassen, um Kundennummern selbst einzugeben. Hier gelten nur die Zähler- und Datums-Platzhalter, und die Reihe läuft über der höchsten rein numerischen Nummer weiter, die schon vorhanden ist — ein Import der alten Kontakte übernimmt deren Nummerierung also.</string>
+    <string name="customer_number_taken">Kundennummer %1$s gehört schon zu %2$s</string>
     <string name="customer_number_manual">Vorschau: manuelle Eingabe</string>
     <string name="setting_strict_lexoffice">Strikter lexoffice-Export</string>
     <string name="setting_strict_lexoffice_desc">Lässt die app-eigenen Felder weg (Location, übliche Gage, Rechnungssprache).</string>

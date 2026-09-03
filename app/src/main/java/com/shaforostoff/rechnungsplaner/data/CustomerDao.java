@@ -19,6 +19,9 @@ public class CustomerDao {
 
     private static final String COUNTER_KEY = "customer_seq";
 
+    /** How far the sequence may step past taken numbers before the attempt is abandoned. */
+    private static final int COLLISION_ATTEMPTS = 100;
+
     private final Db db;
 
     public CustomerDao(Context ctx) {
@@ -76,18 +79,58 @@ public class CustomerDao {
     }
 
     /**
+     * The customer holding this number, or null when it is free.
+     *
+     * <p>Archived customers count: they still hold their number in the books the numbering has to
+     * stay consistent with. Matching is case-insensitive so {@code k-007} cannot slip past
+     * {@code K-007}.
+     *
+     * @param excludeId the record being edited, so a customer never clashes with itself
+     */
+    public Customer holderOfNumber(String number, long excludeId) {
+        return holderOf(db.getReadableDatabase(), number, excludeId);
+    }
+
+    private Customer holderOf(SQLiteDatabase r, String number, long excludeId) {
+        if (isBlank(number)) return null;
+        Cursor c = r.query(Db.T_CUSTOMER, null,
+                "customer_number = ? COLLATE NOCASE AND _id <> ?",
+                new String[]{number.trim(), Long.toString(excludeId)}, null, null, null, "1");
+        try {
+            return c.moveToFirst() ? read(c) : null;
+        } finally {
+            c.close();
+        }
+    }
+
+    /**
      * Consumes the next customer number.
      *
      * <p>Allocating inside the caller's transaction is what stops two inserts in flight from
      * being handed the same number -- the same reason invoice numbers are allocated that way.
+     *
+     * <p>The sequence is stepped past anything already taken. The {@code MAX} scan puts it beyond
+     * every plain number on file, but a pattern like {@code K-%seq3%} produces numbers that scan
+     * cannot see, so a hand-typed {@code K-005} sitting mid-series would otherwise be minted a
+     * second time.
+     *
+     * @return the number, or null when the pattern cannot produce a free one
      */
     private String allocateNumber(SQLiteDatabase w, String pattern) {
         int next = nextSequence(w);
-        ContentValues v = new ContentValues();
-        v.put("key", COUNTER_KEY);
-        v.put("value", next);
-        w.replace(Db.T_COUNTER, null, v);
-        return formatNumber(pattern, next);
+        for (int attempt = 0; attempt < COLLISION_ATTEMPTS; attempt++, next++) {
+            String candidate = formatNumber(pattern, next);
+            if (holderOf(w, candidate, 0L) != null) continue;
+            ContentValues v = new ContentValues();
+            v.put("key", COUNTER_KEY);
+            v.put("value", next);
+            w.replace(Db.T_COUNTER, null, v);
+            return candidate;
+        }
+        // A pattern holding no sequence token produces one number and no more, so stepping the
+        // sequence never gets past a collision. Leaving the field empty is the recoverable
+        // outcome: the user can type a number, where a duplicate would need finding first.
+        return null;
     }
 
     /**

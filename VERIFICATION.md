@@ -54,8 +54,12 @@ executed. Specifically unverified:
   lexoffice contact brings the old numbering across is pinned by tests, but `CustomerDao`'s series
   needs SQLite: that the counter and the `MAX(CAST(...))` scan of existing numbers agree on where
   the series stands, and that the `GLOB` pair really admits only all-digit numbers, are unverified.
-  A wrong floor there does not corrupt anything -- it hands out a number that collides with one
-  already on file, which nothing in the schema forbids.
+- Customer-number uniqueness is enforced in code, not by the schema. `holderOfNumber` blocks a
+  duplicate typed on the customer screen and the allocator steps its sequence past taken numbers,
+  both unverified for the same reason. There is deliberately no `UNIQUE` index: adding one means a
+  schema version, and `onUpgrade` currently wipes. So the guarantee is only as good as the two
+  paths that check -- a contacts import writing numbers it was given does not, and neither would
+  any future writer that forgets to.
 - `CalendarMirror`, `ShareProvider`, `SafExporter` and every screen are compile-verified only.
   This includes the field mechanics whose *decisions* are tested -- that the account holder mirrors
   the name is pinned as a rule, but nothing has confirmed the `TextWatcher` is wired to the right
@@ -122,3 +126,7 @@ failure modes differ between the three, so passing one says little about the oth
     settings reads `10005` and that the next customer created gets it. Finally type `10009` by
     hand on one customer and confirm the following automatic number is `10010`, not `10006` --
     that is the `MAX` scan, and it is the whole reason the series survives an import.
+11. Duplicate customer numbers. Give a second customer a number another one already has and
+    confirm the save is refused and names the holder. Repeat with the holder archived, and with
+    the case changed (`k-007` against `K-007`), which must also be refused. Then confirm a
+    customer keeps its own number when saved unchanged.

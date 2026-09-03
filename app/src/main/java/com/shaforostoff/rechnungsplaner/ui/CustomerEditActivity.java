@@ -155,6 +155,15 @@ public class CustomerEditActivity extends BaseActivity {
         customer.vatId = text(vatIdField);
         customer.buyerReference = text(buyerReferenceField);
         customer.customerNumber = text(customerNumberField);
+        Customer clash = customers.holderOfNumber(customer.customerNumber, customer.id);
+        if (clash != null) {
+            // Naming the holder is the useful half: a number is only a duplicate relative to
+            // someone, and that someone may well be archived and not in any list on screen.
+            Ui.toast(this, getString(R.string.customer_number_taken, customer.customerNumber,
+                    clash.displayName()));
+            customerNumberField.requestFocus();
+            return;
+        }
         customer.defaultFeeCents = Ui.editableToCents(defaultFeeField.getText().toString());
 
         int taxIndex = FormBuilder.selectionOf(taxSpinner);
