@@ -29,6 +29,11 @@ public class InvoiceDao {
      * "create" would otherwise read the same counter and mint the same number twice, and a
      * duplicate invoice number is exactly the kind of thing a Betriebsprüfung notices.
      *
+     * <p>A number already set on the invoice is honoured rather than replaced, and the year's
+     * series is moved up to it. That pair is what a mid-year switch needs: the first invoice is
+     * given the number following the last one the old software issued, and every invoice after it
+     * carries on from there without being told again.
+     *
      * @param numberPattern the user's pattern, e.g. {@code %Y%-%seq3%}
      * @param gigIds        the gigs this invoice bills; may be empty for a manual invoice
      */
@@ -38,6 +43,9 @@ public class InvoiceDao {
         try {
             if (invoice.number == null || invoice.number.trim().isEmpty()) {
                 invoice.number = allocateNumber(w, numberPattern, invoice.issueDate);
+            } else {
+                invoice.number = invoice.number.trim();
+                adoptSequence(w, numberPattern, invoice.issueDate, invoice.number);
             }
             invoice.createdAt = System.currentTimeMillis();
             invoice.id = w.insertOrThrow(Db.T_INVOICE, null, values(invoice));
@@ -144,39 +152,78 @@ public class InvoiceDao {
      * draft is simply never reused. The counter is per year and resets on 1 January.
      */
     private String allocateNumber(SQLiteDatabase w, String pattern, String issueDate) {
-        String year = Dates.isValid(issueDate) ? issueDate.substring(0, 4)
-                : Dates.today().substring(0, 4);
-        String key = "invoice_seq_" + year;
-
-        int next = 1;
-        Cursor c = w.query(Db.T_COUNTER, new String[]{"value"}, "key = ?", new String[]{key},
-                null, null, null);
-        try {
-            if (c.moveToFirst()) next = c.getInt(0) + 1;
-        } finally {
-            c.close();
-        }
-        ContentValues v = new ContentValues();
-        v.put("key", key);
-        v.put("value", next);
-        w.replace(Db.T_COUNTER, null, v);
-
+        String key = counterKey(issueDate);
+        int next = counterValue(w, key) + 1;
+        setCounter(w, key, next);
         return new PatternFormatter().putDate(issueDate).putSequence(next).format(pattern);
+    }
+
+    /**
+     * Moves the year's series up to a number that was entered by hand.
+     *
+     * <p>This is what makes a mid-year switch to this app work. The first invoice here is given
+     * the number following the last one the previous software issued; without adopting it the
+     * counter would still be at zero and the second invoice would restart the series at 1,
+     * colliding with the old books.
+     *
+     * <p>Only a number the pattern can place is adopted, and the series only ever moves forward:
+     * a number typed below where the series already stands is a correction to the past, not an
+     * instruction to reissue everything after it. A number the pattern cannot place leaves the
+     * counter alone -- the invoice screen says so before it gets this far.
+     */
+    private void adoptSequence(SQLiteDatabase w, String pattern, String issueDate, String number) {
+        int sequence = PatternFormatter.extractSequence(pattern, number);
+        String key = counterKey(issueDate);
+        if (sequence < 0 || sequence <= counterValue(w, key)) return;
+        setCounter(w, key, sequence);
     }
 
     /** What the next number would be, for the preview in the invoice screen. Consumes nothing. */
     public String peekNextNumber(String pattern, String issueDate) {
-        String year = Dates.isValid(issueDate) ? issueDate.substring(0, 4)
-                : Dates.today().substring(0, 4);
-        int next = 1;
-        Cursor c = db.getReadableDatabase().query(Db.T_COUNTER, new String[]{"value"}, "key = ?",
-                new String[]{"invoice_seq_" + year}, null, null, null);
+        int next = counterValue(db.getReadableDatabase(), counterKey(issueDate)) + 1;
+        return new PatternFormatter().putDate(issueDate).putSequence(next).format(pattern);
+    }
+
+    /**
+     * Whether a number is already spent.
+     *
+     * <p>The column is UNIQUE, so this exists to turn what would be a constraint exception mid
+     * transaction into something the screen can say. Deliberately case-insensitive where the
+     * constraint is not: a series carrying both {@code RE-2026-038} and {@code re-2026-038} is
+     * unique only to SQLite.
+     */
+    public boolean numberExists(String number) {
+        if (number == null || number.trim().isEmpty()) return false;
+        Cursor c = db.getReadableDatabase().query(Db.T_INVOICE, new String[]{"_id"},
+                "number = ? COLLATE NOCASE", new String[]{number.trim()}, null, null, null, "1");
         try {
-            if (c.moveToFirst()) next = c.getInt(0) + 1;
+            return c.moveToFirst();
         } finally {
             c.close();
         }
-        return new PatternFormatter().putDate(issueDate).putSequence(next).format(pattern);
+    }
+
+    private static String counterKey(String issueDate) {
+        String year = Dates.isValid(issueDate) ? issueDate.substring(0, 4)
+                : Dates.today().substring(0, 4);
+        return "invoice_seq_" + year;
+    }
+
+    private static int counterValue(SQLiteDatabase r, String key) {
+        Cursor c = r.query(Db.T_COUNTER, new String[]{"value"}, "key = ?", new String[]{key},
+                null, null, null);
+        try {
+            return c.moveToFirst() ? c.getInt(0) : 0;
+        } finally {
+            c.close();
+        }
+    }
+
+    private static void setCounter(SQLiteDatabase w, String key, int value) {
+        ContentValues v = new ContentValues();
+        v.put("key", key);
+        v.put("value", value);
+        w.replace(Db.T_COUNTER, null, v);
     }
 
     public List<Invoice> all() {

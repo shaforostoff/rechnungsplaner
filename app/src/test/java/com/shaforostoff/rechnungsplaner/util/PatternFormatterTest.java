@@ -75,4 +75,53 @@ public class PatternFormatterTest {
                 .putDate("2026-09-05");
         assertEquals("-2026", f.format("%place%-%Y"));
     }
+
+    @Test
+    public void readsTheSequenceBackOutOfANumberItWrote() {
+        assertEquals(38, PatternFormatter.extractSequence("%Y%-%seq3%", "2026-038"));
+        assertEquals(1, PatternFormatter.extractSequence("%Y%-%seq3%", "2026-001"));
+        // Past the padding width: the series widens rather than wrapping, so this has to read.
+        assertEquals(1000, PatternFormatter.extractSequence("%Y%-%seq3%", "2026-1000"));
+        assertEquals(7, PatternFormatter.extractSequence("%seq%", "7"));
+    }
+
+    @Test
+    public void readsTheSequenceWhateverElseThePatternHolds() {
+        assertEquals(38, PatternFormatter.extractSequence("RE-%Y%-%seq3%", "RE-2026-038"));
+        assertEquals(38, PatternFormatter.extractSequence("%seq3%-%Y%", "038-2026"));
+        assertEquals(38, PatternFormatter.extractSequence("%y%%M%-%seq4%", "2609-0038"));
+        assertEquals(4, PatternFormatter.extractSequence("%issuername%-%seq%", "Nick Shaf-4"));
+    }
+
+    @Test
+    public void aNumberThatDoesNotFitThePatternYieldsNothing() {
+        // The point of failing here rather than guessing: the caller has to be able to tell the
+        // user the series will not follow a number it cannot place.
+        assertEquals(-1, PatternFormatter.extractSequence("%Y%-%seq3%", "RE-2026-038"));
+        assertEquals(-1, PatternFormatter.extractSequence("%Y%-%seq3%", "2026/038"));
+        assertEquals(-1, PatternFormatter.extractSequence("%Y%-%seq3%", "2026-03a"));
+        assertEquals(-1, PatternFormatter.extractSequence("%Y%-%seq3%", ""));
+        assertEquals(-1, PatternFormatter.extractSequence("%Y%-%seq3%", null));
+    }
+
+    @Test
+    public void aPatternWithNoSequenceHasNoneToRead() {
+        assertEquals(-1, PatternFormatter.extractSequence("%Y%-%M%", "2026-09"));
+        assertEquals(-1, PatternFormatter.extractSequence("FIXED", "FIXED"));
+    }
+
+    @Test
+    public void whatItWritesIsWhatItReads() {
+        // The round trip is the actual contract: any sequence the formatter can render has to come
+        // back as itself, or a hand-typed number would move the series to the wrong place.
+        String[] patterns = {"%Y%-%seq3%", "%seq%", "RE-%Y%%M%-%seq4%", "%seq6%/%y%"};
+        for (String pattern : patterns) {
+            for (int seq : new int[]{1, 9, 10, 99, 100, 999, 1000, 123456}) {
+                String written = new PatternFormatter().putDate("2026-09-03").putSequence(seq)
+                        .format(pattern);
+                assertEquals(pattern + " -> " + written, seq,
+                        PatternFormatter.extractSequence(pattern, written));
+            }
+        }
+    }
 }

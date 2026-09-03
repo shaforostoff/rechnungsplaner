@@ -119,6 +119,88 @@ public final class PatternFormatter {
         return out.toString();
     }
 
+    /**
+     * Reads the sequence back out of a number this pattern produced.
+     *
+     * <p>This is what lets a number typed by hand move the series: switching to this app mid-year
+     * means entering the number that follows the last one the previous software issued, and the
+     * one after that has to carry on from it rather than restarting at 1. Rather than guess at a
+     * run of digits -- which picks the year out of {@code 001-2026} -- the pattern is turned into
+     * a matcher, so what counts as the sequence is decided by the same token list that wrote it.
+     *
+     * @return the sequence, or -1 when the value does not fit the pattern or the pattern holds no
+     *         sequence token to read
+     */
+    public static int extractSequence(String pattern, String value) {
+        if (pattern == null || value == null) return -1;
+        StringBuilder regex = new StringBuilder(pattern.length() + 32);
+        StringBuilder literal = new StringBuilder();
+        int sequenceGroup = -1;
+        int group = 0;
+
+        int i = 0;
+        while (i < pattern.length()) {
+            if (pattern.charAt(i) != '%') {
+                literal.append(pattern.charAt(i++));
+                continue;
+            }
+            String matched = longestTokenAt(pattern, i + 1);
+            if (matched == null) {
+                literal.append('%');
+                i++;
+                continue;
+            }
+            if (literal.length() > 0) {
+                regex.append(java.util.regex.Pattern.quote(literal.toString()));
+                literal.setLength(0);
+            }
+            group++;
+            if (matched.startsWith(SEQ)) {
+                // The first sequence token wins; a pattern with two of them is already ambiguous.
+                if (sequenceGroup < 0) sequenceGroup = group;
+                regex.append("(\\d{1,9})");
+            } else {
+                regex.append('(').append(placeholderFor(matched)).append(')');
+            }
+            i += 1 + matched.length();
+            if (i < pattern.length() && pattern.charAt(i) == '%') i++;
+        }
+        if (sequenceGroup < 0) return -1;
+        if (literal.length() > 0) {
+            regex.append(java.util.regex.Pattern.quote(literal.toString()));
+        }
+
+        java.util.regex.Matcher m =
+                java.util.regex.Pattern.compile(regex.toString()).matcher(value.trim());
+        if (!m.matches()) return -1;
+        try {
+            return Integer.parseInt(m.group(sequenceGroup));
+        } catch (NumberFormatException e) {
+            // Nine digits fit an int, so this is unreachable; -1 keeps it from ever throwing.
+            return -1;
+        }
+    }
+
+    /** What a non-sequence token is allowed to stand for when matching. */
+    private static String placeholderFor(String token) {
+        if (YEAR.equals(token) || GIG_YEAR.equals(token)) return "\\d{4}";
+        if (YEAR_SHORT.equals(token) || MONTH.equals(token) || DAY.equals(token)
+                || GIG_MONTH.equals(token) || GIG_DAY.equals(token)) {
+            return "\\d{2}";
+        }
+        // A name, a place or a format: anything, as briefly as the surrounding literals allow.
+        return ".*?";
+    }
+
+    private static String longestTokenAt(String pattern, int from) {
+        String best = null;
+        for (String token : TOKENS) {
+            if (!pattern.startsWith(token, from)) continue;
+            if (best == null || token.length() > best.length()) best = token;
+        }
+        return best;
+    }
+
     /** Expands the pattern and makes the result safe to use as a file name. */
     public String formatFileName(String pattern) {
         return Slug.fileName(format(pattern));

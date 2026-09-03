@@ -7,8 +7,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -35,6 +38,7 @@ import com.shaforostoff.rechnungsplaner.output.InvoiceWriter;
 import com.shaforostoff.rechnungsplaner.output.SafExporter;
 import com.shaforostoff.rechnungsplaner.output.Sharing;
 import com.shaforostoff.rechnungsplaner.util.Dates;
+import com.shaforostoff.rechnungsplaner.util.PatternFormatter;
 
 import java.io.File;
 import java.io.IOException;
@@ -128,6 +132,10 @@ public class InvoiceActivity extends BaseActivity {
     /** True when {@link #replacing} is to be superseded by a new document rather than corrected. */
     private boolean withNewNumber;
     private Spinner formatSpinner;
+    private EditText numberField;
+    private TextView numberHint;
+    /** A number the user typed, kept across re-renders of the form. Null means follow the series. */
+    private String numberOverride;
     private List<File> lastFiles = new ArrayList<File>();
 
     @Override
@@ -254,21 +262,48 @@ public class InvoiceActivity extends BaseActivity {
         invoice = InvoiceBuilder.build(issuer, customer, chosen,
                 inPlace ? replacing.issueDate : Dates.today());
         if (replacing == null) {
-            invoice.number = invoices.peekNextNumber(settings.getInvoiceNumberPattern(),
-                    invoice.issueDate);
+            invoice.number = draftNumber();
         } else if (withNewNumber) {
             invoice.supersede(replacing);
             invoice.note = InvoiceBuilder.correctionNote(replacing.number, replacing.issueDate,
                     invoice.language);
-            invoice.number = invoices.peekNextNumber(settings.getInvoiceNumberPattern(),
-                    invoice.issueDate);
+            invoice.number = draftNumber();
         } else {
+            // An in-place correction is the same document, so its number is not up for discussion.
             invoice.takeIdentityFrom(replacing);
         }
     }
 
+    /**
+     * The number the draft is showing: what the user typed, or the next in the series.
+     *
+     * <p>Held separately from the field because ticking a gig rebuilds the whole form, and a
+     * number typed for a mid-year switch must not quietly revert to the series when the invoice
+     * grows a second night.
+     */
+    private String draftNumber() {
+        return numberOverride != null ? numberOverride
+                : invoices.peekNextNumber(settings.getInvoiceNumberPattern(), invoice.issueDate);
+    }
+
+    /** True while the number is still the draft's to choose. */
+    private boolean numberEditable() {
+        return !issued && !(replacing != null && !withNewNumber);
+    }
+
+    /** Reads the field back into {@link #numberOverride} before the form is thrown away. */
+    private void captureNumber() {
+        if (numberField == null) return;
+        String typed = numberField.getText().toString().trim();
+        numberOverride = typed.isEmpty() ? null : typed;
+    }
+
     private void render() {
         body().removeAllViews();
+        // The views are gone, so the handles on them must go too: whether the number field exists
+        // is what tells the rest of this screen the number is still the draft's to choose.
+        numberField = null;
+        numberHint = null;
         FormBuilder f = form();
 
         f.add(summaryCard());
@@ -289,6 +324,7 @@ public class InvoiceActivity extends BaseActivity {
                             public void onCheckedChanged(android.widget.CompoundButton v,
                                                          boolean checked) {
                                 selected.set(index, Boolean.valueOf(checked));
+                                captureNumber();
                                 rebuildInvoice();
                                 render();
                             }
@@ -299,6 +335,13 @@ public class InvoiceActivity extends BaseActivity {
         f.add(problemsCard());
 
         if (!issued) {
+            if (numberEditable()) {
+                numberField = f.field(R.string.label_invoice_number, invoice.number, false);
+                numberHint = f.caption("");
+                watchNumber();
+                updateNumberHint();
+            }
+
             formatSpinner = f.spinner(R.string.label_format, formatLabels(),
                     settings.getOutputFormat().ordinal(), false);
             f.caption(getString(R.string.two_part_label, getString(R.string.label_filename),
@@ -361,7 +404,11 @@ public class InvoiceActivity extends BaseActivity {
         card.setBackgroundResource(R.drawable.card_accent);
         card.setPadding(dp(16), dp(14), dp(16), dp(14));
 
-        card.addView(line(getString(R.string.label_invoice_number), invoice.number, false));
+        // While the invoice is still a draft the number is editable below, so showing it here too
+        // would be two versions of the same field with one of them stale.
+        if (!numberEditable()) {
+            card.addView(line(getString(R.string.label_invoice_number), invoice.number, false));
+        }
         card.addView(line(getString(R.string.label_issue_date),
                 Dates.forLanguage(invoice.issueDate, uiLanguage()), false));
         if (invoice.dueDate != null) {
@@ -455,7 +502,71 @@ public class InvoiceActivity extends BaseActivity {
         return false;
     }
 
+    /**
+     * Keeps the hint under the number field honest about what the series will do next.
+     *
+     * <p>Editing the number is how a mid-year switch is made, and the whole question the user has
+     * at that moment is whether the app has understood the number well enough to carry on from
+     * it. Saying so before the invoice is issued is worth more than reporting it afterwards.
+     */
+    private void watchNumber() {
+        numberField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int a, int b, int c) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int a, int b, int c) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                updateNumberHint();
+            }
+        });
+    }
+
+    private void updateNumberHint() {
+        String pattern = settings.getInvoiceNumberPattern();
+        String typed = numberField.getText().toString().trim();
+        if (typed.isEmpty()) {
+            numberHint.setText(getString(R.string.invoice_number_auto,
+                    invoices.peekNextNumber(pattern, invoice.issueDate)));
+            return;
+        }
+        int sequence = PatternFormatter.extractSequence(pattern, typed);
+        if (sequence < 0) {
+            numberHint.setText(getString(R.string.invoice_number_off_pattern, pattern));
+            return;
+        }
+        numberHint.setText(getString(R.string.invoice_number_then,
+                new PatternFormatter().putDate(invoice.issueDate).putSequence(sequence + 1)
+                        .format(pattern)));
+    }
+
+    /**
+     * The number this invoice should carry, or null to let the series allocate one.
+     *
+     * <p>The previewed number left untouched is passed back rather than being recognised and
+     * dropped, which lands in the same place: the series adopts a supplied number that sits above
+     * it, so spending the number the preview showed and allocating it come to the same thing. The
+     * one case where they differ -- the number having been taken meanwhile -- is refused by name
+     * in {@link #issue()} instead of being papered over.
+     */
+    private String chosenNumber() {
+        if (numberField == null) return null;
+        String typed = numberField.getText().toString().trim();
+        return typed.isEmpty() ? null : typed;
+    }
+
     private void issue() {
+        String chosen = chosenNumber();
+        if (chosen != null && invoices.numberExists(chosen)) {
+            Ui.toast(this, getString(R.string.invoice_number_taken, chosen));
+            numberField.requestFocus();
+            return;
+        }
+
         OutputFormat format = OutputFormat.values()[FormBuilder.selectionOf(formatSpinner)];
         settings.setOutputFormat(format);
 
@@ -480,7 +591,7 @@ public class InvoiceActivity extends BaseActivity {
         } else {
             // A new document either way, so the series advances. The gigs move to it, which is
             // what leaves the superseded invoice with its lines but no gigs of its own.
-            invoice.number = null;
+            invoice.number = chosen;
             invoices.issue(invoice, settings.getInvoiceNumberPattern(), gigIds);
         }
 
@@ -494,6 +605,7 @@ public class InvoiceActivity extends BaseActivity {
             issued = true;
             replacing = null;
             withNewNumber = false;
+            numberOverride = null;
             setScreenTitle(invoice.number);
             render();
             Ui.toast(this, superseded != null

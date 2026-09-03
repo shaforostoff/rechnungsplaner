@@ -54,6 +54,10 @@ executed. Specifically unverified:
   lexoffice contact brings the old numbering across is pinned by tests, but `CustomerDao`'s series
   needs SQLite: that the counter and the `MAX(CAST(...))` scan of existing numbers agree on where
   the series stands, and that the `GLOB` pair really admits only all-digit numbers, are unverified.
+- Reading a sequence back out of a hand-typed invoice number is tested, including the round trip
+  that matters: every sequence the formatter can render comes back as itself, across four patterns.
+  What is not tested is `InvoiceDao.adoptSequence` moving the counter with it, or `numberExists`
+  catching a duplicate before the UNIQUE column throws -- both need SQLite.
 - Customer-number uniqueness is enforced in code, not by the schema. `holderOfNumber` blocks a
   duplicate typed on the customer screen and the allocator steps its sequence past taken numbers,
   both unverified for the same reason. There is deliberately no `UNIQUE` index: adding one means a
@@ -126,7 +130,14 @@ failure modes differ between the three, so passing one says little about the oth
     settings reads `10005` and that the next customer created gets it. Finally type `10009` by
     hand on one customer and confirm the following automatic number is `10010`, not `10006` --
     that is the `MAX` scan, and it is the whole reason the series survives an import.
-11. Duplicate customer numbers. Give a second customer a number another one already has and
+11. Mid-year switch. With no invoices in the app, create one and type the number following the
+    last the old software issued, say `2026-038`; the hint must read that the next invoice becomes
+    `2026-039`, and it must. Then tick a second gig onto a draft after typing a number and confirm
+    the number survives the re-render. Type `2026-038` again on a later invoice and confirm it is
+    refused by name rather than crashing on the UNIQUE column. Type `2026/038` against the default
+    pattern and confirm the hint says the series will not follow it -- and that it does not.
+    Finally correct an issued invoice in place and confirm its number is not editable at all.
+12. Duplicate customer numbers. Give a second customer a number another one already has and
     confirm the save is refused and names the holder. Repeat with the holder archived, and with
     the case changed (`k-007` against `K-007`), which must also be refused. Then confirm a
     customer keeps its own number when saved unchanged.

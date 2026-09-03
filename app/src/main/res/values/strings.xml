@@ -132,6 +132,10 @@
     <string name="recreate_new_number">Already sent — issue a correction with a new number</string>
     <string name="action_issue_correction">Issue correction</string>
     <string name="confirm_supersede_invoice">Issue a corrected invoice replacing %1$s? %1$s stays in your records, and the new one states that it replaces it.</string>
+    <string name="invoice_number_auto">Leave empty for the next in the series: %1$s</string>
+    <string name="invoice_number_then">The invoice after this one becomes %1$s</string>
+    <string name="invoice_number_off_pattern">Kept as typed, but it does not fit the pattern %1$s, so the next invoice will not continue from it.</string>
+    <string name="invoice_number_taken">Invoice %1$s already exists</string>
     <string name="invoice_supersedes">Invoice %1$s issued, replacing %2$s</string>
     <string name="label_replaces">Replaces</string>
     <string name="label_replaced_by">Replaced by</string>

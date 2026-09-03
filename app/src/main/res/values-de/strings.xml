@@ -122,6 +122,10 @@
     <string name="recreate_new_number">Schon versandt — Korrektur mit neuer Nummer</string>
     <string name="action_issue_correction">Korrektur erstellen</string>
     <string name="confirm_supersede_invoice">Korrigierte Rechnung erstellen, die %1$s ersetzt? %1$s bleibt in den Unterlagen, und die neue Rechnung weist darauf hin.</string>
+    <string name="invoice_number_auto">Leer lassen für die nächste der Reihe: %1$s</string>
+    <string name="invoice_number_then">Die Rechnung nach dieser wird %1$s</string>
+    <string name="invoice_number_off_pattern">Wird so übernommen, passt aber nicht zum Muster %1$s — die nächste Rechnung führt sie daher nicht fort.</string>
+    <string name="invoice_number_taken">Rechnung %1$s gibt es schon</string>
     <string name="invoice_supersedes">Rechnung %1$s erstellt, ersetzt %2$s</string>
     <string name="label_replaces">Ersetzt</string>
     <string name="label_replaced_by">Ersetzt durch</string>
