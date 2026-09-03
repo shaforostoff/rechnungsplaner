@@ -69,9 +69,19 @@ public class InvoiceWriter {
         this.invoices = new InvoiceDao(this.ctx);
     }
 
+    /**
+     * The archive every invoice's files live under, one subdirectory per invoice.
+     *
+     * <p>Named here rather than at each caller because a backup has to find the whole tree, and a
+     * directory spelled twice is a directory that eventually gets spelled two ways.
+     */
+    public static File archiveRoot(Context ctx) {
+        return new File(ctx.getFilesDir(), "invoices");
+    }
+
     /** The archive directory for one invoice. */
     public File archiveDir(long invoiceId) {
-        File dir = new File(new File(ctx.getFilesDir(), "invoices"), Long.toString(invoiceId));
+        File dir = new File(archiveRoot(ctx), Long.toString(invoiceId));
         dir.mkdirs();
         return dir;
     }

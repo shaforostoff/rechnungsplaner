@@ -174,6 +174,15 @@
     <string name="select_gigs_to_bill">Elige los trabajos a facturar</string>
 
     <string name="title_import_export">Importar/Exportar</string>
+    <string name="backup_full">Copia de seguridad completa</string>
+    <string name="backup_full_desc">Todo lo que guarda la app: contactos, trabajos, facturas, los archivos de factura tal como se enviaron y todos los ajustes. Al restaurar se reemplaza lo que hay en este teléfono.</string>
+    <string name="action_restore">Restaurar</string>
+    <string name="backup_failed">No se pudo escribir la copia: %1$s</string>
+    <string name="restore_not_a_backup">Ese zip no es una copia de seguridad completa de esta app.</string>
+    <string name="restore_summary">Creada %1$s\n\nContactos: %2$d\nTrabajos: %3$d\nFacturas: %4$d\nArchivos: %5$d\nAjustes: %6$d</string>
+    <string name="restore_replaces_everything">Al restaurar se reemplaza todo lo que hay en este teléfono, y no se puede deshacer.</string>
+    <string name="restore_done">Restaurado</string>
+    <string name="restore_failed">No se pudo restaurar: %1$s</string>
     <string name="export_tour_list">Lista de gira</string>
     <string name="export_tour_list_desc">Todos los trabajos próximos, una línea cada una. Donde una ciudad tiene varios clientes, se nombra la sala.</string>
     <string name="export_contacts">Archivo de contactos</string>

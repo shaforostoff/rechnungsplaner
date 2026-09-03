@@ -185,6 +185,15 @@
 
     <!-- ===== Import and export ===== -->
     <string name="title_import_export">Import/Export</string>
+    <string name="backup_full">Full backup</string>
+    <string name="backup_full_desc">Everything the app holds: contacts, jobs, invoices, the invoice files as they were sent, and every setting. Restoring replaces what is on this phone.</string>
+    <string name="action_restore">Restore</string>
+    <string name="backup_failed">Could not write the backup: %1$s</string>
+    <string name="restore_not_a_backup">That zip is not a full backup of this app.</string>
+    <string name="restore_summary">Made %1$s\n\nContacts: %2$d\nJobs: %3$d\nInvoices: %4$d\nFiles: %5$d\nSettings: %6$d</string>
+    <string name="restore_replaces_everything">Restoring replaces everything on this phone, and cannot be undone.</string>
+    <string name="restore_done">Restored</string>
+    <string name="restore_failed">Could not restore: %1$s</string>
     <string name="export_tour_list">Tour list</string>
     <string name="export_tour_list_desc">All upcoming jobs, one line each. Where a city has more than one customer, the place is named instead.</string>
     <string name="export_contacts">Contacts archive</string>

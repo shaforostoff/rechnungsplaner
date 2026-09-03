@@ -174,6 +174,15 @@
     <string name="select_gigs_to_bill">Aufträge zum Abrechnen wählen</string>
 
     <string name="title_import_export">Import/Export</string>
+    <string name="backup_full">Vollsicherung</string>
+    <string name="backup_full_desc">Alles, was die App enthält: Kontakte, Aufträge, Rechnungen, die Rechnungsdateien so wie sie versendet wurden, und jede Einstellung. Beim Wiederherstellen wird der Bestand auf diesem Telefon ersetzt.</string>
+    <string name="action_restore">Wiederherstellen</string>
+    <string name="backup_failed">Sicherung konnte nicht geschrieben werden: %1$s</string>
+    <string name="restore_not_a_backup">Dieses ZIP ist keine Vollsicherung dieser App.</string>
+    <string name="restore_summary">Erstellt %1$s\n\nKontakte: %2$d\nAufträge: %3$d\nRechnungen: %4$d\nDateien: %5$d\nEinstellungen: %6$d</string>
+    <string name="restore_replaces_everything">Beim Wiederherstellen wird alles auf diesem Telefon ersetzt; das lässt sich nicht rückgängig machen.</string>
+    <string name="restore_done">Wiederhergestellt</string>
+    <string name="restore_failed">Wiederherstellen fehlgeschlagen: %1$s</string>
     <string name="export_tour_list">Tourliste</string>
     <string name="export_tour_list_desc">Alle kommenden Aufträge, eine Zeile pro Auftrag. Wo eine Stadt mehrere Kunden hat, steht stattdessen die Location.</string>
     <string name="export_contacts">Kontakt-Archiv</string>

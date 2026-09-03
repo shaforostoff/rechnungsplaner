@@ -94,6 +94,31 @@ executed. Specifically unverified:
   nothing enforces it: a column added to `values` is covered by default, but one that later
   becomes another screen's has to be named there by hand. Neither the rule nor the refresh in
   `onResume` is executed here -- both need SQLite and a live back stack.
+- The full backup's format is tested, and the SQLite half of it was executed. `BackupFormat` has
+  no `android.*` imports for exactly this reason, so the part that has to be lossless can be
+  round-tripped under JUnit: every storage class a row can hold, an epoch-millisecond integer that
+  must not go through a float, a customer number of all digits that must stay text, a stored null
+  against a column that is merely absent, and a preference that has to come back as the `int` or
+  `long` it was stored as rather than as a number. What the tests cannot reach is SQLite itself,
+  so the restore was run against the SDK's `sqlite3` binary over a populated database -- two
+  customers, two services, an invoice with a line and an archived file, a multi-day job, both
+  number counters -- by deleting every table in the reverse of `Db.TABLES` and re-inserting in
+  `Db.TABLES` order, which is what `restoreTables` does. Every value came back with its storage
+  class intact, and `sqlite_sequence` came back with it, so the next automatic id is one past the
+  highest restored row rather than a collision.
+- Two things that order relies on were confirmed to bite rather than assumed. Inserting an
+  invoice line before its invoice fails on the foreign key, which is why the insert order is the
+  dependency order and not alphabetical. And leaving a column unset -- what a row from a backup
+  written before that column existed does -- applies the column's default, where writing null
+  instead fails `NOT NULL`; both were run, so the distinction the format keeps between a stored
+  null and an absent key is load-bearing and known to be.
+- Untested in the backup: everything on the device side of it. That the two buttons write a zip a
+  share sheet accepts, that the folder save lands where the toast says, that a picked document Uri
+  reads twice -- once to plan and once to extract -- and that the zip-slip guard refuses a crafted
+  entry are all argued in code and unexecuted. The guard is `Paths.isInside`, which is itself
+  tested, applied to every `files/` entry before anything is written. The restore also runs on the
+  UI thread, like every other write in this app; a few hundred rows and a handful of PDFs is fast,
+  but nothing has measured it against a decade of invoices.
 - The contacts archive exported as a zero-byte zip: it is written straight into the directory
   `ShareProvider` serves, and `Sharing.stage` then copied it onto itself, truncating it through
   the target before the first read. The guard against that is `Paths.isSameFile`, and the

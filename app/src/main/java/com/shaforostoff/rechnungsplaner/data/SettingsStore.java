@@ -1,7 +1,10 @@
 package com.shaforostoff.rechnungsplaner.data;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+
+import java.util.Map;
 
 /** Persists the output, naming and calendar preferences across app restarts. */
 public class SettingsStore {
@@ -150,6 +153,52 @@ public class SettingsStore {
         // Not trimmed to nothing but not trimmed either: a signature may legitimately end in a
         // blank line, and only an all-whitespace body counts as unset.
         prefs.edit().putString(K_MAIL_BODY, isBlank(body) ? "" : body).apply();
+    }
+
+    // -------------------------------------------------------------- whole-file
+
+    /**
+     * Every stored preference, whatever it is.
+     *
+     * <p>Deliberately not a list of the getters above: a backup that enumerated the keys it knew
+     * about would quietly drop the next setting anyone adds. The types come back as the objects
+     * {@link SharedPreferences} stores -- and they matter, because asking {@code getLong} for a
+     * value written as an int throws.
+     */
+    public Map<String, ?> all() {
+        return prefs.getAll();
+    }
+
+    /**
+     * Replaces the whole preference file.
+     *
+     * <p>A restore, where a key the backup does not mention has to end up absent rather than
+     * keeping whatever this phone had -- so the file is cleared first. Values must be the types
+     * {@link #all} hands out; anything else is skipped rather than written as its {@code
+     * toString}, which would read back as the wrong type and throw at the getter.
+     *
+     * <p>Committed rather than applied, against lint's general advice: this runs once, at the end
+     * of a restore that has already replaced the database, and the two have to agree. An
+     * asynchronous write that lost its race with the process going away would leave restored data
+     * beside settings that were never written.
+     */
+    @SuppressLint("ApplySharedPref")
+    public void replaceAll(Map<String, ?> values) {
+        SharedPreferences.Editor edit = prefs.edit().clear();
+        for (Map.Entry<String, ?> e : values.entrySet()) {
+            Object v = e.getValue();
+            if (v instanceof String) edit.putString(e.getKey(), (String) v);
+            else if (v instanceof Boolean) edit.putBoolean(e.getKey(), ((Boolean) v).booleanValue());
+            else if (v instanceof Integer) edit.putInt(e.getKey(), ((Integer) v).intValue());
+            else if (v instanceof Long) edit.putLong(e.getKey(), ((Long) v).longValue());
+            else if (v instanceof Float) edit.putFloat(e.getKey(), ((Float) v).floatValue());
+        }
+        edit.commit();
+    }
+
+    /** Forgets the export folder, for a restore that has landed on a phone which cannot use it. */
+    public void clearExportTreeUri() {
+        prefs.edit().remove(K_EXPORT_TREE_URI).apply();
     }
 
     private static boolean isBlank(String s) {

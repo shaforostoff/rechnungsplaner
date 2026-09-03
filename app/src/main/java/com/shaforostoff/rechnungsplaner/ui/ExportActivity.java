@@ -10,11 +10,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 
+import com.shaforostoff.rechnungsplaner.MainActivity;
 import com.shaforostoff.rechnungsplaner.R;
 import com.shaforostoff.rechnungsplaner.data.GigDao;
 import com.shaforostoff.rechnungsplaner.data.SettingsStore;
+import com.shaforostoff.rechnungsplaner.exchange.Backup;
 import com.shaforostoff.rechnungsplaner.exchange.ContactsArchive;
 import com.shaforostoff.rechnungsplaner.exchange.GigTextExporter;
+import com.shaforostoff.rechnungsplaner.output.SafExporter;
 import com.shaforostoff.rechnungsplaner.output.Sharing;
 import com.shaforostoff.rechnungsplaner.util.ShareProvider;
 
@@ -24,10 +27,19 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-/** The two bulk exports, the contacts import, and the way in from the device calendar. */
+/**
+ * The two bulk exports, the contacts import, the way in from the device calendar, and the full
+ * backup.
+ *
+ * <p>The backup sits at the top because it is the one action here that matters when something has
+ * gone wrong, and the restore sits next to it rather than with the imports below: those merge into
+ * what is already on the phone, while this replaces it.
+ */
 public class ExportActivity extends BaseActivity {
 
     private static final int REQUEST_PICK_IMPORT = 61;
+    private static final int REQUEST_PICK_RESTORE = 62;
+    private static final int REQUEST_PICK_FOLDER = 63;
 
     private SettingsStore settings;
 
@@ -38,6 +50,27 @@ public class ExportActivity extends BaseActivity {
         setScreenTitle(R.string.title_import_export);
 
         FormBuilder f = form();
+
+        f.section(R.string.backup_full);
+        f.caption(getString(R.string.backup_full_desc));
+        f.primaryButton(R.string.action_save_to_folder, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveBackup();
+            }
+        });
+        f.secondaryButton(R.string.action_share, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                shareBackup();
+            }
+        });
+        f.secondaryButton(R.string.action_restore, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickRestoreFile();
+            }
+        });
 
         f.section(R.string.export_tour_list);
         f.caption(getString(R.string.export_tour_list_desc));
@@ -122,6 +155,108 @@ public class ExportActivity extends BaseActivity {
         }
     }
 
+    // ------------------------------------------------------------------- backup
+
+    /** Writes the backup into the app's own directory first, whatever happens to it next. */
+    private File writeBackup() {
+        try {
+            return new Backup(this).export(ShareProvider.shareDir(this));
+        } catch (IOException e) {
+            Ui.toast(this, getString(R.string.backup_failed, String.valueOf(e.getMessage())));
+            return null;
+        }
+    }
+
+    private void saveBackup() {
+        String tree = settings.getExportTreeUri();
+        if (tree == null) {
+            Ui.toast(this, R.string.no_export_folder);
+            startActivityForResult(SafExporter.pickFolderIntent(), REQUEST_PICK_FOLDER);
+            return;
+        }
+        File file = writeBackup();
+        if (file == null) return;
+        try {
+            if (SafExporter.copyInto(this, tree, file) == null) {
+                Ui.toast(this, R.string.no_export_folder);
+                return;
+            }
+            // The folder name is what the user recognises; the tree URI is not readable.
+            String folder = SafExporter.displayName(this, tree);
+            Ui.toast(this, folder == null ? getString(R.string.saved_to_folder_unnamed)
+                    : getString(R.string.saved_to_folder, folder));
+        } catch (IOException e) {
+            Ui.toast(this, getString(R.string.backup_failed, String.valueOf(e.getMessage())));
+        }
+    }
+
+    private void shareBackup() {
+        File file = writeBackup();
+        if (file == null) return;
+        List<File> files = new ArrayList<File>();
+        files.add(file);
+        try {
+            startActivity(Sharing.share(this, files, null, getString(R.string.backup_full), null,
+                    getString(R.string.action_share)));
+        } catch (IOException e) {
+            Ui.toast(this, getString(R.string.backup_failed, String.valueOf(e.getMessage())));
+        }
+    }
+
+    private void pickRestoreFile() {
+        startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("*/*")
+                .putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/zip"}),
+                REQUEST_PICK_RESTORE);
+    }
+
+    private void restoreFrom(Uri uri) {
+        final Backup backup = new Backup(this);
+        final Backup.RestorePlan plan;
+        try {
+            plan = backup.plan(uri);
+        } catch (IOException e) {
+            Ui.toast(this, getString(R.string.import_failed, String.valueOf(e.getMessage())));
+            return;
+        }
+        if (!plan.recognised) {
+            Ui.toast(this, R.string.restore_not_a_backup);
+            return;
+        }
+
+        StringBuilder message = new StringBuilder(getString(R.string.restore_summary,
+                plan.document.createdAt == null ? "?" : plan.document.createdAt,
+                plan.customers(), plan.gigs(), plan.invoices(), plan.files,
+                plan.document.settings.size()));
+        for (String warning : plan.document.warnings) message.append('\n').append(warning);
+        message.append("\n\n").append(getString(R.string.restore_replaces_everything));
+
+        Ui.confirm(this, message.toString(), R.string.action_restore, new Runnable() {
+            @Override
+            public void run() {
+                restore(backup, plan);
+            }
+        });
+    }
+
+    private void restore(Backup backup, Backup.RestorePlan plan) {
+        try {
+            backup.apply(plan);
+        } catch (IOException e) {
+            Ui.toast(this, getString(R.string.restore_failed, String.valueOf(e.getMessage())));
+            return;
+        }
+        Ui.toast(this, R.string.restore_done);
+        // Every screen behind this one is showing data that has just been replaced, and the UI
+        // language may have been replaced with it, so the task is rebuilt rather than returned to.
+        startActivity(new Intent(this, MainActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
+        finish();
+    }
+
+    // ------------------------------------------------------------------- import
+
     private void pickImportFile() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE)
@@ -134,8 +269,23 @@ public class ExportActivity extends BaseActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != REQUEST_PICK_IMPORT || data == null || data.getData() == null) return;
-        importFrom(data.getData());
+        if (data == null || data.getData() == null) return;
+        Uri uri = data.getData();
+        switch (requestCode) {
+            case REQUEST_PICK_IMPORT:
+                importFrom(uri);
+                break;
+            case REQUEST_PICK_RESTORE:
+                restoreFrom(uri);
+                break;
+            case REQUEST_PICK_FOLDER:
+                SafExporter.persistPermission(this, uri);
+                settings.setExportTreeUri(uri.toString());
+                saveBackup();
+                break;
+            default:
+                break;
+        }
     }
 
     private void importFrom(Uri uri) {

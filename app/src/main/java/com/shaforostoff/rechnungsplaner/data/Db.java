@@ -5,6 +5,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * The app's SQLite schema. Framework {@link SQLiteOpenHelper} rather than Room: the data set is a
  * few hundred rows, the queries are simple, and this keeps the app dependency-free like its
@@ -27,6 +30,20 @@ public class Db extends SQLiteOpenHelper {
     public static final String T_INVOICE_LINE = "invoice_line";
     public static final String T_INVOICE_FILE = "invoice_file";
     public static final String T_COUNTER = "counter";
+
+    /**
+     * Every table, parents before children.
+     *
+     * <p>A backup restores in this order and clears in the reverse of it, which is what keeps the
+     * foreign keys satisfied at every step rather than only at the end: an invoice line cannot be
+     * written before its invoice, and an invoice cannot be removed while its lines still point at
+     * it. {@code gig} follows {@code invoice} for the same reason even though its {@code
+     * invoice_id} is not a declared reference.
+     */
+    public static final String[] TABLES = {
+            T_ISSUER, T_CUSTOMER, T_SERVICE, T_INVOICE, T_GIG,
+            T_INVOICE_LINE, T_INVOICE_FILE, T_COUNTER,
+    };
 
     private static Db instance;
 
@@ -218,15 +235,25 @@ public class Db extends SQLiteOpenHelper {
     }
 
     private static boolean hasColumn(SQLiteDatabase db, String table, String column) {
+        return columnsOf(db, table).contains(column);
+    }
+
+    /**
+     * The columns a table has right now.
+     *
+     * <p>What a restore writes into, and the same question {@link #addColumn} asks before adding
+     * one. Asked of the database rather than answered from {@code onCreate}, so a build reading a
+     * backup written by a different build is told the truth about its own schema.
+     */
+    public static List<String> columnsOf(SQLiteDatabase db, String table) {
+        List<String> out = new ArrayList<String>();
         Cursor c = db.rawQuery("PRAGMA table_info(" + table + ")", null);
         try {
             int nameAt = c.getColumnIndex("name");
-            while (c.moveToNext()) {
-                if (column.equals(c.getString(nameAt))) return true;
-            }
+            while (c.moveToNext()) out.add(c.getString(nameAt));
         } finally {
             c.close();
         }
-        return false;
+        return out;
     }
 }

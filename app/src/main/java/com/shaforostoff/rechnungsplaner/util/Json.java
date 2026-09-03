@@ -49,6 +49,23 @@ public final class Json {
             return this;
         }
 
+        public Obj put(String key, double value) {
+            values.put(key, Double.valueOf(value));
+            return this;
+        }
+
+        /**
+         * Writes a literal {@code null}.
+         *
+         * <p>For a backup, where a column holding NULL and a column that is simply absent have to
+         * stay distinguishable: the first is a value to restore, the second is a column this
+         * build did not have yet and whose default should win.
+         */
+        public Obj putNull(String key) {
+            values.put(key, null);
+            return this;
+        }
+
         public Obj put(String key, Obj value) {
             if (value != null) values.put(key, value);
             return this;
@@ -115,7 +132,9 @@ public final class Json {
     }
 
     private static void writeValue(StringBuilder sb, Object value, int depth) {
-        if (value instanceof Obj) {
+        if (value == null) {
+            sb.append("null");
+        } else if (value instanceof Obj) {
             writeObject(sb, (Obj) value, depth);
         } else if (value instanceof Arr) {
             Arr arr = (Arr) value;
@@ -198,6 +217,19 @@ public final class Json {
             current = ((Map<?, ?>) current).get(key);
         }
         return current;
+    }
+
+    /**
+     * The node's own key/value map, or null when it is not an object.
+     *
+     * <p>The other accessors ask about a key whose name is already known. This is for a reader
+     * that has to work out which keys are there -- a backup's rows, whose columns depend on the
+     * build that wrote them -- and it preserves file order. {@code containsKey} is the point: it
+     * separates a stored null from an absent key, which {@link #at} cannot.
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> object(Object node) {
+        return node instanceof Map ? (Map<String, Object>) node : null;
     }
 
     public static String string(Object node, String... path) {
