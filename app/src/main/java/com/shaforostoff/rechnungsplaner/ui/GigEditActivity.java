@@ -24,6 +24,8 @@ import com.shaforostoff.rechnungsplaner.data.GigDao;
 import com.shaforostoff.rechnungsplaner.data.Invoice;
 import com.shaforostoff.rechnungsplaner.data.InvoiceDao;
 import com.shaforostoff.rechnungsplaner.data.IssuerDao;
+import com.shaforostoff.rechnungsplaner.data.Service;
+import com.shaforostoff.rechnungsplaner.data.ServiceDao;
 import com.shaforostoff.rechnungsplaner.data.SettingsStore;
 import com.shaforostoff.rechnungsplaner.data.TaxMode;
 import com.shaforostoff.rechnungsplaner.util.Dates;
@@ -37,9 +39,11 @@ public class GigEditActivity extends BaseActivity {
 
     private static final String EXTRA_GIG_ID = "gig_id";
     private static final String EXTRA_DATE = "date";
+    private static final String EXTRA_SERVICE_ID = "service_id";
 
-    public static Intent createIntent(Context ctx, String isoDate) {
-        return new Intent(ctx, GigEditActivity.class).putExtra(EXTRA_DATE, isoDate);
+    public static Intent createIntent(Context ctx, String isoDate, long serviceId) {
+        return new Intent(ctx, GigEditActivity.class).putExtra(EXTRA_DATE, isoDate)
+                .putExtra(EXTRA_SERVICE_ID, serviceId);
     }
 
     public static Intent editIntent(Context ctx, long gigId) {
@@ -60,6 +64,7 @@ public class GigEditActivity extends BaseActivity {
     private EditText cityField;
     private EditText feeField;
     private EditText travelField;
+    private Spinner serviceSpinner;
     private Spinner taxSpinner;
     private Spinner statusSpinner;
     private EditText notesField;
@@ -68,6 +73,7 @@ public class GigEditActivity extends BaseActivity {
     private static final int REQUEST_NEW_CUSTOMER = 1;
 
     private final List<Customer> customerChoices = new ArrayList<Customer>();
+    private final List<Service> serviceChoices = new ArrayList<Service>();
 
     /**
      * The status this screen picked from the date, or null once the gig is the user's to decide.
@@ -93,6 +99,7 @@ public class GigEditActivity extends BaseActivity {
             gig.date = Dates.isValid(date) ? date : Dates.today();
             gig.status = Gig.defaultStatusFor(gig.date);
             autoStatus = gig.status;
+            gig.serviceId = getIntent().getLongExtra(EXTRA_SERVICE_ID, -1L);
         }
         setScreenTitle(isNew ? R.string.title_new_gig : R.string.title_edit_gig);
         addTitleAction(R.string.action_save, new View.OnClickListener() {
@@ -187,6 +194,17 @@ public class GigEditActivity extends BaseActivity {
                 Ui.centsToEditable(gig.travelCents), false,
                 InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
+        serviceChoices.clear();
+        serviceChoices.addAll(new ServiceDao(this).all(false));
+        // An archived service still on this job stays selectable, or opening the job would move it
+        // to another kind of work just by being looked at.
+        Service own = new ServiceDao(this).byId(gig.serviceId);
+        if (own != null && !containsService(own.id)) serviceChoices.add(own);
+        if (!serviceChoices.isEmpty()) {
+            serviceSpinner = f.spinner(R.string.label_service, serviceLabels(),
+                    serviceIndex(gig.serviceId), false);
+        }
+
         taxSpinner = f.spinner(R.string.label_tax_mode, taxModeLabels(),
                 gig.taxMode == null ? 0 : gig.taxMode.ordinal() + 1, false);
         statusSpinner = f.spinner(R.string.label_status, statusLabels(), gig.status.ordinal(),
@@ -259,6 +277,10 @@ public class GigEditActivity extends BaseActivity {
         gig.travelCents = Ui.editableToCents(placeholderText(travelField));
         gig.notes = text(notesField);
 
+        if (serviceSpinner != null && !serviceChoices.isEmpty()) {
+            gig.serviceId = serviceChoices.get(FormBuilder.selectionOf(serviceSpinner)).id;
+        }
+
         int taxIndex = FormBuilder.selectionOf(taxSpinner);
         gig.taxMode = taxIndex == 0 ? null : TaxMode.values()[taxIndex - 1];
         gig.status = Gig.Status.values()[FormBuilder.selectionOf(statusSpinner)];
@@ -269,7 +291,8 @@ public class GigEditActivity extends BaseActivity {
         long calendarId = settings.getCalendarId();
         if (calendarId > 0L) {
             Customer customer = customers.byId(gig.customerId);
-            new CalendarMirror(this).upsert(gig, customer == null ? null : customer.displayName(),
+            new CalendarMirror(this).upsert(gig, new ServiceDao(this).nameOf(gig.serviceId),
+                    customer == null ? null : customer.displayName(),
                     calendarId);
         }
         return true;
@@ -402,6 +425,26 @@ public class GigEditActivity extends BaseActivity {
     private String customerLabel() {
         Customer customer = customers.byId(gig.customerId);
         return customer == null ? getString(R.string.no_customer) : customer.displayName();
+    }
+
+    private String[] serviceLabels() {
+        String[] labels = new String[serviceChoices.size()];
+        for (int i = 0; i < labels.length; i++) labels[i] = serviceChoices.get(i).displayName();
+        return labels;
+    }
+
+    private int serviceIndex(long id) {
+        for (int i = 0; i < serviceChoices.size(); i++) {
+            if (serviceChoices.get(i).id == id) return i;
+        }
+        return 0;
+    }
+
+    private boolean containsService(long id) {
+        for (Service s : serviceChoices) {
+            if (s.id == id) return true;
+        }
+        return false;
     }
 
     private String displayDate() {

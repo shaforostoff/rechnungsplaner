@@ -30,14 +30,22 @@
     </string-array>
 
     <!-- ===== Calendar ===== -->
-    <string name="no_gigs_on_day">No DJ-set on this day.</string>
-    <string name="add_gig">Add DJ-set</string>
+    <string name="no_gigs_on_day">Nothing on this day.</string>
     <string name="menu_issuer">My details</string>
     <string name="menu_today">Today</string>
 
-    <!-- ===== DJ-set ===== -->
-    <string name="title_new_gig">New DJ-set</string>
-    <string name="title_edit_gig">DJ-set</string>
+    <!-- ===== Jobs ===== -->
+    <string name="add_service">Add a new service</string>
+    <string name="add_service_desc">Add a %1$s. Hold to rename or remove it.</string>
+    <string name="hint_service_name">What you call this work</string>
+    <string name="label_service">Service</string>
+    <string name="action_rename">Rename</string>
+    <string name="confirm_delete_service">Remove %1$s? Jobs already recorded keep the name.</string>
+    <string name="service_deleted">%1$s removed</string>
+    <string name="service_archived">%1$s taken off the buttons. Jobs that used it keep the name.</string>
+    <string name="no_services_yet">No services yet. Add one to start recording work.</string>
+    <string name="title_new_gig">New job</string>
+    <string name="title_edit_gig">Job</string>
     <string name="label_date">Date</string>
     <string name="label_start">Start</string>
     <string name="label_end">End</string>
@@ -55,10 +63,10 @@
     <string name="action_create_invoice">Create invoice</string>
     <string name="action_link_invoice">Link to an existing invoice</string>
     <string name="invoice_choice">%1$s · %2$s · sets: %3$d</string>
-    <string name="linked_to_invoice">Linked to %1$s. Use Recreate to rebuild it from this DJ-set.</string>
+    <string name="linked_to_invoice">Linked to %1$s. Use Recreate to rebuild it from this job.</string>
     <string name="no_invoices_to_link">This customer has no invoices to link to.</string>
     <string name="action_open_invoice">Open invoice</string>
-    <string name="confirm_delete_gig">Delete this DJ-set?</string>
+    <string name="confirm_delete_gig">Delete this job?</string>
     <string name="crosses_midnight">Ends the next morning. Billed to the start date.</string>
     <string name="needs_date">A date is required.</string>
 
@@ -97,7 +105,7 @@
     <string name="label_note">Note</string>
     <string name="ready_to_invoice">Ready to invoice</string>
     <string name="customer_archived">Archived</string>
-    <string name="customer_archived_because_used">Kept as archived: gigs or invoices refer to it.</string>
+    <string name="customer_archived_because_used">Kept as archived: jobs or invoices refer to it.</string>
     <string name="confirm_delete_customer">Delete this customer?</string>
     <string name="needs_a_name">A venue name or a registered name is required.</string>
     <string name="language_default">Default (%1$s)</string>
@@ -168,12 +176,12 @@
     <string name="no_export_folder">No export folder chosen yet. Set one in Settings.</string>
     <string name="mail_subject">Invoice %invoiceno%</string>
     <string name="mail_body">Dear Sir or Madam,\n\nplease find invoice %invoiceno% attached.\n\nKind regards\n%issuername%</string>
-    <string name="select_gigs_to_bill">Choose the DJ-sets to bill</string>
+    <string name="select_gigs_to_bill">Choose the jobs to bill</string>
 
     <!-- ===== Import and export ===== -->
     <string name="title_import_export">Import/Export</string>
     <string name="export_tour_list">Tour list</string>
-    <string name="export_tour_list_desc">All upcoming DJ-sets, one line each. Where a city has more than one customer, the venue is named instead.</string>
+    <string name="export_tour_list_desc">All upcoming jobs, one line each. Where a city has more than one customer, the place is named instead.</string>
     <string name="export_contacts">Contacts archive</string>
     <string name="export_contacts_desc">All contacts as a zip of lexoffice-compatible JSON, one file per contact.</string>
     <string name="import_contacts">Import contacts</string>
@@ -186,8 +194,8 @@
 
     <!-- ===== Calendar import ===== -->
     <string name="title_import_calendar">Import from calendar</string>
-    <string name="import_calendar_desc">Adopts calendar entries that are not DJ-sets yet, and re-links any this app created before.</string>
-    <string name="calendar_nothing_to_import">Nothing in the calendar that is not already a DJ-set.</string>
+    <string name="import_calendar_desc">Adopts calendar entries that are not jobs yet, and re-links any this app created before.</string>
+    <string name="calendar_nothing_to_import">Nothing in the calendar that is not already a job.</string>
     <string name="calendar_relink_desc">Created by this app earlier</string>
 
     <!-- ===== Settings ===== -->
@@ -211,8 +219,8 @@
     <string name="language_system">System default</string>
     <string name="tokens_legend">Tokens: %1$s</string>
     <string name="pattern_preview">Preview: %1$s</string>
-    <string name="calendar_permission_needed">Calendar access is needed to mirror DJ-sets.</string>
-    <string name="calendar_permission_denied">Without calendar access, DJ-sets stay in this app only.</string>
+    <string name="calendar_permission_needed">Calendar access is needed to mirror jobs.</string>
+    <string name="calendar_permission_denied">Without calendar access, jobs stay in this app only.</string>
     <string name="calendar_google_hint">Events in a Google calendar sync up to Google automatically.</string>
 
     <string name="format_zugferd_xrechnung">ZUGFeRD PDF (XRechnung profile)</string>

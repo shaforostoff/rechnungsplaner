@@ -23,11 +23,20 @@ public final class GigEventCodec {
     private GigEventCodec() {
     }
 
-    /** Event title: the venue and city, falling back to whatever is known. */
-    public static String title(Gig gig, String customerName) {
+    /**
+     * Event title: what the work was, then where, falling back to whatever is known.
+     *
+     * <p>The service name leads because that is what makes the entry recognisable in a calendar
+     * full of other things. It is the user's own words and is not translated -- this title is
+     * read in Google Calendar, not on an invoice, so there is no document language to follow
+     * even if translating it were a good idea.
+     */
+    public static String title(Gig gig, String serviceName, String customerName) {
+        String what = notEmpty(serviceName) ? serviceName.trim() : "";
         String where = joined(gig.placeName, gig.city);
         if (where.isEmpty()) where = customerName == null ? "" : customerName;
-        return where.isEmpty() ? "DJ-Set" : "DJ-Set — " + where;
+        if (what.isEmpty()) return where;
+        return where.isEmpty() ? what : what + " — " + where;
     }
 
     public static String location(Gig gig) {

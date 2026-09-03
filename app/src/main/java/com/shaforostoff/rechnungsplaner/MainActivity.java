@@ -1,10 +1,14 @@
 package com.shaforostoff.rechnungsplaner;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -12,6 +16,8 @@ import com.shaforostoff.rechnungsplaner.data.Customer;
 import com.shaforostoff.rechnungsplaner.data.CustomerDao;
 import com.shaforostoff.rechnungsplaner.data.Gig;
 import com.shaforostoff.rechnungsplaner.data.GigDao;
+import com.shaforostoff.rechnungsplaner.data.Service;
+import com.shaforostoff.rechnungsplaner.data.ServiceDao;
 import com.shaforostoff.rechnungsplaner.ui.BaseActivity;
 import com.shaforostoff.rechnungsplaner.ui.ExportActivity;
 import com.shaforostoff.rechnungsplaner.ui.GigEditActivity;
@@ -29,6 +35,7 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
     private LinearLayout dayList;
     private GigDao gigs;
     private CustomerDao customers;
+    private ServiceDao services;
     private String selectedDate;
 
     @Override
@@ -41,6 +48,7 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
         super.onCreate(savedInstanceState);
         gigs = new GigDao(this);
         customers = new CustomerDao(this);
+        services = new ServiceDao(this);
 
         addTitleAction(R.string.menu_today, new View.OnClickListener() {
             @Override
@@ -125,23 +133,134 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
             dayList.addView(gigRow(gig));
         }
 
-        TextView add = new TextView(this);
-        add.setText(R.string.add_gig);
-        add.setTextSize(15f);
-        add.setTextColor(getColor(R.color.accent));
-        add.setGravity(Gravity.CENTER);
-        add.setBackgroundResource(R.drawable.field);
-        add.setPadding(dp(12), dp(14), dp(12), dp(14));
-        add.setOnClickListener(new View.OnClickListener() {
+        List<Service> offered = services.all(false);
+        if (offered.isEmpty()) {
+            // A fresh install seeds nothing: what this business sells is not for the app to guess,
+            // and the button below is the whole of the setup.
+            TextView none = new TextView(this);
+            none.setText(R.string.no_services_yet);
+            none.setTextSize(13f);
+            none.setTextColor(getColor(R.color.text_secondary));
+            none.setPadding(0, dp(8), 0, 0);
+            dayList.addView(none);
+        }
+        for (final Service service : offered) {
+            dayList.addView(addButton(service.displayName(), new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startActivity(GigEditActivity.createIntent(MainActivity.this, isoDate,
+                            service.id));
+                }
+            }, new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    editService(service);
+                    return true;
+                }
+            }));
+        }
+        dayList.addView(addButton(getString(R.string.add_service), new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(GigEditActivity.createIntent(MainActivity.this, isoDate));
+                nameService(new Service());
             }
-        });
+        }, null));
+    }
+
+    /**
+     * One full-width button under the day's list.
+     *
+     * <p>A button per kind of work rather than one generic "add": which service it is decides the
+     * invoice line and the calendar title, so asking once here saves asking again on the next
+     * screen -- and the list of them is the closest thing this app has to a statement of what the
+     * business does.
+     */
+    private View addButton(String label, View.OnClickListener onClick,
+                           View.OnLongClickListener onLongClick) {
+        TextView button = new TextView(this);
+        button.setText(label);
+        button.setTextSize(15f);
+        button.setTextColor(getColor(R.color.accent));
+        button.setGravity(Gravity.CENTER);
+        button.setBackgroundResource(R.drawable.field);
+        button.setPadding(dp(12), dp(14), dp(12), dp(14));
+        button.setOnClickListener(onClick);
+        if (onLongClick != null) {
+            button.setOnLongClickListener(onLongClick);
+            button.setContentDescription(getString(R.string.add_service_desc, label));
+        }
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         lp.topMargin = dp(8);
-        dayList.addView(add, lp);
+        button.setLayoutParams(lp);
+        return button;
+    }
+
+    /** Rename or remove, offered on a long press so the buttons stay buttons. */
+    private void editService(final Service service) {
+        new AlertDialog.Builder(this)
+                .setTitle(service.displayName())
+                .setItems(new String[]{getString(R.string.action_rename),
+                        getString(R.string.action_delete)},
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (which == 0) nameService(service);
+                                else removeService(service);
+                            }
+                        })
+                .setNegativeButton(R.string.action_cancel, null)
+                .show();
+    }
+
+    /** The add and rename dialog, which are the same dialog with a different starting value. */
+    private void nameService(final Service service) {
+        final EditText field = new EditText(this);
+        field.setText(service.name == null ? "" : service.name);
+        field.setHint(R.string.hint_service_name);
+        field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        field.setSelection(field.getText().length());
+
+        new AlertDialog.Builder(this)
+                .setTitle(service.id > 0L ? R.string.action_rename : R.string.add_service)
+                .setView(field)
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_save, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String name = field.getText().toString().trim();
+                        if (name.isEmpty()) {
+                            Ui.toast(MainActivity.this, R.string.needs_a_name);
+                            return;
+                        }
+                        service.name = name;
+                        services.save(service);
+                        // Renaming changes the invoice line of every job not yet billed, and the
+                        // buttons, so the day is rebuilt rather than patched.
+                        calendar.select(selectedDate);
+                    }
+                })
+                .show();
+    }
+
+    /**
+     * Removes a service, or retires it when jobs still name it.
+     *
+     * <p>The confirmation says which of the two will happen, because they are different promises:
+     * one forgets the service, the other only takes its button away.
+     */
+    private void removeService(final Service service) {
+        Ui.confirm(this, getString(R.string.confirm_delete_service, service.displayName()),
+                R.string.action_delete, new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean gone = services.deleteOrArchive(service.id);
+                        Ui.toast(MainActivity.this, gone
+                                ? getString(R.string.service_deleted, service.displayName())
+                                : getString(R.string.service_archived, service.displayName()));
+                        calendar.select(selectedDate);
+                    }
+                });
     }
 
     private View gigRow(final Gig gig) {

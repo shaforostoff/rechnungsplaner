@@ -4,7 +4,9 @@ import com.shaforostoff.rechnungsplaner.einvoice.Money;
 import com.shaforostoff.rechnungsplaner.util.Dates;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Turns a set of gigs into a draft {@link Invoice}.
@@ -22,8 +24,23 @@ public final class InvoiceBuilder {
      *
      * @param gigs one or more gigs, all for the same customer
      */
+    /**
+     * Package-private, so only the tests in this package can leave the service names out.
+     *
+     * <p>A production caller without them would silently bill every line as "Leistung", which is
+     * the sort of thing nobody notices until a customer does.
+     */
+    static Invoice build(Issuer issuer, Customer customer, List<Gig> gigs, String issueDate) {
+        return build(issuer, customer, gigs, issueDate,
+                Collections.<Long, String>emptyMap());
+    }
+
+    /**
+     * @param serviceNames the name of each service by id, for the line text; a job whose service
+     *                     is missing from it falls back to a neutral noun
+     */
     public static Invoice build(Issuer issuer, Customer customer, List<Gig> gigs,
-                                String issueDate) {
+                                String issueDate, Map<Long, String> serviceNames) {
         Invoice inv = new Invoice();
         inv.issueDate = Dates.isValid(issueDate) ? issueDate : Dates.today();
         inv.customerId = customer == null ? -1L : customer.id;
@@ -55,7 +72,9 @@ public final class InvoiceBuilder {
         for (Gig gig : sorted) {
             TaxMode gigMode = firstNonNull(gig.taxMode, mode);
             if (gig.feeCents != 0L) {
-                inv.lines.add(line(gig, gigMode, single, describeGig(gig, inv.language),
+                inv.lines.add(line(gig, gigMode, single,
+                        describeGig(gig, serviceNames.get(Long.valueOf(gig.serviceId)),
+                                inv.language),
                         gig.feeCents));
             }
             if (gig.travelCents != 0L) {
@@ -152,13 +171,26 @@ public final class InvoiceBuilder {
      * <p>No venue and no city. Neither is required content under § 14 UStG -- the parties are
      * named in the header and the date is what the tax office is after -- and the venue is the
      * user's own record of the booking rather than something the booker needs billing for.
+     *
+     * <p>Only the connecting word follows the invoice language. The service name does not: it is
+     * the user's own words for what they sell, and a booker who reads the invoice should see the
+     * words the user chose rather than a translation of them guessed at here. A job with no
+     * service recorded falls back to a neutral noun, which is at least honest about knowing
+     * nothing more.
      */
-    public static String describeGig(Gig gig, String language) {
+    public static String describeGig(Gig gig, String serviceName, String language) {
         String date = Dates.forLanguage(gig.date, language);
         String lang = language == null ? "de" : language.toLowerCase(java.util.Locale.US);
-        if (lang.startsWith("en")) return "DJ set on " + date;
-        if (lang.startsWith("es")) return "Sesión de DJ el " + date;
-        return "DJ-Set am " + date;
+        String what = notEmpty(serviceName) ? serviceName.trim() : fallbackNoun(lang);
+        if (lang.startsWith("en")) return what + " on " + date;
+        if (lang.startsWith("es")) return what + " el " + date;
+        return what + " am " + date;
+    }
+
+    private static String fallbackNoun(String lang) {
+        if (lang.startsWith("en")) return "Service";
+        if (lang.startsWith("es")) return "Servicio";
+        return "Leistung";
     }
 
     private static String travelLabel(String language) {

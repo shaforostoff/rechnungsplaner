@@ -26,13 +26,21 @@
         <item>D</item>
     </string-array>
 
-    <string name="no_gigs_on_day">Ninguna sesión este día.</string>
-    <string name="add_gig">Añadir sesión</string>
+    <string name="no_gigs_on_day">Nada este día.</string>
     <string name="menu_issuer">Mis datos</string>
     <string name="menu_today">Hoy</string>
 
-    <string name="title_new_gig">Nueva sesión</string>
-    <string name="title_edit_gig">Sesión de DJ</string>
+    <string name="add_service">Añadir un servicio</string>
+    <string name="add_service_desc">Añadir %1$s. Mantén pulsado para renombrar o quitar.</string>
+    <string name="hint_service_name">Cómo llamas a este trabajo</string>
+    <string name="label_service">Servicio</string>
+    <string name="action_rename">Renombrar</string>
+    <string name="confirm_delete_service">¿Quitar %1$s? Los trabajos ya registrados conservan el nombre.</string>
+    <string name="service_deleted">%1$s quitado</string>
+    <string name="service_archived">%1$s ya no aparece como botón. Los trabajos que lo usaban conservan el nombre.</string>
+    <string name="no_services_yet">Aún no hay servicios. Añade uno para empezar a registrar trabajo.</string>
+    <string name="title_new_gig">Nuevo trabajo</string>
+    <string name="title_edit_gig">Trabajo</string>
     <string name="label_date">Fecha</string>
     <string name="label_start">Inicio</string>
     <string name="label_end">Fin</string>
@@ -50,10 +58,10 @@
     <string name="action_create_invoice">Crear factura</string>
     <string name="action_link_invoice">Vincular a una factura existente</string>
     <string name="invoice_choice">%1$s · %2$s · sesiones: %3$d</string>
-    <string name="linked_to_invoice">Vinculada a %1$s. Usa «Rehacer» para reconstruirla desde esta sesión.</string>
+    <string name="linked_to_invoice">Vinculada a %1$s. Usa «Rehacer» para reconstruirla desde este trabajo.</string>
     <string name="no_invoices_to_link">Este cliente no tiene facturas a las que vincular.</string>
     <string name="action_open_invoice">Abrir factura</string>
-    <string name="confirm_delete_gig">¿Eliminar esta sesión?</string>
+    <string name="confirm_delete_gig">¿Eliminar este trabajo?</string>
     <string name="crosses_midnight">Termina a la mañana siguiente. Se factura la fecha de inicio.</string>
     <string name="needs_date">Hace falta una fecha.</string>
 
@@ -91,7 +99,7 @@
     <string name="label_note">Nota</string>
     <string name="ready_to_invoice">Listo para facturar</string>
     <string name="customer_archived">Archivado</string>
-    <string name="customer_archived_because_used">Archivado en vez de eliminado: hay sesiones o facturas que lo usan.</string>
+    <string name="customer_archived_because_used">Archivado en vez de eliminado: hay trabajos o facturas que lo usan.</string>
     <string name="confirm_delete_customer">¿Eliminar este cliente?</string>
     <string name="needs_a_name">Hace falta el nombre de la sala o la razón social.</string>
     <string name="language_default">Predeterminado (%1$s)</string>
@@ -158,11 +166,11 @@
     <string name="no_export_folder">Aún no hay carpeta de exportación. Elígela en Ajustes.</string>
     <string name="mail_subject">Factura %invoiceno%</string>
     <string name="mail_body">Estimados señores:\n\nadjunto la factura %invoiceno%.\n\nUn saludo\n%issuername%</string>
-    <string name="select_gigs_to_bill">Elige las sesiones a facturar</string>
+    <string name="select_gigs_to_bill">Elige los trabajos a facturar</string>
 
     <string name="title_import_export">Importar/Exportar</string>
     <string name="export_tour_list">Lista de gira</string>
-    <string name="export_tour_list_desc">Todas las sesiones próximas, una línea cada una. Donde una ciudad tiene varios clientes, se nombra la sala.</string>
+    <string name="export_tour_list_desc">Todos los trabajos próximos, una línea cada una. Donde una ciudad tiene varios clientes, se nombra la sala.</string>
     <string name="export_contacts">Archivo de contactos</string>
     <string name="export_contacts_desc">Todos los contactos como zip de JSON compatible con lexoffice, un archivo por contacto.</string>
     <string name="import_contacts">Importar contactos</string>
@@ -174,8 +182,8 @@
     <string name="import_failed">No se pudo leer el archivo: %1$s</string>
 
     <string name="title_import_calendar">Importar del calendario</string>
-    <string name="import_calendar_desc">Adopta entradas del calendario que aún no son sesiones y vuelve a vincular las creadas por esta app.</string>
-    <string name="calendar_nothing_to_import">No hay nada en el calendario que no sea ya una sesión.</string>
+    <string name="import_calendar_desc">Adopta entradas del calendario que aún no son trabajos y vuelve a vincular las creadas por esta app.</string>
+    <string name="calendar_nothing_to_import">No hay nada en el calendario que no sea ya un trabajo.</string>
     <string name="calendar_relink_desc">Creado antes por esta app</string>
 
     <string name="setting_output_format">Formato de factura</string>
@@ -198,8 +206,8 @@
     <string name="language_system">Idioma del sistema</string>
     <string name="tokens_legend">Comodines: %1$s</string>
     <string name="pattern_preview">Vista previa: %1$s</string>
-    <string name="calendar_permission_needed">Hace falta acceso al calendario para reflejar las sesiones.</string>
-    <string name="calendar_permission_denied">Sin acceso al calendario, las sesiones se quedan solo en esta app.</string>
+    <string name="calendar_permission_needed">Hace falta acceso al calendario para reflejar los trabajos.</string>
+    <string name="calendar_permission_denied">Sin acceso al calendario, los trabajos se quedan solo en esta app.</string>
     <string name="calendar_google_hint">Los eventos de un calendario de Google se sincronizan con Google automáticamente.</string>
 
     <string name="format_zugferd_xrechnung">PDF ZUGFeRD (perfil XRechnung)</string>

@@ -158,9 +158,30 @@ public class InvoiceBuilderTest {
     public void lineDescriptionFollowsTheInvoiceLanguage() {
         Gig g = gig("2026-08-15", 35000L);
         // The venue and city the gig carries stay out of it, deliberately.
-        assertEquals("DJ-Set am 15.08.2026", InvoiceBuilder.describeGig(g, "de"));
-        assertEquals("DJ set on 2026-08-15", InvoiceBuilder.describeGig(g, "en"));
-        assertEquals("Sesión de DJ el 15.08.2026", InvoiceBuilder.describeGig(g, "es"));
+        assertEquals("DJ-Set am 15.08.2026", InvoiceBuilder.describeGig(g, "DJ-Set", "de"));
+        assertEquals("DJ-Set on 2026-08-15", InvoiceBuilder.describeGig(g, "DJ-Set", "en"));
+        assertEquals("DJ-Set el 15.08.2026", InvoiceBuilder.describeGig(g, "DJ-Set", "es"));
+    }
+
+    @Test
+    public void theServiceNameIsTheUsersAndIsNotTranslated() {
+        Gig g = gig("2026-08-15", 35000L);
+        // Only the connecting word follows the invoice language. Translating the service would
+        // put words in front of a customer that the user never chose.
+        assertEquals("Haarschnitt am 15.08.2026",
+                InvoiceBuilder.describeGig(g, "Haarschnitt", "de"));
+        assertEquals("Haarschnitt on 2026-08-15",
+                InvoiceBuilder.describeGig(g, "Haarschnitt", "en"));
+        assertEquals("Haarschnitt el 15.08.2026",
+                InvoiceBuilder.describeGig(g, "Haarschnitt", "es"));
+    }
+
+    @Test
+    public void aJobWithNoServiceStillDescribesItself() {
+        Gig g = gig("2026-08-15", 35000L);
+        assertEquals("Leistung am 15.08.2026", InvoiceBuilder.describeGig(g, null, "de"));
+        assertEquals("Service on 2026-08-15", InvoiceBuilder.describeGig(g, "", "en"));
+        assertEquals("Servicio el 15.08.2026", InvoiceBuilder.describeGig(g, "   ", "es"));
     }
 
     @Test

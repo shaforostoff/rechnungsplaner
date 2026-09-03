@@ -112,12 +112,13 @@ public class CalendarMirror {
      *
      * @return the event id, or -1 when mirroring is off, not permitted, or the write failed
      */
-    public long upsert(Gig gig, String customerName, long calendarId) {
+    public long upsert(Gig gig, String serviceName, String customerName, long calendarId) {
         if (calendarId <= 0L || !hasPermission() || !Dates.isValid(gig.date)) return -1L;
 
         ContentValues v = new ContentValues();
         v.put(CalendarContract.Events.CALENDAR_ID, calendarId);
-        v.put(CalendarContract.Events.TITLE, GigEventCodec.title(gig, customerName));
+        v.put(CalendarContract.Events.TITLE,
+                GigEventCodec.title(gig, serviceName, customerName));
         v.put(CalendarContract.Events.EVENT_LOCATION, GigEventCodec.location(gig));
         v.put(CalendarContract.Events.DESCRIPTION, GigEventCodec.description(gig));
 

@@ -26,13 +26,21 @@
         <item>S</item>
     </string-array>
 
-    <string name="no_gigs_on_day">Kein DJ-Set an diesem Tag.</string>
-    <string name="add_gig">DJ-Set hinzufügen</string>
+    <string name="no_gigs_on_day">Nichts an diesem Tag.</string>
     <string name="menu_issuer">Meine Daten</string>
     <string name="menu_today">Heute</string>
 
-    <string name="title_new_gig">Neues DJ-Set</string>
-    <string name="title_edit_gig">DJ-Set</string>
+    <string name="add_service">Neue Leistung hinzufügen</string>
+    <string name="add_service_desc">%1$s hinzufügen. Lange drücken, um umzubenennen oder zu entfernen.</string>
+    <string name="hint_service_name">Wie diese Arbeit bei dir heißt</string>
+    <string name="label_service">Leistung</string>
+    <string name="action_rename">Umbenennen</string>
+    <string name="confirm_delete_service">%1$s entfernen? Bereits erfasste Aufträge behalten den Namen.</string>
+    <string name="service_deleted">%1$s entfernt</string>
+    <string name="service_archived">%1$s ist nicht mehr als Schaltfläche da. Aufträge damit behalten den Namen.</string>
+    <string name="no_services_yet">Noch keine Leistungen. Füge eine hinzu, um Arbeit zu erfassen.</string>
+    <string name="title_new_gig">Neuer Auftrag</string>
+    <string name="title_edit_gig">Auftrag</string>
     <string name="label_date">Datum</string>
     <string name="label_start">Beginn</string>
     <string name="label_end">Ende</string>
@@ -50,10 +58,10 @@
     <string name="action_create_invoice">Rechnung erstellen</string>
     <string name="action_link_invoice">Mit bestehender Rechnung verknüpfen</string>
     <string name="invoice_choice">%1$s · %2$s · Sets: %3$d</string>
-    <string name="linked_to_invoice">Mit %1$s verknüpft. Mit „Neu erstellen“ aus diesem DJ-Set neu aufbauen.</string>
+    <string name="linked_to_invoice">Mit %1$s verknüpft. Mit „Neu erstellen“ aus diesem Auftrag neu aufbauen.</string>
     <string name="no_invoices_to_link">Für diesen Kunden gibt es keine Rechnung zum Verknüpfen.</string>
     <string name="action_open_invoice">Rechnung öffnen</string>
-    <string name="confirm_delete_gig">Dieses DJ-Set löschen?</string>
+    <string name="confirm_delete_gig">Diesen Auftrag löschen?</string>
     <string name="crosses_midnight">Endet am nächsten Morgen. Abgerechnet wird das Startdatum.</string>
     <string name="needs_date">Ein Datum ist erforderlich.</string>
 
@@ -91,7 +99,7 @@
     <string name="label_note">Notiz</string>
     <string name="ready_to_invoice">Bereit zur Abrechnung</string>
     <string name="customer_archived">Archiviert</string>
-    <string name="customer_archived_because_used">Archiviert statt gelöscht: DJ-Sets oder Rechnungen verweisen darauf.</string>
+    <string name="customer_archived_because_used">Archiviert statt gelöscht: Aufträge oder Rechnungen verweisen darauf.</string>
     <string name="confirm_delete_customer">Diesen Kunden löschen?</string>
     <string name="needs_a_name">Eine Location oder ein Firmenname ist erforderlich.</string>
     <string name="language_default">Standard (%1$s)</string>
@@ -158,11 +166,11 @@
     <string name="no_export_folder">Noch kein Export-Ordner gewählt. In den Einstellungen festlegen.</string>
     <string name="mail_subject">Rechnung %invoiceno%</string>
     <string name="mail_body">Sehr geehrte Damen und Herren,\n\nanbei die Rechnung %invoiceno%.\n\nMit freundlichen Grüßen\n%issuername%</string>
-    <string name="select_gigs_to_bill">DJ-Sets zum Abrechnen wählen</string>
+    <string name="select_gigs_to_bill">Aufträge zum Abrechnen wählen</string>
 
     <string name="title_import_export">Import/Export</string>
     <string name="export_tour_list">Tourliste</string>
-    <string name="export_tour_list_desc">Alle kommenden DJ-Sets, eine Zeile pro Set. Wo eine Stadt mehrere Kunden hat, steht stattdessen die Location.</string>
+    <string name="export_tour_list_desc">Alle kommenden Aufträge, eine Zeile pro Auftrag. Wo eine Stadt mehrere Kunden hat, steht stattdessen die Location.</string>
     <string name="export_contacts">Kontakt-Archiv</string>
     <string name="export_contacts_desc">Alle Kontakte als ZIP mit lexoffice-kompatiblem JSON, eine Datei je Kontakt.</string>
     <string name="import_contacts">Kontakte importieren</string>
@@ -174,8 +182,8 @@
     <string name="import_failed">Datei konnte nicht gelesen werden: %1$s</string>
 
     <string name="title_import_calendar">Aus Kalender importieren</string>
-    <string name="import_calendar_desc">Übernimmt Kalendereinträge, die noch keine DJ-Sets sind, und verknüpft die von dieser App erstellten neu.</string>
-    <string name="calendar_nothing_to_import">Im Kalender steht nichts, was nicht schon ein DJ-Set ist.</string>
+    <string name="import_calendar_desc">Übernimmt Kalendereinträge, die noch keine Aufträge sind, und verknüpft die von dieser App erstellten neu.</string>
+    <string name="calendar_nothing_to_import">Im Kalender steht nichts, was nicht schon ein Auftrag ist.</string>
     <string name="calendar_relink_desc">Früher von dieser App angelegt</string>
 
     <string name="setting_output_format">Rechnungsformat</string>
@@ -199,7 +207,7 @@
     <string name="tokens_legend">Platzhalter: %1$s</string>
     <string name="pattern_preview">Vorschau: %1$s</string>
     <string name="calendar_permission_needed">Für das Spiegeln wird Kalenderzugriff benötigt.</string>
-    <string name="calendar_permission_denied">Ohne Kalenderzugriff bleiben die DJ-Sets nur in dieser App.</string>
+    <string name="calendar_permission_denied">Ohne Kalenderzugriff bleiben die Aufträge nur in dieser App.</string>
     <string name="calendar_google_hint">Termine in einem Google-Kalender werden automatisch zu Google synchronisiert.</string>
 
     <string name="format_zugferd_xrechnung">ZUGFeRD-PDF (Profil XRechnung)</string>

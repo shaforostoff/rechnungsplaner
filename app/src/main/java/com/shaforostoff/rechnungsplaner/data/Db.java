@@ -17,10 +17,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class Db extends SQLiteOpenHelper {
 
     private static final String NAME = "rechnungsplaner.db";
-    private static final int VERSION = 4;
+    private static final int VERSION = 5;
 
     public static final String T_ISSUER = "issuer";
     public static final String T_CUSTOMER = "customer";
+    public static final String T_SERVICE = "service";
     public static final String T_GIG = "gig";
     public static final String T_INVOICE = "invoice";
     public static final String T_INVOICE_LINE = "invoice_line";
@@ -73,6 +74,12 @@ public class Db extends SQLiteOpenHelper {
                 + "archived INTEGER NOT NULL DEFAULT 0)");
         db.execSQL("CREATE INDEX idx_customer_city ON " + T_CUSTOMER + "(city)");
 
+        db.execSQL("CREATE TABLE " + T_SERVICE + " ("
+                + "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "name TEXT NOT NULL,"
+                + "sort_order INTEGER NOT NULL DEFAULT 0,"
+                + "archived INTEGER NOT NULL DEFAULT 0)");
+
         db.execSQL("CREATE TABLE " + T_GIG + " ("
                 + "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "date TEXT NOT NULL,"
@@ -84,6 +91,7 @@ public class Db extends SQLiteOpenHelper {
                 + "travel_cents INTEGER NOT NULL DEFAULT 0,"
                 + "tax_mode TEXT, title TEXT, notes TEXT,"
                 + "status TEXT NOT NULL DEFAULT 'PLANNED',"
+                + "service_id INTEGER NOT NULL DEFAULT -1,"
                 + "invoice_id INTEGER NOT NULL DEFAULT -1,"
                 + "calendar_id INTEGER NOT NULL DEFAULT -1,"
                 + "calendar_event_id INTEGER NOT NULL DEFAULT -1,"
@@ -170,6 +178,24 @@ public class Db extends SQLiteOpenHelper {
             // The year the money arrived, when that is not the year the invoice belongs to.
             // Zero means derive it, so every existing invoice already has the right answer.
             addColumn(db, T_INVOICE, "paid_year", "INTEGER NOT NULL DEFAULT 0");
+        }
+        if (oldVersion < 5) {
+            // The app used to know one kind of work. Everything already recorded was that one, so
+            // the migration names it and points every job at it rather than leaving them with no
+            // service at all -- the name is what ends up on an invoice line, and losing it would
+            // quietly change what past invoices are rebuilt as. It can be renamed afterwards.
+            db.execSQL("CREATE TABLE IF NOT EXISTS " + T_SERVICE + " ("
+                    + "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "name TEXT NOT NULL,"
+                    + "sort_order INTEGER NOT NULL DEFAULT 0,"
+                    + "archived INTEGER NOT NULL DEFAULT 0)");
+            addColumn(db, T_GIG, "service_id", "INTEGER NOT NULL DEFAULT -1");
+            // Only into an empty table: this step can be reached twice if the version travels,
+            // and a second 'DJ-Set' button would be the migration's own doing.
+            db.execSQL("INSERT INTO " + T_SERVICE + " (name, sort_order)"
+                    + " SELECT 'DJ-Set', 1 WHERE NOT EXISTS (SELECT 1 FROM " + T_SERVICE + ")");
+            db.execSQL("UPDATE " + T_GIG + " SET service_id ="
+                    + " (SELECT MIN(_id) FROM " + T_SERVICE + ") WHERE service_id <= 0");
         }
     }
 

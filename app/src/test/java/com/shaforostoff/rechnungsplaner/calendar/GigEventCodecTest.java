@@ -20,18 +20,34 @@ public class GigEventCodecTest {
     }
 
     @Test
-    public void titleNamesTheVenueAndCity() {
-        assertEquals("DJ-Set — Muster Club, Hamburg", GigEventCodec.title(gig(), "Club Muster GmbH"));
+    public void titleNamesTheServiceThenTheVenueAndCity() {
+        assertEquals("DJ-Set — Muster Club, Hamburg",
+                GigEventCodec.title(gig(), "DJ-Set", "Club Muster GmbH"));
+        // Whatever the user calls their work, unchanged: this is read in a calendar app, and the
+        // words are theirs.
+        assertEquals("Haarschnitt — Muster Club, Hamburg",
+                GigEventCodec.title(gig(), "Haarschnitt", "Club Muster GmbH"));
     }
 
     @Test
     public void titleFallsBackWhenTheVenueIsUnknown() {
         Gig g = gig();
         g.placeName = null;
-        assertEquals("DJ-Set — Hamburg", GigEventCodec.title(g, "Club Muster GmbH"));
+        assertEquals("DJ-Set — Hamburg", GigEventCodec.title(g, "DJ-Set", "Club Muster GmbH"));
         g.city = null;
-        assertEquals("DJ-Set — Club Muster GmbH", GigEventCodec.title(g, "Club Muster GmbH"));
-        assertEquals("DJ-Set", GigEventCodec.title(g, null));
+        assertEquals("DJ-Set — Club Muster GmbH",
+                GigEventCodec.title(g, "DJ-Set", "Club Muster GmbH"));
+        assertEquals("DJ-Set", GigEventCodec.title(g, "DJ-Set", null));
+    }
+
+    @Test
+    public void titleIsJustThePlaceWhenTheServiceIsGone() {
+        // A job recorded before the service list existed, or one whose service was deleted.
+        assertEquals("Muster Club, Hamburg", GigEventCodec.title(gig(), null, "Club Muster GmbH"));
+        Gig bare = gig();
+        bare.placeName = null;
+        bare.city = null;
+        assertEquals("", GigEventCodec.title(bare, null, null));
     }
 
     @Test

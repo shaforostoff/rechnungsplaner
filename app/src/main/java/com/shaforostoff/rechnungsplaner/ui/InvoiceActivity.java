@@ -29,6 +29,8 @@ import com.shaforostoff.rechnungsplaner.data.InvoiceMapper;
 import com.shaforostoff.rechnungsplaner.data.Issuer;
 import com.shaforostoff.rechnungsplaner.data.IssuerDao;
 import com.shaforostoff.rechnungsplaner.data.OutputFormat;
+import com.shaforostoff.rechnungsplaner.data.Service;
+import com.shaforostoff.rechnungsplaner.data.ServiceDao;
 import com.shaforostoff.rechnungsplaner.data.SettingsStore;
 import com.shaforostoff.rechnungsplaner.einvoice.EnInvoice;
 import com.shaforostoff.rechnungsplaner.einvoice.EnValidator;
@@ -44,7 +46,9 @@ import com.shaforostoff.rechnungsplaner.util.PatternFormatter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 
 /**
@@ -262,7 +266,7 @@ public class InvoiceActivity extends BaseActivity {
         // since this is the bill the customer will actually pay against.
         boolean inPlace = replacing != null && !withNewNumber;
         invoice = InvoiceBuilder.build(issuer, customer, chosen,
-                inPlace ? replacing.issueDate : Dates.today());
+                inPlace ? replacing.issueDate : Dates.today(), serviceNames());
         if (replacing == null) {
             invoice.number = draftNumber();
         } else if (withNewNumber) {
@@ -283,6 +287,20 @@ public class InvoiceActivity extends BaseActivity {
      * number typed for a mid-year switch must not quietly revert to the series when the invoice
      * grows a second night.
      */
+    /**
+     * Every service name by id, including retired ones.
+     *
+     * <p>Read fresh each rebuild rather than cached: a job billed here may name a service that was
+     * archived long ago, and the invoice has to say what was actually done.
+     */
+    private Map<Long, String> serviceNames() {
+        Map<Long, String> names = new HashMap<Long, String>();
+        for (Service service : new ServiceDao(this).all(true)) {
+            names.put(Long.valueOf(service.id), service.displayName());
+        }
+        return names;
+    }
+
     private String draftNumber() {
         return numberOverride != null ? numberOverride
                 : invoices.peekNextNumber(settings.getInvoiceNumberPattern(), invoice.issueDate);

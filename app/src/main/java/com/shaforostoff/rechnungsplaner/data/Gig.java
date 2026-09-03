@@ -59,6 +59,8 @@ public class Gig {
     public Status status = Status.PLANNED;
 
     /** Set once the gig has been billed. */
+    /** Which kind of work this was. -1 on a job that predates the service list. */
+    public long serviceId = -1L;
     public long invoiceId = -1L;
 
     /** The mirrored device-calendar event, or -1 when not mirrored. */

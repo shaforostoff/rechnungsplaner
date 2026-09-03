@@ -161,6 +161,7 @@ public class GigDao {
         v.put("title", g.title);
         v.put("notes", g.notes);
         v.put("status", g.status == null ? Gig.Status.PLANNED.name() : g.status.name());
+        v.put("service_id", g.serviceId);
         v.put("invoice_id", g.invoiceId);
         v.put("calendar_id", g.calendarId);
         v.put("calendar_event_id", g.calendarEventId);
@@ -184,6 +185,7 @@ public class GigDao {
         g.notes = c.getString(c.getColumnIndexOrThrow("notes"));
         g.status = Gig.Status.fromName(c.getString(c.getColumnIndexOrThrow("status")),
                 Gig.Status.PLANNED);
+        g.serviceId = c.getLong(c.getColumnIndexOrThrow("service_id"));
         g.invoiceId = c.getLong(c.getColumnIndexOrThrow("invoice_id"));
         g.calendarId = c.getLong(c.getColumnIndexOrThrow("calendar_id"));
         g.calendarEventId = c.getLong(c.getColumnIndexOrThrow("calendar_event_id"));
