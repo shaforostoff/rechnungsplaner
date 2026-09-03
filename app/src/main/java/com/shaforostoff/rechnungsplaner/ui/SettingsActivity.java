@@ -59,6 +59,8 @@ public class SettingsActivity extends BaseActivity {
     private TextView numberPreview;
     private EditText customerNumberField;
     private TextView customerNumberPreview;
+    private EditText mailSubjectField;
+    private EditText mailBodyField;
     private TextView calendarField;
     private TextView folderField;
     private Spinner tourFormatSpinner;
@@ -106,6 +108,10 @@ public class SettingsActivity extends BaseActivity {
         customerNumberPreview = f.caption("");
         f.caption(getString(R.string.setting_customer_number_desc));
         watch(customerNumberField, customerNumberPreview, PREVIEW_CUSTOMER_NUMBER);
+
+        mailSubjectField = f.field(R.string.setting_mail_subject, mailSubject(), false);
+        mailBodyField = f.multiline(R.string.setting_mail_body, mailBody());
+        f.caption(getString(R.string.setting_mail_desc));
 
         calendarField = f.pickerField(R.string.setting_calendar, calendarLabel(), false,
                 new View.OnClickListener() {
@@ -295,9 +301,43 @@ public class SettingsActivity extends BaseActivity {
         settings.setFileNamePattern(fileNameField.getText().toString());
         settings.setInvoiceNumberPattern(numberField.getText().toString());
         settings.setCustomerNumberPattern(customerNumberField.getText().toString());
+        saveMailWording();
         settings.setTourDateFormat(TOUR_FORMATS[FormBuilder.selectionOf(tourFormatSpinner)]);
         settings.setStrictLexofficeExport(strictBox.isChecked());
         settings.setUiLanguage(UI_LANGUAGE_TAGS[FormBuilder.selectionOf(languageSpinner)]);
+    }
+
+    /**
+     * The wording the invoice would actually be shared with: the user's own, or the default for
+     * the app's language.
+     *
+     * <p>Showing the resolved text rather than an empty box is the point -- it is a paragraph
+     * addressed to a customer, and nobody should have to retype it from scratch to change one
+     * word of it.
+     */
+    private String mailSubject() {
+        String own = settings.getMailSubject();
+        return own.isEmpty() ? getString(R.string.mail_subject) : own;
+    }
+
+    private String mailBody() {
+        String own = settings.getMailBody();
+        return own.isEmpty() ? getString(R.string.mail_body) : own;
+    }
+
+    /**
+     * Stores the wording only once it differs from the default.
+     *
+     * <p>Otherwise merely opening this screen would pin the current language's text forever, and
+     * a later switch of app language would go on sending German to a Spanish booker.
+     */
+    private void saveMailWording() {
+        String subject = mailSubjectField.getText().toString();
+        settings.setMailSubject(subject.trim().equals(getString(R.string.mail_subject).trim())
+                ? "" : subject);
+        String body = mailBodyField.getText().toString();
+        settings.setMailBody(body.trim().equals(getString(R.string.mail_body).trim())
+                ? "" : body);
     }
 
     private String calendarLabel() {

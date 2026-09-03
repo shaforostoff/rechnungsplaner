@@ -137,8 +137,8 @@
     <string name="saved_to_folder">Guardado en %1$s</string>
     <string name="saved_to_folder_unnamed">Guardado en la carpeta elegida</string>
     <string name="no_export_folder">Aún no hay carpeta de exportación. Elígela en Ajustes.</string>
-    <string name="mail_subject">Factura %1$s</string>
-    <string name="mail_body">Estimados señores:\n\nadjunto la factura %1$s.\n\nUn saludo\n%2$s</string>
+    <string name="mail_subject">Factura %invoiceno%</string>
+    <string name="mail_body">Estimados señores:\n\nadjunto la factura %invoiceno%.\n\nUn saludo\n%issuername%</string>
     <string name="select_gigs_to_bill">Elige las sesiones a facturar</string>
 
     <string name="title_import_export">Importar/Exportar</string>
@@ -162,6 +162,9 @@
     <string name="setting_output_format">Formato de factura</string>
     <string name="setting_filename_pattern">Patrón del nombre de archivo</string>
     <string name="setting_number_pattern">Patrón del número de factura</string>
+    <string name="setting_mail_subject">Compartir: asunto</string>
+    <string name="setting_mail_body">Compartir: mensaje</string>
+    <string name="setting_mail_desc">Se envía con la factura por correo, y se ofrece a cualquier otra app que acepte un mensaje. %invoiceno%, %issuername%, %customername%, %place% y %city% se rellenan; deja un campo vacío para volver al texto del idioma de la app.</string>
     <string name="setting_calendar">Reflejar en el calendario</string>
     <string name="setting_calendar_off">Desactivado</string>
     <string name="setting_export_folder">Carpeta de exportación</string>

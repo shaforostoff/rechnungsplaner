@@ -137,8 +137,8 @@
     <string name="saved_to_folder">In %1$s gespeichert</string>
     <string name="saved_to_folder_unnamed">Im gewählten Ordner gespeichert</string>
     <string name="no_export_folder">Noch kein Export-Ordner gewählt. In den Einstellungen festlegen.</string>
-    <string name="mail_subject">Rechnung %1$s</string>
-    <string name="mail_body">Sehr geehrte Damen und Herren,\n\nanbei die Rechnung %1$s.\n\nMit freundlichen Grüßen\n%2$s</string>
+    <string name="mail_subject">Rechnung %invoiceno%</string>
+    <string name="mail_body">Sehr geehrte Damen und Herren,\n\nanbei die Rechnung %invoiceno%.\n\nMit freundlichen Grüßen\n%issuername%</string>
     <string name="select_gigs_to_bill">DJ-Sets zum Abrechnen wählen</string>
 
     <string name="title_import_export">Import/Export</string>
@@ -162,6 +162,9 @@
     <string name="setting_output_format">Rechnungsformat</string>
     <string name="setting_filename_pattern">Muster für Dateinamen</string>
     <string name="setting_number_pattern">Muster für Rechnungsnummern</string>
+    <string name="setting_mail_subject">Teilen: Betreff</string>
+    <string name="setting_mail_body">Teilen: Nachricht</string>
+    <string name="setting_mail_desc">Wird mit der Rechnung per Mail gesendet und jeder anderen App angeboten, die eine Nachricht annimmt. %invoiceno%, %issuername%, %customername%, %place% und %city% werden eingesetzt; ein leeres Feld nimmt wieder den Text der App-Sprache.</string>
     <string name="setting_calendar">In Kalender spiegeln</string>
     <string name="setting_calendar_off">Aus</string>
     <string name="setting_export_folder">Export-Ordner</string>

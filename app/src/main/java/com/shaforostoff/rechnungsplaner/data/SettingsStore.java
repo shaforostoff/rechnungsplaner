@@ -26,6 +26,8 @@ public class SettingsStore {
     private static final String K_UI_LANGUAGE = "ui_language";
     private static final String K_STRICT_LEXOFFICE = "strict_lexoffice_export";
     private static final String K_CUSTOMER_NUMBER_PATTERN = "customer_number_pattern";
+    private static final String K_MAIL_SUBJECT = "mail_subject";
+    private static final String K_MAIL_BODY = "mail_body";
 
     private final SharedPreferences prefs;
 
@@ -122,6 +124,32 @@ public class SettingsStore {
     public void setCustomerNumberPattern(String pattern) {
         prefs.edit().putString(K_CUSTOMER_NUMBER_PATTERN,
                 isBlank(pattern) ? "" : pattern.trim()).apply();
+    }
+
+    /**
+     * The subject the invoice is shared with, or empty to use the wording for the app's language.
+     *
+     * <p>Empty rather than the resolved text: this store has no resources to read the default
+     * from, and keeping "not set" distinct from "set to the default" is what lets the wording
+     * follow a change of app language right up until the user gives it wording of their own.
+     */
+    public String getMailSubject() {
+        return prefs.getString(K_MAIL_SUBJECT, "");
+    }
+
+    public void setMailSubject(String subject) {
+        prefs.edit().putString(K_MAIL_SUBJECT, isBlank(subject) ? "" : subject.trim()).apply();
+    }
+
+    /** The message body the invoice is shared with. Empty means the app-language wording. */
+    public String getMailBody() {
+        return prefs.getString(K_MAIL_BODY, "");
+    }
+
+    public void setMailBody(String body) {
+        // Not trimmed to nothing but not trimmed either: a signature may legitimately end in a
+        // blank line, and only an all-whitespace body counts as unset.
+        prefs.edit().putString(K_MAIL_BODY, isBlank(body) ? "" : body).apply();
     }
 
     private static boolean isBlank(String s) {

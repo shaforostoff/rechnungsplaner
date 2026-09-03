@@ -642,12 +642,33 @@ public class InvoiceActivity extends BaseActivity {
         try {
             startActivity(Sharing.share(this, files,
                     customer == null ? null : customer.email,
-                    getString(R.string.mail_subject, invoice.number),
-                    getString(R.string.mail_body, invoice.number, issuer.name),
+                    mailWording(settings.getMailSubject(), R.string.mail_subject),
+                    mailWording(settings.getMailBody(), R.string.mail_body),
                     getString(R.string.action_share)));
         } catch (IOException e) {
             Ui.toast(this, getString(R.string.import_failed, String.valueOf(e.getMessage())));
         }
+    }
+
+    /**
+     * Expands the user's subject or message, falling back to the wording for the app's language.
+     *
+     * <p>Through {@link PatternFormatter} rather than {@code getString} with positional arguments,
+     * which is what these strings used to be: text the user can edit must never reach
+     * {@code String.format}, where a single stray {@code %} in a sentence is a crash. The token
+     * form is the one already used for file names and invoice numbers, and it leaves anything it
+     * does not recognise visible instead of throwing.
+     */
+    private String mailWording(String own, int defaultRes) {
+        String pattern = own == null || own.trim().isEmpty() ? getString(defaultRes) : own;
+        return new PatternFormatter()
+                .put(PatternFormatter.INVOICE_NO, invoice.number)
+                .put(PatternFormatter.ISSUER_NAME, issuer.name)
+                .put(PatternFormatter.CUSTOMER_NAME, customer == null ? "" : customer.displayName())
+                .put(PatternFormatter.PLACE, customer == null ? "" : customer.placeName)
+                .put(PatternFormatter.CITY, customer == null ? "" : customer.city)
+                .putDate(invoice.issueDate)
+                .format(pattern);
     }
 
     private void saveToFolder() {

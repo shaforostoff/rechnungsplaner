@@ -147,8 +147,8 @@
     <string name="saved_to_folder">Saved to %1$s</string>
     <string name="saved_to_folder_unnamed">Saved to the chosen folder</string>
     <string name="no_export_folder">No export folder chosen yet. Set one in Settings.</string>
-    <string name="mail_subject">Invoice %1$s</string>
-    <string name="mail_body">Dear Sir or Madam,\n\nplease find invoice %1$s attached.\n\nKind regards\n%2$s</string>
+    <string name="mail_subject">Invoice %invoiceno%</string>
+    <string name="mail_body">Dear Sir or Madam,\n\nplease find invoice %invoiceno% attached.\n\nKind regards\n%issuername%</string>
     <string name="select_gigs_to_bill">Choose the DJ-sets to bill</string>
 
     <!-- ===== Import and export ===== -->
@@ -175,6 +175,9 @@
     <string name="setting_output_format">Invoice format</string>
     <string name="setting_filename_pattern">File name pattern</string>
     <string name="setting_number_pattern">Invoice number pattern</string>
+    <string name="setting_mail_subject">Share: subject</string>
+    <string name="setting_mail_body">Share: message</string>
+    <string name="setting_mail_desc">Sent with the invoice by mail, and offered to any other app that takes a message. %invoiceno%, %issuername%, %customername%, %place% and %city% are filled in; clear a field to go back to the wording for the app language.</string>
     <string name="setting_calendar">Mirror to calendar</string>
     <string name="setting_calendar_off">Off</string>
     <string name="setting_export_folder">Export folder</string>

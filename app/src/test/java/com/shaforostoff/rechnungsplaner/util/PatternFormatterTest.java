@@ -124,4 +124,23 @@ public class PatternFormatterTest {
             }
         }
     }
+
+    @Test
+    public void expandsAMessageTheUserWroteWithoutEverFormatting() {
+        // The share subject and body are user-editable prose, which is why they go through here
+        // rather than String.format: a stray percent in a sentence would be a crash there.
+        PatternFormatter f = new PatternFormatter()
+                .put(PatternFormatter.INVOICE_NO, "2026-038")
+                .put(PatternFormatter.ISSUER_NAME, "Nick Shaforostov")
+                .put(PatternFormatter.CUSTOMER_NAME, "Club Muster GmbH");
+
+        assertEquals("Dear Sir or Madam,\n\nplease find invoice 2026-038 attached.\n\n"
+                        + "Kind regards\nNick Shaforostov",
+                f.format("Dear Sir or Madam,\n\nplease find invoice %invoiceno% attached.\n\n"
+                        + "Kind regards\n%issuername%"));
+
+        assertEquals("100% analog, Club Muster GmbH", f.format("100% analog, %customername%"));
+        assertEquals("50%% still reads as typed", f.format("50%% still reads as typed"));
+        assertEquals("a trailing percent survives %", f.format("a trailing percent survives %"));
+    }
 }
