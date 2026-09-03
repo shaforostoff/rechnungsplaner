@@ -32,9 +32,12 @@ specifically so they can be tested on the JVM. The `ui` package cannot be, but i
 **No device or emulator was available**, so nothing that needs the Android runtime has been
 executed. Specifically unverified:
 
-- `InvoiceRenderer` has never drawn a page. The pagination threshold and the text wrapping are
-  unexercised; the column tiling is now tested on its own, since it is arithmetic rather than
-  drawing, but the widths feeding it still come from `Paint.measureText` on a device.
+- `InvoiceRenderer` has now drawn a page on a device -- a single-job invoice, whose header block
+  was read off the result closely enough to find that the metadata labels were being measured
+  with the wrong paint. What that page does not cover: more than one page, so the pagination
+  threshold is still unexercised, and any line long enough to wrap. The column tiling is tested
+  on its own, being arithmetic rather than drawing, but the widths feeding it come from
+  `Paint.measureText` on a device.
 - `PdfA3Packer` has never seen real `android.graphics.pdf.PdfDocument` output. It handles both
   cross-reference flavours and refuses anything it cannot rewrite safely, but Skia's exact
   structure is an assumption until it runs.

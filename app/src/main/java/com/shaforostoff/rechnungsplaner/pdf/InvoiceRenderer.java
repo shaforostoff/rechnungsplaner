@@ -181,7 +181,11 @@ public class InvoiceRenderer {
 
         float ry = y - heading.getTextSize() + 4f;
         for (String[] row : rows) {
-            c.drawText(row[0], valueLeft - 8f - body.measureText(row[0]), ry, small);
+            // Through rightText, so the paint that measures the label is the paint that draws it.
+            // Measuring these 7.5pt labels with the 9.5pt body paint put each one about a fifth of
+            // its own width too far left, which is length-dependent: the right edges came out
+            // ragged, with "Fällig am" reaching further right than "Rechnungsnummer".
+            rightText(c, row[0], valueLeft - 8f, ry, small);
             c.drawText(row[1], valueLeft, ry, body);
             ry += LINE;
         }
