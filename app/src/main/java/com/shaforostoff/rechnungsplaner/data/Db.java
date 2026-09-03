@@ -17,7 +17,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class Db extends SQLiteOpenHelper {
 
     private static final String NAME = "rechnungsplaner.db";
-    private static final int VERSION = 6;
+    private static final int VERSION = 1;
 
     public static final String T_ISSUER = "issuer";
     public static final String T_CUSTOMER = "customer";
@@ -160,62 +160,45 @@ public class Db extends SQLiteOpenHelper {
     }
 
     /**
-     * Additive steps, each guarded by the version it arrived in.
+     * Nothing yet: schema 1 is the whole schema.
      *
-     * <p>This used to drop every table and rebuild, on the grounds that nothing was installed
-     * anywhere. That stopped being true: there is a phone with an invoice series carried over
-     * from other software, customers numbered to match books that predate this app, and gigs
-     * linked back to their invoices by hand. Dropping the tables to add a column would be the
-     * app destroying the one thing it exists to keep -- and section 147 AO requires an issued
-     * invoice to survive ten years, not until the next schema change.
+     * <p>The steps that used to stand here -- the per-customer share wording, the payment year,
+     * the service table, the multi-day flags -- are folded into {@link #onCreate} instead. They
+     * existed to carry one phone across four schema changes, and that phone is the only install
+     * there has ever been, so there is nothing left for them to carry and every fresh install
+     * gets the finished shape in one statement per table.
+     *
+     * <p>The dispatch stays, along with {@link #addColumn}, so the next change is additive from
+     * its first line rather than a rewrite done in a hurry:
+     *
+     * <pre>
+     * if (oldVersion &lt; 2) {
+     *     addColumn(db, T_CUSTOMER, "reminder_days", "INTEGER NOT NULL DEFAULT 0");
+     * }
+     * </pre>
+     *
+     * <p>And the reason those steps were additive rather than a drop-and-rebuild has not gone
+     * away with them: the phone holds an invoice series carried over from other software,
+     * customers numbered to match books that predate this app, and gigs linked back to their
+     * invoices by hand. Section 147 AO wants an issued invoice to survive ten years, not until
+     * the next schema change. Add columns; never drop a table to reach a new shape.
      */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion < 3) {
-            // Per-customer share wording, overriding the global setting. Null means inherit, so
-            // an existing customer needs no backfill.
-            addColumn(db, T_CUSTOMER, "share_subject", "TEXT");
-            addColumn(db, T_CUSTOMER, "share_message", "TEXT");
-        }
-        if (oldVersion < 4) {
-            // The year the money arrived, when that is not the year the invoice belongs to.
-            // Zero means derive it, so every existing invoice already has the right answer.
-            addColumn(db, T_INVOICE, "paid_year", "INTEGER NOT NULL DEFAULT 0");
-        }
-        if (oldVersion < 5) {
-            // The app used to know one kind of work. Everything already recorded was that one, so
-            // the migration names it and points every job at it rather than leaving them with no
-            // service at all -- the name is what ends up on an invoice line, and losing it would
-            // quietly change what past invoices are rebuilt as. It can be renamed afterwards.
-            db.execSQL("CREATE TABLE IF NOT EXISTS " + T_SERVICE + " ("
-                    + "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                    + "name TEXT NOT NULL,"
-                    + "sort_order INTEGER NOT NULL DEFAULT 0,"
-                    + "archived INTEGER NOT NULL DEFAULT 0)");
-            addColumn(db, T_GIG, "service_id", "INTEGER NOT NULL DEFAULT -1");
-            // Only into an empty table: this step can be reached twice if the version travels,
-            // and a second 'DJ-Set' button would be the migration's own doing.
-            db.execSQL("INSERT INTO " + T_SERVICE + " (name, sort_order)"
-                    + " SELECT 'DJ-Set', 1 WHERE NOT EXISTS (SELECT 1 FROM " + T_SERVICE + ")");
-            db.execSQL("UPDATE " + T_GIG + " SET service_id ="
-                    + " (SELECT MIN(_id) FROM " + T_SERVICE + ") WHERE service_id <= 0");
-        }
-        if (oldVersion < 6) {
-            // Work that runs over days rather than hours, and whether it belongs in the calendar
-            // at all. Both default to what the app did before: single-day, mirrored.
-            addColumn(db, T_SERVICE, "multi_day", "INTEGER NOT NULL DEFAULT 0");
-            addColumn(db, T_SERVICE, "sync_calendar", "INTEGER NOT NULL DEFAULT 1");
-            addColumn(db, T_GIG, "end_date", "TEXT");
-        }
     }
 
     /**
      * Nothing, deliberately.
      *
-     * <p>Moving between branches walks the version backwards, which SQLiteOpenHelper treats as
-     * fatal unless told otherwise. An older build reads its columns by name and is unbothered by
-     * ones it has never heard of, so leaving them in place costs nothing and keeps the data --
-     * where the rebuild this used to do would have thrown it away to reach an older shape.
+     * <p>This is what lets the collapse above be a safe edit rather than a wipe. The installed
+     * database says 6; this build says 1, so opening it is a downgrade, which SQLiteOpenHelper
+     * treats as fatal unless told otherwise. Its columns are exactly the ones {@code onCreate}
+     * now writes -- the migrations put them there -- so the right thing to do is nothing: the
+     * version is restamped, the rows stay, and the app carries on against a schema it agrees
+     * with. The rebuild this used to do would have thrown the data away to reach that same shape.
+     *
+     * <p>It also keeps moving between branches survivable, for the same reason it always did: a
+     * build reads its columns by name and is unbothered by ones it has never heard of.
      */
     @Override
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -224,8 +207,10 @@ public class Db extends SQLiteOpenHelper {
     /**
      * Adds a column unless it is already there.
      *
-     * <p>Idempotent because the version can travel: a downgrade leaves the column in place, and
-     * the upgrade back would otherwise re-run the step and fail on the duplicate.
+     * <p>Unused while the schema is at 1, and kept on purpose: it is the mechanism the next
+     * change should reach for. Idempotent because the version can travel -- a downgrade leaves
+     * the column in place, and the upgrade back would otherwise re-run the step and fail with
+     * {@code duplicate column name}.
      */
     private static void addColumn(SQLiteDatabase db, String table, String column, String type) {
         if (hasColumn(db, table, column)) return;

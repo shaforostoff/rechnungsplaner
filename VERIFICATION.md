@@ -41,24 +41,31 @@ executed. Specifically unverified:
 - `PdfA3Packer` has never seen real `android.graphics.pdf.PdfDocument` output. It handles both
   cross-reference flavours and refuses anything it cannot rewrite safely, but Skia's exact
   structure is an assumption until it runs.
-- The database is migrated additively rather than recreated, as of schema 3. It used to drop every
-  table on a version change, which was fine while nothing was installed anywhere and became a
-  data-loss bug the moment a phone held an invoice series carried over from other software. Both
-  paths were executed against the `sqlite3` binary in the Android SDK: the v2-to-v3 step keeps the
-  row and its values, adds both columns as NULL and leaves the index standing, and the whole
-  `onCreate` schema -- all 16 statements, 7 tables -- runs clean on a fresh database with the new
-  columns writable. Re-running an unguarded `ALTER` was executed too and fails with `duplicate
-  column name`, which is what `hasColumn` is there for. Still unverified: that `onUpgrade` is
-  reached at all on a device, and that an older build tolerates the columns `onDowngrade` now
-  leaves in place -- harmless by inspection, since every read is by column name, but not run.
-  Schema 4 was executed the same way: the invoice row keeps its values, `paid_year` defaults to
-  zero so an existing invoice needs no backfill, moving it to a year and back both work, and the
-  `UNIQUE` constraint on the number survived the `ALTER`.
-- Schemas 5 and 6 were executed against `sqlite3` like the ones before. Schema 5 names the work
-  already recorded 'DJ-Set' and points every job at it -- run twice, to confirm the seed happens
-  once and that fees, statuses and invoice links all come through. Schema 6 adds the two service
-  flags and the gig end date, and the defaults are what the app did before it had them:
-  single-day and mirrored.
+- The schema is one version again: the four migration steps are folded into `onCreate`, because
+  the app has only ever been installed on one phone and that phone has already run all of them.
+  What was checked with the `sqlite3` binary from the Android SDK is that the collapse is a rename
+  of the same shape and not a different one. A database built the long way -- schema 2's
+  `onCreate` plus every migration in order -- and one built by the new `onCreate` in a single pass
+  were compared column by column: same 8 tables, same columns, same types, same `NOT NULL` flags,
+  same defaults, same 11 indexes. Only the column *order* differs, `ALTER` having appended where
+  `CREATE` interleaves, and nothing reads a column by position except the calendar queries, which
+  supply their own projection.
+- The downgrade path was executed too, since it is what carries the phone across rather than
+  wiping it. `SQLiteOpenHelper` sees an installed version of 6 against a build that says 1, calls
+  `onDowngrade` -- deliberately empty -- and restamps the version to 1. Simulated on a database
+  holding a numbered customer, an invoice carried over mid-year, a gig linked back to it by hand
+  and both number counters: every row survived the restamp, and afterwards every column the
+  migrations had added was still writable, the payment year and the service flags and the gig end
+  date included. On a freshly created database the same writes work, `sync_uuid` and the invoice
+  number still reject a duplicate, and deleting an invoice still cascades to its lines.
+- A fresh install starts with no services and the calendar screen's empty state, which is what it
+  did before the collapse as well -- the 'DJ-Set' seed only ever existed to name work already
+  recorded, and there is none on a new install.
+- The migration mechanism is kept and is now unused: `onUpgrade` dispatches on nothing, and
+  `addColumn` sits behind it with its `PRAGMA table_info` guard. Both were exercised while they
+  were live -- the guard against re-running an `ALTER` was confirmed to be what stands between the
+  step and `duplicate column name` -- so the next schema change starts from a tested tool rather
+  than a fresh idea. What has never been observed is `onUpgrade` being reached on a device at all.
 - The service name reaching the invoice line and the calendar title is tested, including that it
   is not translated and that a job with no service still describes itself. So is the period an
   invoice states for work spanning days -- BG-14 rather than a BT-72 that would claim a week
@@ -99,9 +106,11 @@ executed. Specifically unverified:
   catching a duplicate before the UNIQUE column throws -- both need SQLite.
 - Customer-number uniqueness is enforced in code, not by the schema. `holderOfNumber` blocks a
   duplicate typed on the customer screen and the allocator steps its sequence past taken numbers,
-  both unverified for the same reason. There is deliberately no `UNIQUE` index: adding one means a
-  schema version, and `onUpgrade` currently wipes. So the guarantee is only as good as the two
-  paths that check -- a contacts import writing numbers it was given does not, and neither would
+  both unverified for the same reason. There is deliberately no `UNIQUE` index: the column
+  already holds hand-entered numbers carried over from other software, and a constraint that
+  rejects the data already on the phone is worse than none. Adding one later means a migration
+  step -- the collapse to schema 1 does not reach the installed database, whose rows stay put.
+  So the guarantee is only as good as the two paths that check -- a contacts import writing numbers it was given does not, and neither would
   any future writer that forgets to.
 - `CalendarMirror`, `ShareProvider`, `SafExporter` and every screen are compile-verified only.
   This includes the field mechanics whose *decisions* are tested -- that the account holder mirrors
