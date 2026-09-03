@@ -226,6 +226,19 @@ public class InvoiceDao {
         w.replace(Db.T_COUNTER, null, v);
     }
 
+    /** The customer's invoices, newest first. For offering a gig somewhere to be linked. */
+    public List<Invoice> forCustomer(long customerId) {
+        List<Invoice> out = new ArrayList<Invoice>();
+        Cursor c = db.getReadableDatabase().query(Db.T_INVOICE, null, "customer_id = ?",
+                new String[]{Long.toString(customerId)}, null, null, "issue_date DESC, _id DESC");
+        try {
+            while (c.moveToNext()) out.add(read(c));
+        } finally {
+            c.close();
+        }
+        return out;
+    }
+
     public List<Invoice> all() {
         List<Invoice> out = new ArrayList<Invoice>();
         Cursor c = db.getReadableDatabase().query(Db.T_INVOICE, null, null, null, null, null,

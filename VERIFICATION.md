@@ -157,7 +157,12 @@ failure modes differ between the three, so passing one says little about the oth
     still on the stack: it must now offer "Open invoice" and "Recreate", not "Create invoice".
     Change the fee there, save, reopen, and confirm the gig is still invoiced, still points at
     the same invoice, and that the calendar event was updated rather than duplicated.
-13. Duplicate customer numbers. Give a second customer a number another one already has and
+13. Relinking. On a gig that is not invoiced, "Link to an existing invoice" must offer only that
+    customer's invoices, each showing how many DJ-sets it bills -- a stranded one shows zero.
+    Pick it, confirm the buttons become "Open invoice" and "Recreate", then Recreate under the
+    same number and confirm the rebuilt document carries the corrected fee and the original
+    number. A gig marked paid must still be paid afterwards.
+14. Duplicate customer numbers. Give a second customer a number another one already has and
     confirm the save is refused and names the holder. Repeat with the holder archived, and with
     the case changed (`k-007` against `K-007`), which must also be refused. Then confirm a
     customer keeps its own number when saved unchanged.

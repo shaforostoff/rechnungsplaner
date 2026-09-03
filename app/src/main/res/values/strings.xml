@@ -53,6 +53,10 @@
     <string name="new_customer">New customer</string>
     <string name="no_customer">No customer chosen</string>
     <string name="action_create_invoice">Create invoice</string>
+    <string name="action_link_invoice">Link to an existing invoice</string>
+    <string name="invoice_choice">%1$s · %2$s · sets: %3$d</string>
+    <string name="linked_to_invoice">Linked to %1$s. Use Recreate to rebuild it from this DJ-set.</string>
+    <string name="no_invoices_to_link">This customer has no invoices to link to.</string>
     <string name="action_open_invoice">Open invoice</string>
     <string name="confirm_delete_gig">Delete this DJ-set?</string>
     <string name="crosses_midnight">Ends the next morning. Billed to the start date.</string>

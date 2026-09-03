@@ -223,6 +223,14 @@ public class GigEditActivity extends BaseActivity {
                         }
                     }
                 });
+                f.secondaryButton(R.string.action_link_invoice, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // Save first, as "Recreate" does: the corrected fee is what the invoice
+                        // will be rebuilt from a moment from now.
+                        if (save()) pickInvoiceToLink();
+                    }
+                });
             }
             f.secondaryButton(R.string.action_delete, new View.OnClickListener() {
                 @Override
@@ -410,6 +418,58 @@ public class GigEditActivity extends BaseActivity {
     }
 
     /** The gig's invoice number, for the dialog that offers to redo it. */
+    /**
+     * Points this gig at an invoice that already exists.
+     *
+     * <p>The way back for a gig that has come adrift from its invoice -- which the app itself used
+     * to do when a gig was edited after being billed. The invoice keeps its number, and
+     * "Recreate" then rebuilds its lines from the gig as it now stands, so a number already sent
+     * to a customer stays the number they were sent.
+     *
+     * <p>Only this customer's invoices are offered. Reissuing takes the customer from the gigs it
+     * bills, so linking across customers would quietly rebill someone else's invoice to this one.
+     */
+    private void pickInvoiceToLink() {
+        final List<Invoice> choices = new InvoiceDao(this).forCustomer(gig.customerId);
+        if (choices.isEmpty()) {
+            Ui.toast(this, R.string.no_invoices_to_link);
+            return;
+        }
+        String[] labels = new String[choices.size()];
+        for (int i = 0; i < choices.size(); i++) {
+            Invoice invoice = choices.get(i);
+            // The count is what identifies a stranded invoice: it bills nothing and still holds
+            // its number, which is exactly the one being looked for here.
+            labels[i] = getString(R.string.invoice_choice, invoice.number,
+                    Dates.forLanguage(invoice.issueDate,
+                            getResources().getConfiguration().getLocales().get(0).getLanguage()),
+                    gigs.forInvoice(invoice.id).size());
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.action_link_invoice)
+                .setItems(labels, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        linkTo(choices.get(which));
+                    }
+                })
+                .setNegativeButton(R.string.action_cancel, null)
+                .show();
+    }
+
+    private void linkTo(Invoice invoice) {
+        // A gig marked paid stays paid: the money arrived, and linking the document it arrived
+        // against does not unmake that.
+        Gig.Status status = gig.status == Gig.Status.PAID ? Gig.Status.PAID
+                : Gig.Status.INVOICED;
+        gigs.setInvoice(gig.id, invoice.id, status);
+        gig.invoiceId = invoice.id;
+        gig.status = status;
+        body().removeAllViews();
+        buildForm(false);
+        Ui.toast(this, getString(R.string.linked_to_invoice, invoice.number));
+    }
+
     private String invoiceNumber() {
         Invoice invoice = new InvoiceDao(this).byId(gig.invoiceId);
         return invoice == null ? "" : invoice.number;

@@ -89,6 +89,20 @@ public class GigDao {
         db.getWritableDatabase().delete(Db.T_GIG, "_id = ?", new String[]{Long.toString(id)});
     }
 
+    /**
+     * Points a gig at an invoice without touching anything else.
+     *
+     * <p>The way back for a gig that lost its link. Targeted rather than a whole-row write for
+     * the same reason {@link #editableValues} exists: the caller's copy of the gig may be older
+     * than the row.
+     */
+    public void setInvoice(long gigId, long invoiceId, Gig.Status status) {
+        ContentValues v = new ContentValues();
+        v.put("invoice_id", invoiceId);
+        v.put("status", status.name());
+        db.getWritableDatabase().update(Db.T_GIG, v, "_id = ?", new String[]{Long.toString(gigId)});
+    }
+
     /** Records the mirrored calendar event without touching anything else. */
     public void setCalendarEvent(long gigId, long calendarId, long eventId) {
         ContentValues v = new ContentValues();
@@ -117,7 +131,8 @@ public class GigDao {
      * un-invoiced in the object that screen is holding -- and writing every column back from it
      * unbilled the gig, reset its status, and orphaned its calendar event. The invoice link
      * belongs to {@link InvoiceDao}, the calendar link to {@link #setCalendarEvent}, and the sync
-     * uuid never changes once set, so an update leaves all four alone.
+     * uuid never changes once set, so an update leaves all four alone. {@link #setInvoice} is the
+     * one other way the link moves, and it writes that column and nothing else.
      *
      * <p>Derived from {@link #values} rather than listed again, so a new column is covered by
      * default and only has to be named here if it turns out to be someone else's.

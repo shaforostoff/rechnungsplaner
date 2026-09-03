@@ -48,6 +48,10 @@
     <string name="new_customer">Neuer Kunde</string>
     <string name="no_customer">Kein Kunde gewählt</string>
     <string name="action_create_invoice">Rechnung erstellen</string>
+    <string name="action_link_invoice">Mit bestehender Rechnung verknüpfen</string>
+    <string name="invoice_choice">%1$s · %2$s · Sets: %3$d</string>
+    <string name="linked_to_invoice">Mit %1$s verknüpft. Mit „Neu erstellen“ aus diesem DJ-Set neu aufbauen.</string>
+    <string name="no_invoices_to_link">Für diesen Kunden gibt es keine Rechnung zum Verknüpfen.</string>
     <string name="action_open_invoice">Rechnung öffnen</string>
     <string name="confirm_delete_gig">Dieses DJ-Set löschen?</string>
     <string name="crosses_midnight">Endet am nächsten Morgen. Abgerechnet wird das Startdatum.</string>

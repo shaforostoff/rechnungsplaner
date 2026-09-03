@@ -48,6 +48,10 @@
     <string name="new_customer">Nuevo cliente</string>
     <string name="no_customer">Sin cliente</string>
     <string name="action_create_invoice">Crear factura</string>
+    <string name="action_link_invoice">Vincular a una factura existente</string>
+    <string name="invoice_choice">%1$s · %2$s · sesiones: %3$d</string>
+    <string name="linked_to_invoice">Vinculada a %1$s. Usa «Rehacer» para reconstruirla desde esta sesión.</string>
+    <string name="no_invoices_to_link">Este cliente no tiene facturas a las que vincular.</string>
     <string name="action_open_invoice">Abrir factura</string>
     <string name="confirm_delete_gig">¿Eliminar esta sesión?</string>
     <string name="crosses_midnight">Termina a la mañana siguiente. Se factura la fecha de inicio.</string>
