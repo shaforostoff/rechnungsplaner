@@ -137,7 +137,8 @@
     <string name="label_replaced_by">Replaced by</string>
     <string name="hybrid_degraded">The XML could not be embedded in the PDF, so it was written as a separate file. Send both.</string>
     <string name="action_save_to_folder">Save to folder</string>
-    <string name="saved_to_folder">Saved to the chosen folder</string>
+    <string name="saved_to_folder">Saved to %1$s</string>
+    <string name="saved_to_folder_unnamed">Saved to the chosen folder</string>
     <string name="no_export_folder">No export folder chosen yet. Set one in Settings.</string>
     <string name="mail_subject">Invoice %1$s</string>
     <string name="mail_body">Dear Sir or Madam,\n\nplease find invoice %1$s attached.\n\nKind regards\n%2$s</string>

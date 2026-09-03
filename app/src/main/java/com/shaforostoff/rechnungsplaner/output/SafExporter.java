@@ -74,7 +74,7 @@ public final class SafExporter {
         return target;
     }
 
-    /** A readable name for the chosen folder, for the settings screen. */
+    /** A readable name for the chosen folder -- what the settings screen and the save toast show. */
     public static String displayName(Context ctx, String treeUriString) {
         if (treeUriString == null || treeUriString.isEmpty()) return null;
         try {

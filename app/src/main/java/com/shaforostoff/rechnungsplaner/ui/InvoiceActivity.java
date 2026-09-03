@@ -548,8 +548,14 @@ public class InvoiceActivity extends BaseActivity {
             for (File file : filesToShare()) {
                 if (SafExporter.copyInto(this, tree, file) != null) written++;
             }
-            Ui.toast(this, written > 0 ? getString(R.string.saved_to_folder)
-                    : getString(R.string.nothing_to_export));
+            if (written == 0) {
+                Ui.toast(this, R.string.nothing_to_export);
+                return;
+            }
+            // The folder name is what the user recognises; the tree URI is not readable.
+            String folder = SafExporter.displayName(this, tree);
+            Ui.toast(this, folder == null ? getString(R.string.saved_to_folder_unnamed)
+                    : getString(R.string.saved_to_folder, folder));
         } catch (IOException e) {
             Ui.toast(this, getString(R.string.import_failed, String.valueOf(e.getMessage())));
         }

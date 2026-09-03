@@ -127,7 +127,8 @@
     <string name="label_replaced_by">Sustituida por</string>
     <string name="hybrid_degraded">No se pudo incrustar el XML en el PDF, así que se guardó aparte. Envía ambos.</string>
     <string name="action_save_to_folder">Guardar en carpeta</string>
-    <string name="saved_to_folder">Guardado en la carpeta elegida</string>
+    <string name="saved_to_folder">Guardado en %1$s</string>
+    <string name="saved_to_folder_unnamed">Guardado en la carpeta elegida</string>
     <string name="no_export_folder">Aún no hay carpeta de exportación. Elígela en Ajustes.</string>
     <string name="mail_subject">Factura %1$s</string>
     <string name="mail_body">Estimados señores:\n\nadjunto la factura %1$s.\n\nUn saludo\n%2$s</string>

@@ -127,7 +127,8 @@
     <string name="label_replaced_by">Ersetzt durch</string>
     <string name="hybrid_degraded">Die XML konnte nicht in die PDF eingebettet werden und wurde als eigene Datei geschrieben. Beide senden.</string>
     <string name="action_save_to_folder">In Ordner speichern</string>
-    <string name="saved_to_folder">Im gewählten Ordner gespeichert</string>
+    <string name="saved_to_folder">In %1$s gespeichert</string>
+    <string name="saved_to_folder_unnamed">Im gewählten Ordner gespeichert</string>
     <string name="no_export_folder">Noch kein Export-Ordner gewählt. In den Einstellungen festlegen.</string>
     <string name="mail_subject">Rechnung %1$s</string>
     <string name="mail_body">Sehr geehrte Damen und Herren,\n\nanbei die Rechnung %1$s.\n\nMit freundlichen Grüßen\n%2$s</string>
