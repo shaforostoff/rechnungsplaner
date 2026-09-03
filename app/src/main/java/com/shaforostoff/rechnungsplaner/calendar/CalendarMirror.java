@@ -122,7 +122,9 @@ public class CalendarMirror {
         v.put(CalendarContract.Events.EVENT_LOCATION, GigEventCodec.location(gig));
         v.put(CalendarContract.Events.DESCRIPTION, GigEventCodec.description(gig));
 
-        if (gig.startMillis > 0L) {
+        // Work measured in days has no times to show and would be a misleading three-hour block;
+        // it becomes one all-day span instead.
+        if (gig.startMillis > 0L && !gig.spansDays()) {
             long end = gig.endMillis > gig.startMillis ? gig.endMillis
                     : gig.startMillis + 3 * 3600_000L;
             v.put(CalendarContract.Events.DTSTART, gig.startMillis);
@@ -132,9 +134,10 @@ public class CalendarMirror {
         } else {
             // An all-day event is anchored to midnight UTC by the provider's contract, not to
             // midnight locally; getting this wrong shifts the event by a day either side of GMT.
-            long utcMidnight = utcMidnightOf(gig.date);
-            v.put(CalendarContract.Events.DTSTART, utcMidnight);
-            v.put(CalendarContract.Events.DTEND, utcMidnight + 86_400_000L);
+            // DTEND is exclusive, so the last day's midnight plus a day is what covers it -- and
+            // that is what makes a week of work one block rather than seven.
+            v.put(CalendarContract.Events.DTSTART, utcMidnightOf(gig.date));
+            v.put(CalendarContract.Events.DTEND, utcMidnightOf(gig.lastDay()) + 86_400_000L);
             v.put(CalendarContract.Events.ALL_DAY, 1);
             v.put(CalendarContract.Events.EVENT_TIMEZONE, "UTC");
         }

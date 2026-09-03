@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -213,17 +214,39 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
                 .show();
     }
 
-    /** The add and rename dialog, which are the same dialog with a different starting value. */
+    /**
+     * The add and edit dialog, which are the same dialog with a different starting value.
+     *
+     * <p>Three fields rather than a name alone: what the work is called, whether it is measured
+     * in days, and whether it belongs in the calendar. The last two change what the next screen
+     * asks for and what leaves the app, so they are worth deciding once per kind of work rather
+     * than once per job.
+     */
     private void nameService(final Service service) {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(20), dp(8), dp(20), 0);
+
         final EditText field = new EditText(this);
         field.setText(service.name == null ? "" : service.name);
         field.setHint(R.string.hint_service_name);
         field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         field.setSelection(field.getText().length());
+        box.addView(field);
+
+        final CheckBox multiDay = new CheckBox(this);
+        multiDay.setText(R.string.service_multi_day);
+        multiDay.setChecked(service.multiDay);
+        box.addView(multiDay);
+
+        final CheckBox sync = new CheckBox(this);
+        sync.setText(R.string.service_sync_calendar);
+        sync.setChecked(service.syncToCalendar);
+        box.addView(sync);
 
         new AlertDialog.Builder(this)
                 .setTitle(service.id > 0L ? R.string.action_rename : R.string.add_service)
-                .setView(field)
+                .setView(box)
                 .setNegativeButton(R.string.action_cancel, null)
                 .setPositiveButton(R.string.action_save, new DialogInterface.OnClickListener() {
                     @Override
@@ -234,6 +257,8 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
                             return;
                         }
                         service.name = name;
+                        service.multiDay = multiDay.isChecked();
+                        service.syncToCalendar = sync.isChecked();
                         services.save(service);
                         // Renaming changes the invoice line of every job not yet billed, and the
                         // buttons, so the day is rebuilt rather than patched.

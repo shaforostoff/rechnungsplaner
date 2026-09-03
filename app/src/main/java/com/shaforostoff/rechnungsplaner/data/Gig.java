@@ -59,6 +59,14 @@ public class Gig {
     public Status status = Status.PLANNED;
 
     /** Set once the gig has been billed. */
+    /**
+     * Last day of the work, for a service measured in days. Null on a single-day job.
+     *
+     * <p>Kept alongside {@link #date} rather than replacing it, because the start day is still
+     * what the job is filed under: the month view, the invoice year and the tour list all key on
+     * it, and a job that ran over a month is still a job that began when it began.
+     */
+    public String endDate;
     /** Which kind of work this was. -1 on a job that predates the service list. */
     public long serviceId = -1L;
     public long invoiceId = -1L;
@@ -78,6 +86,16 @@ public class Gig {
 
     public boolean isInvoiced() {
         return invoiceId > 0L;
+    }
+
+    /** The last day of the work, which for a single-day job is the day itself. */
+    public String lastDay() {
+        return Dates.isValid(endDate) && endDate.compareTo(date) > 0 ? endDate : date;
+    }
+
+    /** True when the work covers more than one day, whatever the service currently says. */
+    public boolean spansDays() {
+        return !lastDay().equals(date);
     }
 
     /** Fee plus travel, which is what the gig is worth before VAT. */

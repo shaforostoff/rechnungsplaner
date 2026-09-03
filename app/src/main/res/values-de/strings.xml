@@ -32,6 +32,11 @@
 
     <string name="add_service">Neue Leistung hinzufügen</string>
     <string name="add_service_desc">%1$s hinzufügen. Lange drücken, um umzubenennen oder zu entfernen.</string>
+    <string name="service_multi_day">Mehrtägig (Enddatum statt Uhrzeiten)</string>
+    <string name="service_sync_calendar">Mit dem gewählten Kalender synchronisieren</string>
+    <string name="label_end_date">Letzter Tag</string>
+    <string name="end_date_hint">Standardmäßig derselbe Tag wie der Beginn. Der Auftrag bleibt unter seinem Starttag geführt.</string>
+    <string name="end_before_start">Der letzte Tag kann nicht vor dem ersten liegen.</string>
     <string name="hint_service_name">Wie diese Arbeit bei dir heißt</string>
     <string name="label_service">Leistung</string>
     <string name="action_rename">Umbenennen</string>

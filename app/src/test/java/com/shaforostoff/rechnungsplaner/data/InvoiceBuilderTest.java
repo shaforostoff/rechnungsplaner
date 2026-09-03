@@ -1,6 +1,7 @@
 package com.shaforostoff.rechnungsplaner.data;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -267,5 +268,57 @@ public class InvoiceBuilderTest {
         assertTrue(keys.contains(Problem.BUYER_STREET));
         assertTrue(keys.contains(Problem.BUYER_POSTCODE));
         assertTrue(keys.contains(Problem.INVOICE_BUYER_REFERENCE));
+    }
+
+    @Test
+    public void aJobRunningOverDaysCarriesAPeriodRatherThanADeliveryDate() {
+        // BT-72 states one day. A week of work is not one day, so it has to be BG-14 instead --
+        // an invoice claiming a single delivery date for a week would be wrong on its face.
+        Gig week = gig("2026-08-10", 120000L);
+        week.endDate = "2026-08-16";
+
+        Invoice inv = InvoiceBuilder.build(issuer(), club(), Arrays.asList(week), "2026-08-17");
+
+        assertNull("no single delivery date for work spanning days", inv.deliveryDate);
+        assertEquals("2026-08-10", inv.periodStart);
+        assertEquals("2026-08-16", inv.periodEnd);
+        assertEquals("2026-08-10", inv.lines.get(0).periodStart);
+        assertEquals("2026-08-16", inv.lines.get(0).periodEnd);
+    }
+
+    @Test
+    public void aSingleDayJobStillStatesOneDeliveryDate() {
+        Invoice inv = InvoiceBuilder.build(issuer(), club(),
+                Arrays.asList(gig("2026-08-15", 35000L)), "2026-08-16");
+
+        assertEquals("2026-08-15", inv.deliveryDate);
+        assertNull(inv.periodStart);
+        assertNull("one line on one day needs no period of its own",
+                inv.lines.get(0).periodStart);
+    }
+
+    @Test
+    public void theHeaderSpanReachesTheLastDayWorked() {
+        // The later job starts earlier but runs longer, so the span cannot come from the last
+        // job's start date.
+        Gig evening = gig("2026-08-20", 35000L);
+        Gig week = gig("2026-08-10", 120000L);
+        week.endDate = "2026-08-28";
+
+        Invoice inv = InvoiceBuilder.build(issuer(), club(), Arrays.asList(evening, week),
+                "2026-08-29");
+
+        assertEquals("2026-08-10", inv.periodStart);
+        assertEquals("2026-08-28", inv.periodEnd);
+    }
+
+    @Test
+    public void anEndDateOnOrBeforeTheStartIsNotASpan() {
+        Gig g = gig("2026-08-15", 35000L);
+        g.endDate = "2026-08-15";
+        assertFalse(g.spansDays());
+        g.endDate = "2026-08-14";
+        assertFalse("a backwards end date is a typo, not a shorter job", g.spansDays());
+        assertEquals("2026-08-15", g.lastDay());
     }
 }

@@ -51,6 +51,18 @@ executed. Specifically unverified:
   Schema 4 was executed the same way: the invoice row keeps its values, `paid_year` defaults to
   zero so an existing invoice needs no backfill, moving it to a year and back both work, and the
   `UNIQUE` constraint on the number survived the `ALTER`.
+- Schemas 5 and 6 were executed against `sqlite3` like the ones before. Schema 5 names the work
+  already recorded 'DJ-Set' and points every job at it -- run twice, to confirm the seed happens
+  once and that fees, statuses and invoice links all come through. Schema 6 adds the two service
+  flags and the gig end date, and the defaults are what the app did before it had them:
+  single-day and mirrored.
+- The service name reaching the invoice line and the calendar title is tested, including that it
+  is not translated and that a job with no service still describes itself. So is the period an
+  invoice states for work spanning days -- BG-14 rather than a BT-72 that would claim a week
+  happened on one day -- and that the header span reaches the last day worked rather than the
+  last job's start date. Untested: the calendar screen's service buttons, the rename and remove
+  dialog, the end-date picker, and whether the provider really renders a multi-day all-day event
+  as one block.
 - Which year an invoice counts in is tested -- delivery date over period over issue date, a
   payment year overriding the work, and zero meaning derive so that never-moved and moved-back
   are the same state. Untested is the whole list screen: the grouping, the totals, the exclusion
@@ -196,7 +208,17 @@ failure modes differ between the three, so passing one says little about the oth
     card and pick from the two years, and pick the year it is already filed under -- which must
     change nothing rather than reporting a move. With TalkBack on, the year button must announce
     which invoice it moves and where to.
-17. Duplicate customer numbers. Give a second customer a number another one already has and
+17. Services. On a fresh install there are no buttons, only "Add a new service" and a line saying
+    so. Add one, and confirm it appears as a button that books a job of that kind. Long-press it
+    to rename, and confirm an unbilled job's invoice line follows the new name. Long-press to
+    remove: with no job using it the button goes and the service is gone; with a job using it the
+    button goes and that job still shows the old name and can still be billed under it.
+18. Multi-day and sync. Make a service multi-day and confirm the job form asks for a last day
+    instead of two times, refuses a last day before the first, and that switching the same job to
+    a single-day service drops the end date rather than keeping it. Confirm the calendar shows a
+    multi-day job as one block across the days, not as one three-hour event. Then turn its sync
+    off, save, and confirm the event is removed rather than left behind.
+19. Duplicate customer numbers. Give a second customer a number another one already has and
     confirm the save is refused and names the holder. Repeat with the holder archived, and with
     the case changed (`k-007` against `K-007`), which must also be refused. Then confirm a
     customer keeps its own number when saved unchanged.

@@ -59,14 +59,15 @@ public final class InvoiceBuilder {
         List<Gig> sorted = sortedByDate(gigs);
         boolean single = sorted.size() == 1;
 
-        if (single) {
-            // A single gig states its date once, in BT-72.
+        if (single && !sorted.get(0).spansDays()) {
+            // One job on one day states its date once, in BT-72.
             inv.deliveryDate = sorted.get(0).date;
         } else if (!sorted.isEmpty()) {
-            // Several gigs cannot: EN 16931 has no per-line delivery date, so the header carries
-            // the span and each line carries its own one-day period below.
+            // Anything else needs a span. EN 16931 has no per-line delivery date, so the header
+            // carries BG-14 from the first day to the last -- and the last is not the last job's
+            // start date once a job can run for a week.
             inv.periodStart = sorted.get(0).date;
-            inv.periodEnd = sorted.get(sorted.size() - 1).date;
+            inv.periodEnd = latestDay(sorted);
         }
 
         for (Gig gig : sorted) {
@@ -212,9 +213,11 @@ public final class InvoiceBuilder {
         l.netCents = cents;
         l.taxCategory = mode.category;
         l.ratePermille = mode.ratePermille;
-        if (!single) {
+        // A line states its own period when the header's span cannot stand for it: either because
+        // there are several jobs, or because this one job ran over more than a day.
+        if (!single || gig.spansDays()) {
             l.periodStart = gig.date;
-            l.periodEnd = gig.date;
+            l.periodEnd = gig.lastDay();
         }
         return l;
     }
@@ -243,6 +246,15 @@ public final class InvoiceBuilder {
     private static int compare(String a, String b) {
         if (a == null) return b == null ? 0 : -1;
         return b == null ? 1 : a.compareTo(b);
+    }
+
+    /** The last day any of these jobs covers, which a job running over days can push past. */
+    private static String latestDay(List<Gig> sorted) {
+        String latest = sorted.get(0).lastDay();
+        for (Gig gig : sorted) {
+            if (gig.lastDay().compareTo(latest) > 0) latest = gig.lastDay();
+        }
+        return latest;
     }
 
     private static TaxMode firstNonNull(TaxMode a, TaxMode b) {

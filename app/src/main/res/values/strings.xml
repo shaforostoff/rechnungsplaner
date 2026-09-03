@@ -37,6 +37,11 @@
     <!-- ===== Jobs ===== -->
     <string name="add_service">Add a new service</string>
     <string name="add_service_desc">Add a %1$s. Hold to rename or remove it.</string>
+    <string name="service_multi_day">Multi-day (ask for an end date, not times)</string>
+    <string name="service_sync_calendar">Sync to the chosen calendar</string>
+    <string name="label_end_date">Last day</string>
+    <string name="end_date_hint">The same day as the start unless you change it. The job is still filed under the day it began.</string>
+    <string name="end_before_start">The last day cannot be before the first.</string>
     <string name="hint_service_name">What you call this work</string>
     <string name="label_service">Service</string>
     <string name="action_rename">Rename</string>

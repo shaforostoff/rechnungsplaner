@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -69,6 +70,7 @@ public class GigEditActivity extends BaseActivity {
     private Spinner statusSpinner;
     private EditText notesField;
     private TextView midnightHint;
+    private TextView endDateField;
 
     private static final int REQUEST_NEW_CUSTOMER = 1;
 
@@ -150,6 +152,17 @@ public class GigEditActivity extends BaseActivity {
     private void buildForm(boolean isNew) {
         FormBuilder f = form();
 
+        // Resolved before anything is laid out: whether this kind of work is measured in days
+        // decides whether the form asks for clock times or an end date.
+        serviceChoices.clear();
+        serviceChoices.addAll(new ServiceDao(this).all(false));
+        Service own = new ServiceDao(this).byId(gig.serviceId);
+        // An archived service still on this job stays selectable, or opening the job would move
+        // it to another kind of work just by being looked at.
+        if (own != null && !containsService(own.id)) serviceChoices.add(own);
+        if (own == null && !serviceChoices.isEmpty()) own = serviceChoices.get(0);
+        final boolean multiDay = own != null && own.multiDay;
+
         dateField = f.pickerField(R.string.label_date, displayDate(), true,
                 new View.OnClickListener() {
                     @Override
@@ -157,25 +170,40 @@ public class GigEditActivity extends BaseActivity {
                         pickDate();
                     }
                 });
-        // Start and end are two halves of one answer, and both are short enough to share a line.
-        FormBuilder.Row times = f.row();
-        startField = times.left.pickerField(R.string.label_start,
-                Ui.timeOfDay(gig.startMillis), false,
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        pickTime(true);
-                    }
-                });
-        endField = times.right.pickerField(R.string.label_end, Ui.timeOfDay(gig.endMillis), false,
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        pickTime(false);
-                    }
-                });
-        midnightHint = f.caption("");
-        updateMidnightHint();
+        if (multiDay) {
+            // Work measured in days is asked for an end date instead of two clock times: a week
+            // of it has no start hour worth recording, and the pair of pickers would be asking
+            // the wrong question in a form that has no room for spare ones.
+            endDateField = f.pickerField(R.string.label_end_date, displayEndDate(), false,
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            pickEndDate();
+                        }
+                    });
+            f.caption(getString(R.string.end_date_hint));
+        } else {
+            // Start and end are two halves of one answer, both short enough to share a line.
+            FormBuilder.Row times = f.row();
+            startField = times.left.pickerField(R.string.label_start,
+                    Ui.timeOfDay(gig.startMillis), false,
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            pickTime(true);
+                        }
+                    });
+            endField = times.right.pickerField(R.string.label_end,
+                    Ui.timeOfDay(gig.endMillis), false,
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            pickTime(false);
+                        }
+                    });
+            midnightHint = f.caption("");
+            updateMidnightHint();
+        }
 
         customerField = f.pickerField(R.string.label_customer, customerLabel(), true,
                 new View.OnClickListener() {
@@ -194,15 +222,10 @@ public class GigEditActivity extends BaseActivity {
                 Ui.centsToEditable(gig.travelCents), false,
                 InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
-        serviceChoices.clear();
-        serviceChoices.addAll(new ServiceDao(this).all(false));
-        // An archived service still on this job stays selectable, or opening the job would move it
-        // to another kind of work just by being looked at.
-        Service own = new ServiceDao(this).byId(gig.serviceId);
-        if (own != null && !containsService(own.id)) serviceChoices.add(own);
         if (!serviceChoices.isEmpty()) {
             serviceSpinner = f.spinner(R.string.label_service, serviceLabels(),
-                    serviceIndex(gig.serviceId), false);
+                    serviceIndex(own == null ? gig.serviceId : own.id), false);
+            watchService(multiDay);
         }
 
         taxSpinner = f.spinner(R.string.label_tax_mode, taxModeLabels(),
@@ -288,10 +311,15 @@ public class GigEditActivity extends BaseActivity {
         gigs.save(gig);
 
         // Mirroring is best-effort: a gig is still a gig if the calendar write fails.
+        Service service = new ServiceDao(this).byId(gig.serviceId);
         long calendarId = settings.getCalendarId();
-        if (calendarId > 0L) {
+        // A service can opt out. An existing event is removed rather than left behind, or turning
+        // the setting off would leave the calendar showing work the app no longer mirrors.
+        if (service != null && !service.syncToCalendar) {
+            new CalendarMirror(this).delete(gig);
+        } else if (calendarId > 0L) {
             Customer customer = customers.byId(gig.customerId);
-            new CalendarMirror(this).upsert(gig, new ServiceDao(this).nameOf(gig.serviceId),
+            new CalendarMirror(this).upsert(gig, service == null ? null : service.displayName(),
                     customer == null ? null : customer.displayName(),
                     calendarId);
         }
@@ -317,6 +345,68 @@ public class GigEditActivity extends BaseActivity {
                 followDateWithStatus();
             }
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
+    /**
+     * Rebuilds the form when the chosen service changes what the form should ask.
+     *
+     * <p>Only when the answer actually changes shape -- swapping one single-day service for
+     * another leaves the fields alone. Comparing against the value the form was built with also
+     * swallows the callback a spinner fires for its own initial selection.
+     */
+    private void watchService(final boolean builtAsMultiDay) {
+        serviceSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Service chosen = serviceChoices.get(position);
+                if (chosen.id == gig.serviceId && chosen.multiDay == builtAsMultiDay) return;
+                gig.serviceId = chosen.id;
+                if (chosen.multiDay == builtAsMultiDay) return;
+                // Moving to the other kind drops the answers that no longer apply, rather than
+                // keeping times on work measured in days or an end date on an evening's work.
+                if (chosen.multiDay) {
+                    gig.startMillis = 0L;
+                    gig.endMillis = 0L;
+                } else {
+                    gig.endDate = null;
+                }
+                body().removeAllViews();
+                buildForm(false);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+    }
+
+    /**
+     * The end-date picker, floored at the start date.
+     *
+     * <p>An end before the start is not a shorter job, it is a typo, and the invoice period built
+     * from it would run backwards.
+     */
+    private void pickEndDate() {
+        String current = gig.lastDay();
+        Calendar c = Calendar.getInstance();
+        c.set(Dates.year(current), Dates.month(current) - 1, Dates.day(current));
+        new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int month, int day) {
+                String chosen = Dates.iso(year, month + 1, day);
+                if (chosen.compareTo(gig.date) < 0) {
+                    Ui.toast(GigEditActivity.this, R.string.end_before_start);
+                    return;
+                }
+                gig.endDate = chosen.equals(gig.date) ? null : chosen;
+                endDateField.setText(displayEndDate());
+            }
+        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
+    private String displayEndDate() {
+        return Dates.forLanguage(gig.lastDay(),
+                getResources().getConfiguration().getLocales().get(0).getLanguage());
     }
 
     private void pickTime(final boolean start) {
@@ -362,6 +452,7 @@ public class GigEditActivity extends BaseActivity {
     }
 
     private void updateMidnightHint() {
+        if (midnightHint == null) return;
         boolean crosses = gig.startMillis > 0L && gig.endMillis > gig.startMillis
                 && !Dates.fromMillis(gig.endMillis).equals(Dates.fromMillis(gig.startMillis));
         midnightHint.setText(crosses ? getString(R.string.crosses_midnight) : "");

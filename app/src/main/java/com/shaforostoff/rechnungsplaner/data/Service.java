@@ -12,6 +12,22 @@ public class Service {
 
     public long id = -1L;
     public String name;
+    /**
+     * Work measured in days rather than hours.
+     *
+     * <p>A DJ set is an evening and wants a start and end time; a week of scaffolding or a month
+     * of tuition wants an end date instead. Off by default, since the shorter kind is what the
+     * app already assumed and the one that needs no explaining.
+     */
+    public boolean multiDay;
+    /**
+     * Whether jobs of this kind are mirrored into the chosen calendar.
+     *
+     * <p>On by default -- a booking you have to turn up to belongs in the calendar. It is worth
+     * turning off for work that would only clutter it: a month-long retainer is not an
+     * appointment, and a calendar full of week-long blocks hides the things that are.
+     */
+    public boolean syncToCalendar = true;
     /** Position among the buttons on the calendar screen; ties fall back to the name. */
     public int sortOrder;
     /**

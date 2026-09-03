@@ -17,7 +17,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class Db extends SQLiteOpenHelper {
 
     private static final String NAME = "rechnungsplaner.db";
-    private static final int VERSION = 5;
+    private static final int VERSION = 6;
 
     public static final String T_ISSUER = "issuer";
     public static final String T_CUSTOMER = "customer";
@@ -77,6 +77,8 @@ public class Db extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE " + T_SERVICE + " ("
                 + "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "name TEXT NOT NULL,"
+                + "multi_day INTEGER NOT NULL DEFAULT 0,"
+                + "sync_calendar INTEGER NOT NULL DEFAULT 1,"
                 + "sort_order INTEGER NOT NULL DEFAULT 0,"
                 + "archived INTEGER NOT NULL DEFAULT 0)");
 
@@ -92,6 +94,7 @@ public class Db extends SQLiteOpenHelper {
                 + "tax_mode TEXT, title TEXT, notes TEXT,"
                 + "status TEXT NOT NULL DEFAULT 'PLANNED',"
                 + "service_id INTEGER NOT NULL DEFAULT -1,"
+                + "end_date TEXT,"
                 + "invoice_id INTEGER NOT NULL DEFAULT -1,"
                 + "calendar_id INTEGER NOT NULL DEFAULT -1,"
                 + "calendar_event_id INTEGER NOT NULL DEFAULT -1,"
@@ -196,6 +199,13 @@ public class Db extends SQLiteOpenHelper {
                     + " SELECT 'DJ-Set', 1 WHERE NOT EXISTS (SELECT 1 FROM " + T_SERVICE + ")");
             db.execSQL("UPDATE " + T_GIG + " SET service_id ="
                     + " (SELECT MIN(_id) FROM " + T_SERVICE + ") WHERE service_id <= 0");
+        }
+        if (oldVersion < 6) {
+            // Work that runs over days rather than hours, and whether it belongs in the calendar
+            // at all. Both default to what the app did before: single-day, mirrored.
+            addColumn(db, T_SERVICE, "multi_day", "INTEGER NOT NULL DEFAULT 0");
+            addColumn(db, T_SERVICE, "sync_calendar", "INTEGER NOT NULL DEFAULT 1");
+            addColumn(db, T_GIG, "end_date", "TEXT");
         }
     }
 

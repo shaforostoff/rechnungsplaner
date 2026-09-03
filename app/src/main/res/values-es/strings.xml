@@ -32,6 +32,11 @@
 
     <string name="add_service">Añadir un servicio</string>
     <string name="add_service_desc">Añadir %1$s. Mantén pulsado para renombrar o quitar.</string>
+    <string name="service_multi_day">Varios días (pide fecha final, no horas)</string>
+    <string name="service_sync_calendar">Sincronizar con el calendario elegido</string>
+    <string name="label_end_date">Último día</string>
+    <string name="end_date_hint">El mismo día que el inicio salvo que lo cambies. El trabajo sigue archivado en el día en que empezó.</string>
+    <string name="end_before_start">El último día no puede ser anterior al primero.</string>
     <string name="hint_service_name">Cómo llamas a este trabajo</string>
     <string name="label_service">Servicio</string>
     <string name="action_rename">Renombrar</string>

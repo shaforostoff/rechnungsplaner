@@ -55,6 +55,8 @@ public class ServiceDao {
     public long save(Service service) {
         ContentValues v = new ContentValues();
         v.put("name", service.name);
+        v.put("multi_day", service.multiDay ? 1 : 0);
+        v.put("sync_calendar", service.syncToCalendar ? 1 : 0);
         v.put("sort_order", service.sortOrder);
         v.put("archived", service.archived ? 1 : 0);
         SQLiteDatabase w = db.getWritableDatabase();
@@ -119,6 +121,8 @@ public class ServiceDao {
         Service s = new Service();
         s.id = c.getLong(c.getColumnIndexOrThrow("_id"));
         s.name = c.getString(c.getColumnIndexOrThrow("name"));
+        s.multiDay = c.getInt(c.getColumnIndexOrThrow("multi_day")) != 0;
+        s.syncToCalendar = c.getInt(c.getColumnIndexOrThrow("sync_calendar")) != 0;
         s.sortOrder = c.getInt(c.getColumnIndexOrThrow("sort_order"));
         s.archived = c.getInt(c.getColumnIndexOrThrow("archived")) != 0;
         return s;
