@@ -17,7 +17,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class Db extends SQLiteOpenHelper {
 
     private static final String NAME = "rechnungsplaner.db";
-    private static final int VERSION = 3;
+    private static final int VERSION = 4;
 
     public static final String T_ISSUER = "issuer";
     public static final String T_CUSTOMER = "customer";
@@ -105,6 +105,7 @@ public class Db extends SQLiteOpenHelper {
                 + "language TEXT NOT NULL DEFAULT 'de',"
                 + "delivery_date TEXT, period_start TEXT, period_end TEXT,"
                 + "note TEXT, payment_terms TEXT,"
+                + "paid_year INTEGER NOT NULL DEFAULT 0,"
                 + "line_total_cents INTEGER NOT NULL DEFAULT 0,"
                 + "tax_basis_cents INTEGER NOT NULL DEFAULT 0,"
                 + "tax_total_cents INTEGER NOT NULL DEFAULT 0,"
@@ -164,6 +165,11 @@ public class Db extends SQLiteOpenHelper {
             // an existing customer needs no backfill.
             addColumn(db, T_CUSTOMER, "share_subject", "TEXT");
             addColumn(db, T_CUSTOMER, "share_message", "TEXT");
+        }
+        if (oldVersion < 4) {
+            // The year the money arrived, when that is not the year the invoice belongs to.
+            // Zero means derive it, so every existing invoice already has the right answer.
+            addColumn(db, T_INVOICE, "paid_year", "INTEGER NOT NULL DEFAULT 0");
         }
     }
 

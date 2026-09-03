@@ -120,6 +120,13 @@
 
     <!-- ===== Invoice ===== -->
     <string name="title_invoice">Invoice</string>
+    <string name="invoice_years_hint">Grouped by the year the money arrived. Hold an invoice and drag it into the next year if it was paid after the year it was earned in.</string>
+    <string name="year_heading">%1$d</string>
+    <string name="year_total">%1$s total: %2$s</string>
+    <string name="year_total_vat">net %1$s · VAT %2$s</string>
+    <string name="year_total_excluded">superseded and not counted: %1$d</string>
+    <string name="year_total_empty">Nothing received yet. Drag an invoice here if it was paid this year.</string>
+    <string name="invoice_moved_to_year">%1$s counts as paid in %2$s</string>
     <string name="invoices_empty">No invoices yet.</string>
     <string name="label_invoice_number">Invoice number</string>
     <string name="label_issue_date">Invoice date</string>

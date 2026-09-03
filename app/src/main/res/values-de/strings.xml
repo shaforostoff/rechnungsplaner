@@ -110,6 +110,13 @@
     <string name="issuer_incomplete">Trage deine Daten ein, bevor du eine Rechnung erstellst.</string>
 
     <string name="title_invoice">Rechnung</string>
+    <string name="invoice_years_hint">Gruppiert nach dem Jahr des Zahlungseingangs. Eine Rechnung halten und ins nächste Jahr ziehen, wenn sie erst nach dem Leistungsjahr bezahlt wurde.</string>
+    <string name="year_heading">%1$d</string>
+    <string name="year_total">%1$s gesamt: %2$s</string>
+    <string name="year_total_vat">netto %1$s · USt %2$s</string>
+    <string name="year_total_excluded">ersetzt und nicht gezählt: %1$d</string>
+    <string name="year_total_empty">Noch kein Eingang. Eine Rechnung hierher ziehen, wenn sie in diesem Jahr bezahlt wurde.</string>
+    <string name="invoice_moved_to_year">%1$s gilt als bezahlt in %2$s</string>
     <string name="invoices_empty">Noch keine Rechnungen.</string>
     <string name="label_invoice_number">Rechnungsnummer</string>
     <string name="label_issue_date">Rechnungsdatum</string>

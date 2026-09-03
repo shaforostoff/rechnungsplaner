@@ -1,5 +1,7 @@
 package com.shaforostoff.rechnungsplaner.data;
 
+import com.shaforostoff.rechnungsplaner.util.Dates;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +42,19 @@ public class Invoice {
     public String note;
     public String paymentTerms;
 
+    /**
+     * The year the money arrived, or zero to take it from the work.
+     *
+     * <p>Not on the document and never printed: the invoice says when the work happened and when
+     * payment was due, which is what the customer needs. This is for the other side of the desk,
+     * where income is declared in the year it was received -- so a set played in December and paid
+     * in January belongs to two different years at once, and only one of them is on the paper.
+     *
+     * <p>Zero rather than a boxed null, matching how the rest of these records spell "not set",
+     * and it means every invoice that predates the column already answers correctly.
+     */
+    public int paidYear;
+
     public long lineTotalCents;
     public long taxBasisCents;
     public long taxTotalCents;
@@ -74,6 +89,34 @@ public class Invoice {
      * series unique, which a correction reusing its own number does not break; issuing a second
      * document under the same number would.
      */
+    /**
+     * The year this invoice counts in.
+     *
+     * <p>{@link #paidYear} when it has been set, otherwise the year of the work: the delivery date
+     * for a single DJ-set, the start of the period for several, and the issue date only when
+     * neither is recorded. The work is a better default than the issue date because an invoice
+     * written on 2 January for a gig on 28 December is income of the year it was paid in, not of
+     * the year it happens to be dated.
+     *
+     * @return the year, or 0 when no date on this invoice can be read
+     */
+    public int taxYear() {
+        if (paidYear > 0) return paidYear;
+        return serviceYear();
+    }
+
+    /**
+     * The year the work falls in, ignoring any payment year set by hand.
+     *
+     * <p>The fixed point the payment year is offered relative to: an invoice may be marked paid in
+     * this year or the one after, and never drifts further because this does not move.
+     */
+    public int serviceYear() {
+        if (Dates.isValid(deliveryDate)) return Dates.year(deliveryDate);
+        if (Dates.isValid(periodStart)) return Dates.year(periodStart);
+        return Dates.isValid(issueDate) ? Dates.year(issueDate) : 0;
+    }
+
     public void takeIdentityFrom(Invoice original) {
         this.id = original.id;
         this.number = original.number;

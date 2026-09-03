@@ -203,6 +203,20 @@ public class InvoiceDao {
         }
     }
 
+    /**
+     * Records the year the money arrived, or zero to go back to deriving it.
+     *
+     * <p>Targeted, like every other write that moves a field one screen owns: an {@link Invoice}
+     * in hand may be older than the row, and an issued invoice is the last record in this app
+     * that should be rewritten wholesale to change one number.
+     */
+    public void setPaidYear(long invoiceId, int year) {
+        ContentValues v = new ContentValues();
+        v.put("paid_year", year);
+        db.getWritableDatabase().update(Db.T_INVOICE, v, "_id = ?",
+                new String[]{Long.toString(invoiceId)});
+    }
+
     private static String counterKey(String issueDate) {
         String year = Dates.isValid(issueDate) ? issueDate.substring(0, 4)
                 : Dates.today().substring(0, 4);
@@ -370,6 +384,7 @@ public class InvoiceDao {
         v.put("period_end", i.periodEnd);
         v.put("note", i.note);
         v.put("payment_terms", i.paymentTerms);
+        v.put("paid_year", i.paidYear);
         v.put("line_total_cents", i.lineTotalCents);
         v.put("tax_basis_cents", i.taxBasisCents);
         v.put("tax_total_cents", i.taxTotalCents);
@@ -423,6 +438,7 @@ public class InvoiceDao {
         i.periodEnd = c.getString(c.getColumnIndexOrThrow("period_end"));
         i.note = c.getString(c.getColumnIndexOrThrow("note"));
         i.paymentTerms = c.getString(c.getColumnIndexOrThrow("payment_terms"));
+        i.paidYear = c.getInt(c.getColumnIndexOrThrow("paid_year"));
         i.lineTotalCents = c.getLong(c.getColumnIndexOrThrow("line_total_cents"));
         i.taxBasisCents = c.getLong(c.getColumnIndexOrThrow("tax_basis_cents"));
         i.taxTotalCents = c.getLong(c.getColumnIndexOrThrow("tax_total_cents"));
