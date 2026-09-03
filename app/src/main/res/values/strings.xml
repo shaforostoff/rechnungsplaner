@@ -173,6 +173,9 @@
     <string name="setting_export_folder">Export folder</string>
     <string name="setting_tour_date_format">Tour list date format</string>
     <string name="setting_ui_language">App language</string>
+    <string name="setting_customer_number_pattern">Customer number pattern</string>
+    <string name="setting_customer_number_desc">Leave empty to type customer numbers by hand. Only the sequence and date tokens apply here, and the series continues above the highest all-digit number already on file — so importing your old contacts carries their numbering over.</string>
+    <string name="customer_number_manual">Preview: entered by hand</string>
     <string name="setting_strict_lexoffice">Strict lexoffice export</string>
     <string name="setting_strict_lexoffice_desc">Leave out the app-specific fields (venue, usual fee, invoice language).</string>
     <string name="language_system">System default</string>

@@ -6,6 +6,7 @@ import com.shaforostoff.rechnungsplaner.data.Customer;
 import com.shaforostoff.rechnungsplaner.data.CustomerDao;
 import com.shaforostoff.rechnungsplaner.data.Issuer;
 import com.shaforostoff.rechnungsplaner.data.IssuerDao;
+import com.shaforostoff.rechnungsplaner.data.SettingsStore;
 import com.shaforostoff.rechnungsplaner.util.Dates;
 import com.shaforostoff.rechnungsplaner.util.Json;
 import com.shaforostoff.rechnungsplaner.util.Slug;
@@ -237,22 +238,28 @@ public class ContactsArchive {
         plan.entries.add(entry);
     }
 
-    /** Carries out a plan the user has reviewed. */
+    /**
+     * Carries out a plan the user has reviewed.
+     *
+     * <p>Contacts that arrive carrying a customer number keep it; only the ones that arrive
+     * without get one from the pattern, and only when the user has asked for automatic numbering.
+     */
     public void apply(ImportPlan plan) {
+        String numberPattern = new SettingsStore(ctx).getCustomerNumberPattern();
         if (plan.replaceIssuer && plan.issuer != null) issuers.save(plan.issuer);
         for (ImportPlan.Entry entry : plan.entries) {
             switch (entry.action) {
                 case CREATE:
                     entry.incoming.id = -1L;
-                    customers.save(entry.incoming);
+                    customers.save(entry.incoming, numberPattern);
                     break;
                 case UPDATE:
-                    customers.save(merge(entry.existing, entry.incoming));
+                    customers.save(merge(entry.existing, entry.incoming), numberPattern);
                     break;
                 case KEEP_BOTH:
                     entry.incoming.id = -1L;
                     entry.incoming.lexofficeId = null;
-                    customers.save(entry.incoming);
+                    customers.save(entry.incoming, numberPattern);
                     break;
                 case KEEP_MINE:
                 default:

@@ -25,6 +25,7 @@ public class SettingsStore {
     private static final String K_TOUR_DATE_FORMAT = "tour_date_format";
     private static final String K_UI_LANGUAGE = "ui_language";
     private static final String K_STRICT_LEXOFFICE = "strict_lexoffice_export";
+    private static final String K_CUSTOMER_NUMBER_PATTERN = "customer_number_pattern";
 
     private final SharedPreferences prefs;
 
@@ -105,6 +106,22 @@ public class SettingsStore {
 
     public void setStrictLexofficeExport(boolean strict) {
         prefs.edit().putBoolean(K_STRICT_LEXOFFICE, strict).apply();
+    }
+
+    /**
+     * Pattern for numbering new customers, or empty when they are numbered by hand.
+     *
+     * <p>Empty is the default deliberately. A business arriving with a customer-number scheme
+     * already in its old books wants those numbers preserved, and minting fresh ones before the
+     * old contacts have been imported is the one way to end up with two conflicting series.
+     */
+    public String getCustomerNumberPattern() {
+        return prefs.getString(K_CUSTOMER_NUMBER_PATTERN, "");
+    }
+
+    public void setCustomerNumberPattern(String pattern) {
+        prefs.edit().putString(K_CUSTOMER_NUMBER_PATTERN,
+                isBlank(pattern) ? "" : pattern.trim()).apply();
     }
 
     private static boolean isBlank(String s) {

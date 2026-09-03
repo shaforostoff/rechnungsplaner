@@ -199,6 +199,12 @@ public final class LexofficeContacts {
             c.invoiceLanguage = Json.string(ext, "invoiceLanguage");
             c.customerNumber = Json.string(ext, "customerNumber");
         }
+        // lexoffice keeps its own customer number under the customer role, as a JSON number.
+        // Reading it is what lets an export straight from the API bring an existing numbering
+        // across instead of leaving every contact to be renumbered by hand.
+        if (c.customerNumber == null) {
+            c.customerNumber = Json.text(node, "roles", "customer", "number");
+        }
         // A contact with no name at all is still usable if it names a venue.
         if (c.officialName == null && c.placeName == null) c.placeName = c.city;
         return c;

@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.shaforostoff.rechnungsplaner.R;
 import com.shaforostoff.rechnungsplaner.calendar.CalendarMirror;
+import com.shaforostoff.rechnungsplaner.data.CustomerDao;
 import com.shaforostoff.rechnungsplaner.data.OutputFormat;
 import com.shaforostoff.rechnungsplaner.data.SettingsStore;
 import com.shaforostoff.rechnungsplaner.exchange.GigTextExporter;
@@ -37,6 +38,10 @@ import java.util.List;
  */
 public class SettingsActivity extends BaseActivity {
 
+    private static final int PREVIEW_FILE_NAME = 0;
+    private static final int PREVIEW_INVOICE_NUMBER = 1;
+    private static final int PREVIEW_CUSTOMER_NUMBER = 2;
+
     private static final int REQUEST_PICK_FOLDER = 71;
     private static final int REQUEST_CALENDAR_PERMISSION = 72;
 
@@ -46,11 +51,14 @@ public class SettingsActivity extends BaseActivity {
             GigTextExporter.FORMAT_GERMAN, GigTextExporter.FORMAT_SHORT};
 
     private SettingsStore settings;
+    private int nextCustomerSequence;
     private Spinner formatSpinner;
     private EditText fileNameField;
     private TextView fileNamePreview;
     private EditText numberField;
     private TextView numberPreview;
+    private EditText customerNumberField;
+    private TextView customerNumberPreview;
     private TextView calendarField;
     private TextView folderField;
     private Spinner tourFormatSpinner;
@@ -66,6 +74,9 @@ public class SettingsActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         settings = new SettingsStore(this);
+        // Read once: the preview is refreshed on every keystroke and the series cannot move
+        // while this screen is open.
+        nextCustomerSequence = new CustomerDao(this).peekNextSequence();
         setScreenTitle(R.string.tab_settings);
         addTitleAction(R.string.title_import_export, new View.OnClickListener() {
             @Override
@@ -83,12 +94,18 @@ public class SettingsActivity extends BaseActivity {
                 false);
         fileNamePreview = f.caption("");
         f.caption(getString(R.string.tokens_legend, tokenLegend()));
-        watch(fileNameField, fileNamePreview, false);
+        watch(fileNameField, fileNamePreview, PREVIEW_FILE_NAME);
 
         numberField = f.field(R.string.setting_number_pattern,
                 settings.getInvoiceNumberPattern(), false);
         numberPreview = f.caption("");
-        watch(numberField, numberPreview, true);
+        watch(numberField, numberPreview, PREVIEW_INVOICE_NUMBER);
+
+        customerNumberField = f.field(R.string.setting_customer_number_pattern,
+                settings.getCustomerNumberPattern(), false);
+        customerNumberPreview = f.caption("");
+        f.caption(getString(R.string.setting_customer_number_desc));
+        watch(customerNumberField, customerNumberPreview, PREVIEW_CUSTOMER_NUMBER);
 
         calendarField = f.pickerField(R.string.setting_calendar, calendarLabel(), false,
                 new View.OnClickListener() {
@@ -148,7 +165,7 @@ public class SettingsActivity extends BaseActivity {
         });
     }
 
-    private void watch(final EditText field, final TextView preview, final boolean isNumber) {
+    private void watch(final EditText field, final TextView preview, final int kind) {
         field.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int a, int b, int c) {
@@ -160,17 +177,35 @@ public class SettingsActivity extends BaseActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                preview.setText(getString(R.string.pattern_preview,
-                        isNumber ? previewNumber(s.toString()) : previewFileName(s.toString())));
+                preview.setText(previewOf(kind, s.toString()));
             }
         });
     }
 
     private void updatePreviews() {
-        fileNamePreview.setText(getString(R.string.pattern_preview,
-                previewFileName(fileNameField.getText().toString())));
-        numberPreview.setText(getString(R.string.pattern_preview,
-                previewNumber(numberField.getText().toString())));
+        fileNamePreview.setText(previewOf(PREVIEW_FILE_NAME,
+                fileNameField.getText().toString()));
+        numberPreview.setText(previewOf(PREVIEW_INVOICE_NUMBER,
+                numberField.getText().toString()));
+        customerNumberPreview.setText(previewOf(PREVIEW_CUSTOMER_NUMBER,
+                customerNumberField.getText().toString()));
+    }
+
+    /**
+     * What one of the three pattern fields would produce as it stands.
+     *
+     * <p>An empty customer-number pattern is not an empty preview but a statement: that field
+     * being blank is how automatic numbering is switched off, so it has to read as a setting
+     * rather than as something half-typed.
+     */
+    private String previewOf(int kind, String pattern) {
+        if (kind == PREVIEW_CUSTOMER_NUMBER) {
+            if (pattern.trim().isEmpty()) return getString(R.string.customer_number_manual);
+            return getString(R.string.pattern_preview,
+                    CustomerDao.formatNumber(pattern, nextCustomerSequence));
+        }
+        return getString(R.string.pattern_preview, kind == PREVIEW_INVOICE_NUMBER
+                ? samples().format(pattern) : samples().formatFileName(pattern) + ".pdf");
     }
 
     /** A live preview built from plausible values, so the effect of a pattern is visible at once. */
@@ -185,14 +220,6 @@ public class SettingsActivity extends BaseActivity {
                 .putSequence(1)
                 .putDate(Dates.today())
                 .putGigDate(Dates.today());
-    }
-
-    private String previewFileName(String pattern) {
-        return samples().formatFileName(pattern) + ".pdf";
-    }
-
-    private String previewNumber(String pattern) {
-        return samples().format(pattern);
     }
 
     private String tokenLegend() {
@@ -267,6 +294,7 @@ public class SettingsActivity extends BaseActivity {
         settings.setOutputFormat(OutputFormat.values()[FormBuilder.selectionOf(formatSpinner)]);
         settings.setFileNamePattern(fileNameField.getText().toString());
         settings.setInvoiceNumberPattern(numberField.getText().toString());
+        settings.setCustomerNumberPattern(customerNumberField.getText().toString());
         settings.setTourDateFormat(TOUR_FORMATS[FormBuilder.selectionOf(tourFormatSpinner)]);
         settings.setStrictLexofficeExport(strictBox.isChecked());
         settings.setUiLanguage(UI_LANGUAGE_TAGS[FormBuilder.selectionOf(languageSpinner)]);

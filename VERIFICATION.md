@@ -50,6 +50,12 @@ executed. Specifically unverified:
 - Settings now commit in `onPause` rather than from a Save button, which removes the only path
   that closed the app from a tab screen. That the lifecycle actually fires before the process
   goes away is the platform's contract, not something asserted here.
+- Automatic customer numbering is argued, not executed. That reading `roles.customer.number` off a
+  lexoffice contact brings the old numbering across is pinned by tests, but `CustomerDao`'s series
+  needs SQLite: that the counter and the `MAX(CAST(...))` scan of existing numbers agree on where
+  the series stands, and that the `GLOB` pair really admits only all-digit numbers, are unverified.
+  A wrong floor there does not corrupt anything -- it hands out a number that collides with one
+  already on file, which nothing in the schema forbids.
 - `CalendarMirror`, `ShareProvider`, `SafExporter` and every screen are compile-verified only.
   This includes the field mechanics whose *decisions* are tested -- that the account holder mirrors
   the name is pinned as a rule, but nothing has confirmed the `TextWatcher` is wired to the right
@@ -110,3 +116,9 @@ failure modes differ between the three, so passing one says little about the oth
 9. Settings has no Save button: change the invoice format, the file-name pattern and the strict
    lexoffice box, leave by the bottom bar, come back -- all three held. Then change the UI
    language and confirm the screen relabels itself on the spot without closing the app.
+10. Customer numbers. Leave the pattern empty and confirm a new customer gets none, and that a
+    number typed by hand is kept exactly as typed, leading zeros included. Then import contacts
+    carrying numbers `10001..10004`, set the pattern to `%seq%`, and confirm the preview in
+    settings reads `10005` and that the next customer created gets it. Finally type `10009` by
+    hand on one customer and confirm the following automatic number is `10010`, not `10006` --
+    that is the `MAX` scan, and it is the whole reason the series survives an import.

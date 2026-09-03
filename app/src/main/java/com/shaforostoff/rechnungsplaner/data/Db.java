@@ -138,8 +138,9 @@ public class Db extends SQLiteOpenHelper {
                 + "created_at INTEGER NOT NULL DEFAULT 0)");
         db.execSQL("CREATE INDEX idx_file_invoice ON " + T_INVOICE_FILE + "(invoice_id)");
 
-        // Invoice-number sequences, one row per year, bumped inside the same transaction that
-        // inserts the invoice so two quick taps cannot mint the same number twice.
+        // Number sequences: one row per invoice year, plus one for customer numbers. Each is
+        // bumped inside the same transaction that inserts the row it numbers, so two quick taps
+        // cannot mint the same number twice.
         db.execSQL("CREATE TABLE " + T_COUNTER + " ("
                 + "key TEXT PRIMARY KEY, value INTEGER NOT NULL DEFAULT 0)");
     }

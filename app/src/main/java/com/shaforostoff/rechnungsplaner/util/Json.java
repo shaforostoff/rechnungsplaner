@@ -205,6 +205,26 @@ public final class Json {
         return v instanceof String ? (String) v : null;
     }
 
+    /**
+     * A string value, or a whole number rendered as one.
+     *
+     * <p>For fields an outside system may write either way: lexoffice returns its customer number
+     * as a JSON number, while this app's own archive writes it as a string.
+     */
+    public static String text(Object node, String... path) {
+        Object v = at(node, path);
+        if (v instanceof String) {
+            String t = ((String) v).trim();
+            return t.isEmpty() ? null : t;
+        }
+        if (v instanceof Double) {
+            double d = ((Double) v).doubleValue();
+            return d == Math.rint(d) && !Double.isInfinite(d)
+                    ? Long.toString((long) d) : Double.toString(d);
+        }
+        return null;
+    }
+
     public static boolean bool(Object node, boolean fallback, String... path) {
         Object v = at(node, path);
         return v instanceof Boolean ? ((Boolean) v).booleanValue() : fallback;

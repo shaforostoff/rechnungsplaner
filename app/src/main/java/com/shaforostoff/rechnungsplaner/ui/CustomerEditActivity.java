@@ -13,6 +13,7 @@ import com.shaforostoff.rechnungsplaner.data.Customer;
 import com.shaforostoff.rechnungsplaner.data.CustomerDao;
 import com.shaforostoff.rechnungsplaner.data.Issuer;
 import com.shaforostoff.rechnungsplaner.data.IssuerDao;
+import com.shaforostoff.rechnungsplaner.data.SettingsStore;
 import com.shaforostoff.rechnungsplaner.data.TaxMode;
 
 /**
@@ -161,7 +162,7 @@ public class CustomerEditActivity extends BaseActivity {
         customer.invoiceLanguage = LANGUAGE_TAGS[FormBuilder.selectionOf(languageSpinner)];
         customer.note = text(noteField);
 
-        customers.save(customer);
+        customers.save(customer, new SettingsStore(this).getCustomerNumberPattern());
         // Hand the id back: a caller that opened this screen to fill a customer field can select
         // the new record instead of making the user pick it out of the list again.
         setResult(RESULT_OK, new Intent().putExtra(EXTRA_SAVED_ID, customer.id));

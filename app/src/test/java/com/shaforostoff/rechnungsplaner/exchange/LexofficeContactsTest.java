@@ -143,6 +143,36 @@ public class LexofficeContactsTest {
         assertEquals("Ana Ruiz", c.contactName);
         assertEquals("ana@sala.es", c.email);
         assertFalse(c.archived);
+        assertEquals("the existing numbering has to survive the import", "10001",
+                c.customerNumber);
+    }
+
+    @Test
+    public void ownExtensionBlockOutranksTheLexofficeCustomerNumber() throws Exception {
+        // Both present: the app's own value is the one it wrote itself and the one BT-46 carried,
+        // so a re-import of its own archive must not silently switch to lexoffice's number.
+        String both = "{"
+                + "\"roles\":{\"customer\":{\"number\":10001}},"
+                + "\"company\":{\"name\":\"Club Muster GmbH\"},"
+                + "\"_rechnungsplaner\":{\"schemaVersion\":1,\"customerNumber\":\"K-0007\"}}";
+
+        assertEquals("K-0007", LexofficeContacts.customerFrom(Json.parse(both)).customerNumber);
+    }
+
+    @Test
+    public void aCustomerNumberWrittenAsAStringIsReadToo() throws Exception {
+        String asText = "{\"roles\":{\"customer\":{\"number\":\"10042\"}},"
+                + "\"company\":{\"name\":\"Club Muster GmbH\"}}";
+
+        assertEquals("10042", LexofficeContacts.customerFrom(Json.parse(asText)).customerNumber);
+    }
+
+    @Test
+    public void aContactWithNoNumberAnywhereGetsNone() throws Exception {
+        String none = "{\"roles\":{\"customer\":{}},"
+                + "\"company\":{\"name\":\"Club Muster GmbH\"}}";
+
+        assertNull(LexofficeContacts.customerFrom(Json.parse(none)).customerNumber);
     }
 
     @Test
