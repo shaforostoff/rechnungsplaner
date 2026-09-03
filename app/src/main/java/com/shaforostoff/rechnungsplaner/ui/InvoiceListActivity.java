@@ -1,11 +1,14 @@
 package com.shaforostoff.rechnungsplaner.ui;
 
+import android.app.AlertDialog;
 import android.content.ClipData;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.DragEvent;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -250,10 +253,14 @@ public class InvoiceListActivity extends BaseActivity {
     }
 
     private View row(final Invoice invoice) {
+        LinearLayout shell = new LinearLayout(this);
+        shell.setOrientation(LinearLayout.HORIZONTAL);
+        shell.setGravity(Gravity.CENTER_VERTICAL);
+        shell.setBackgroundResource(R.drawable.card);
+        shell.setPadding(dp(14), dp(12), dp(14), dp(12));
+
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.VERTICAL);
-        row.setBackgroundResource(R.drawable.card);
-        row.setPadding(dp(14), dp(12), dp(14), dp(12));
 
         TextView number = new TextView(this);
         number.setText(invoice.number);
@@ -281,6 +288,16 @@ public class InvoiceListActivity extends BaseActivity {
             row.addView(replaces);
         }
 
+        // Once an invoice has been moved, the year it is filed under is the group heading and the
+        // year it was earned in is nowhere -- so it says so here.
+        if (invoice.paidYear > 0 && invoice.serviceYear() > 0) {
+            TextView earned = new TextView(this);
+            earned.setText(getString(R.string.label_earned_year, invoice.serviceYear()));
+            earned.setTextSize(12f);
+            earned.setTextColor(getColor(R.color.text_secondary));
+            row.addView(earned);
+        }
+
         Customer customer = customers.byId(invoice.customerId);
         StringBuilder detail = new StringBuilder();
         detail.append(Dates.forLanguage(invoice.issueDate,
@@ -294,26 +311,107 @@ public class InvoiceListActivity extends BaseActivity {
         subtitle.setTextColor(getColor(R.color.text_secondary));
         row.addView(subtitle);
 
-        row.setOnClickListener(new View.OnClickListener() {
+        shell.addView(row, new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        View mover = yearControl(invoice, shell);
+        if (mover != null) shell.addView(mover);
+
+        shell.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(InvoiceActivity.openIntent(InvoiceListActivity.this, invoice.id));
             }
         });
-        row.setOnLongClickListener(new View.OnLongClickListener() {
+        // Long-press opens the menu rather than starting the drag. The drag has the handle to
+        // itself, and this is the path that works without one: a hidden gesture is no way to
+        // reach the only control on this screen that changes what a tax total says.
+        shell.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                // The invoice travels as local state rather than in the ClipData: it never leaves
-                // this window, and nothing outside it should be able to receive an invoice.
-                return v.startDragAndDrop(ClipData.newPlainText(invoice.number, invoice.number),
-                        new View.DragShadowBuilder(v), invoice, 0);
+                showYearMenu(invoice);
+                return true;
             }
         });
 
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         lp.bottomMargin = dp(8);
-        row.setLayoutParams(lp);
-        return row;
+        shell.setLayoutParams(lp);
+        return shell;
+    }
+
+    /**
+     * The control that moves one invoice between its two candidate years.
+     *
+     * <p>Labelled with the year it would move to rather than an icon, so what it does is legible
+     * without being learnt -- and with only two years in play, naming the other one says
+     * everything. Tapping it moves the invoice; holding it starts the drag, which is now the only
+     * thing long-press on the handle does. Null when the invoice has no date to reason from.
+     */
+    private View yearControl(final Invoice invoice, final View dragSource) {
+        final int service = invoice.serviceYear();
+        if (service <= 0) return null;
+        final int target = invoice.taxYear() == service ? service + 1 : service;
+
+        TextView mover = new TextView(this);
+        mover.setText(getString(R.string.move_to_year, target));
+        mover.setTextSize(14f);
+        mover.setTextColor(getColor(R.color.accent));
+        mover.setBackgroundResource(R.drawable.field);
+        mover.setPadding(dp(10), dp(6), dp(10), dp(6));
+        mover.setContentDescription(getString(R.string.move_to_year_desc, invoice.number, target));
+        mover.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                moveToYear(invoice, target);
+            }
+        });
+        mover.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                // The whole card is dragged, not the handle: a shadow of one small box would not
+                // show which invoice is in flight. The invoice travels as local state rather than
+                // in the ClipData, because nothing outside this window should receive an invoice.
+                return dragSource.startDragAndDrop(
+                        ClipData.newPlainText(invoice.number, invoice.number),
+                        new View.DragShadowBuilder(dragSource), invoice, 0);
+            }
+        });
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.leftMargin = dp(10);
+        mover.setLayoutParams(lp);
+        return mover;
+    }
+
+    /**
+     * The two years this invoice's payment could honestly belong to, with the current one marked.
+     *
+     * <p>A list of both rather than a single toggle: which year it is filed under now is the thing
+     * being decided, so it has to be visible while deciding, not inferred from the label of the
+     * button that would change it.
+     */
+    private void showYearMenu(final Invoice invoice) {
+        final int service = invoice.serviceYear();
+        if (service <= 0) {
+            Ui.toast(this, R.string.invoice_no_year);
+            return;
+        }
+        final int[] years = {service, service + 1};
+        String[] labels = {getString(R.string.paid_in_year, years[0]),
+                getString(R.string.paid_in_year, years[1])};
+        int checked = invoice.taxYear() == years[1] ? 1 : 0;
+        new AlertDialog.Builder(this)
+                .setTitle(invoice.number)
+                .setSingleChoiceItems(labels, checked, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        moveToYear(invoice, years[which]);
+                    }
+                })
+                .setNegativeButton(R.string.action_cancel, null)
+                .show();
     }
 }

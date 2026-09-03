@@ -120,7 +120,12 @@
 
     <!-- ===== Invoice ===== -->
     <string name="title_invoice">Invoice</string>
-    <string name="invoice_years_hint">Grouped by the year the money arrived. Hold an invoice and drag it into the next year if it was paid after the year it was earned in.</string>
+    <string name="invoice_years_hint">Grouped by the year the money arrived. If an invoice was paid after the year it was earned in, tap its year button, or long-press the invoice to choose. Dragging it into another year works too.</string>
+    <string name="move_to_year">→ %1$d</string>
+    <string name="move_to_year_desc">Mark invoice %1$s as paid in %2$d</string>
+    <string name="paid_in_year">Paid in %1$d</string>
+    <string name="label_earned_year">earned %1$d</string>
+    <string name="invoice_no_year">This invoice has no date to work from.</string>
     <string name="year_heading">%1$d</string>
     <string name="year_total">%1$s total: %2$s</string>
     <string name="year_total_vat">net %1$s · VAT %2$s</string>

@@ -48,6 +48,13 @@ executed. Specifically unverified:
   column name`, which is what `hasColumn` is there for. Still unverified: that `onUpgrade` is
   reached at all on a device, and that an older build tolerates the columns `onDowngrade` now
   leaves in place -- harmless by inspection, since every read is by column name, but not run.
+  Schema 4 was executed the same way: the invoice row keeps its values, `paid_year` defaults to
+  zero so an existing invoice needs no backfill, moving it to a year and back both work, and the
+  `UNIQUE` constraint on the number survived the `ALTER`.
+- Which year an invoice counts in is tested -- delivery date over period over issue date, a
+  payment year overriding the work, and zero meaning derive so that never-moved and moved-back
+  are the same state. Untested is the whole list screen: the grouping, the totals, the exclusion
+  of superseded invoices from them, and the drag-and-drop are all Android views.
 - `InvoiceDao.reissue` runs against SQLite, so its transaction is unverified here: that dropped
   gigs go back to billable, that a gig already marked paid keeps that status, and that the number
   counter is untouched are all argued in code but not executed. The identity rule it depends on
@@ -179,7 +186,17 @@ failure modes differ between the three, so passing one says little about the oth
     Pick it, confirm the buttons become "Open invoice" and "Recreate", then Recreate under the
     same number and confirm the rebuilt document carries the corrected fee and the original
     number. A gig marked paid must still be paid afterwards.
-16. Duplicate customer numbers. Give a second customer a number another one already has and
+16. Invoice years. Group headings with a total each, and the total must exclude a superseded
+    invoice -- issue one, supersede it, and confirm the year counts the replacement only, with
+    the excluded count shown. Then hold a December invoice and drag it into the next year: both
+    totals must change, and the year it came from must still take it back. Dropping it on any
+    other year must be refused, and the empty next-year group has to be there to drop into before
+    anything is in it. An invoice paid in the year it was earned should need no dragging at all.
+    Then do the same three ways without dragging: tap the year button on the card, long-press the
+    card and pick from the two years, and pick the year it is already filed under -- which must
+    change nothing rather than reporting a move. With TalkBack on, the year button must announce
+    which invoice it moves and where to.
+17. Duplicate customer numbers. Give a second customer a number another one already has and
     confirm the save is refused and names the holder. Repeat with the holder archived, and with
     the case changed (`k-007` against `K-007`), which must also be refused. Then confirm a
     customer keeps its own number when saved unchanged.
