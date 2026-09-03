@@ -105,7 +105,10 @@ public final class InvoiceBuilder {
             }
         }
         if (customer != null && customer.defaultTaxMode != null) return customer.defaultTaxMode;
-        return issuer.defaultTaxMode == null ? TaxMode.KLEINUNTERNEHMER : issuer.defaultTaxMode;
+        // Kleinunternehmer is the floor, not just the fallback for a missing issuer: it is what an
+        // issuer that has not said otherwise is, and the one mode that needs no VAT identifier.
+        if (issuer == null || issuer.defaultTaxMode == null) return TaxMode.KLEINUNTERNEHMER;
+        return issuer.defaultTaxMode;
     }
 
     /** The customer's invoice language, else the issuer's default. */

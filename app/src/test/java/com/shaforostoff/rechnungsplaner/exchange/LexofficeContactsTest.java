@@ -36,9 +36,72 @@ public class LexofficeContactsTest {
         return c;
     }
 
+    /** The issuer this DJ actually is: no VAT on anything, by inheritance. */
+    private static Issuer kleinunternehmer() {
+        Issuer i = new Issuer();
+        i.name = "Nick Shaforostov";
+        i.defaultTaxMode = TaxMode.KLEINUNTERNEHMER;
+        return i;
+    }
+
+    private static Issuer chargesVat() {
+        Issuer i = kleinunternehmer();
+        i.defaultTaxMode = TaxMode.STANDARD_19;
+        return i;
+    }
+
+    @Test
+    public void theTaxFreeFlagFollowsTheModeTheInvoiceWouldUse() throws Exception {
+        // The bug this pins: the customer inherits, the issuer is a Kleinunternehmer, and the
+        // export said every invoice to them must carry VAT.
+        Customer inherits = club();
+        inherits.defaultTaxMode = null;
+        assertTrue(taxFree(inherits, kleinunternehmer()));
+        assertFalse(taxFree(inherits, chargesVat()));
+
+        // An issuer that has said nothing is a Kleinunternehmer, the same as everywhere else.
+        assertTrue(taxFree(inherits, new Issuer()));
+    }
+
+    @Test
+    public void aCustomersOwnModeOutranksTheIssuerDefault() throws Exception {
+        Customer charged = club();
+        charged.defaultTaxMode = TaxMode.STANDARD_19;
+        assertFalse(taxFree(charged, kleinunternehmer()));
+
+        Customer abroad = club();
+        abroad.defaultTaxMode = TaxMode.REVERSE_CHARGE;
+        assertTrue("reverse charge issues without VAT too", taxFree(abroad, chargesVat()));
+
+        Customer eu = club();
+        eu.defaultTaxMode = TaxMode.INTRA_EU;
+        assertTrue(taxFree(eu, chargesVat()));
+
+        Customer reduced = club();
+        reduced.defaultTaxMode = TaxMode.REDUCED_7;
+        assertFalse("seven per cent is still VAT", taxFree(reduced, kleinunternehmer()));
+    }
+
+    @Test
+    public void inheritanceStillRoundTripsAsInheritance() throws Exception {
+        // The flag is derived, so it must not be mistaken for the customer having chosen a mode.
+        Customer inherits = club();
+        inherits.defaultTaxMode = null;
+
+        Customer after = LexofficeContacts.customerFrom(Json.parse(
+                LexofficeContacts.customerToJson(inherits, kleinunternehmer(), false)));
+
+        assertNull(after.defaultTaxMode);
+    }
+
+    private static boolean taxFree(Customer c, Issuer issuer) throws Exception {
+        return Json.bool(Json.parse(LexofficeContacts.customerToJson(c, issuer, false)), false,
+                "company", "allowTaxFreeInvoices");
+    }
+
     @Test
     public void writesTheShapeTheLexofficeApiAccepts() throws Exception {
-        Object node = Json.parse(LexofficeContacts.customerToJson(club(), false));
+        Object node = Json.parse(LexofficeContacts.customerToJson(club(), kleinunternehmer(), false));
 
         assertEquals("Club Muster GmbH", Json.string(node, "company", "name"));
         assertEquals("DE987654321", Json.string(node, "company", "vatRegistrationId"));
@@ -57,7 +120,7 @@ public class LexofficeContactsTest {
 
     @Test
     public void splitsTheContactPersonIntoFirstAndLastName() throws Exception {
-        Object node = Json.parse(LexofficeContacts.customerToJson(club(), false));
+        Object node = Json.parse(LexofficeContacts.customerToJson(club(), kleinunternehmer(), false));
         Object person = Json.array(node, "company", "contactPersons").get(0);
         assertEquals("Erika", Json.string(person, "firstName"));
         assertEquals("Musterfrau", Json.string(person, "lastName"));
@@ -67,7 +130,7 @@ public class LexofficeContactsTest {
     @Test
     public void appSpecificFieldsLiveInTheirOwnBlock() throws Exception {
         // Not smuggled into note, where they would be unparseable coming back.
-        Object node = Json.parse(LexofficeContacts.customerToJson(club(), false));
+        Object node = Json.parse(LexofficeContacts.customerToJson(club(), kleinunternehmer(), false));
         assertEquals("Muster Club", Json.string(node, "_rechnungsplaner", "placeName"));
         assertEquals(35000L, Json.number(node, 0L, "_rechnungsplaner", "defaultFeeCents"));
         assertEquals("STANDARD_19", Json.string(node, "_rechnungsplaner", "defaultTaxMode"));
@@ -76,7 +139,7 @@ public class LexofficeContactsTest {
 
     @Test
     public void strictModeOmitsTheExtensionBlock() throws Exception {
-        Object node = Json.parse(LexofficeContacts.customerToJson(club(), true));
+        Object node = Json.parse(LexofficeContacts.customerToJson(club(), kleinunternehmer(), true));
         assertNull(Json.at(node, "_rechnungsplaner"));
         assertEquals("Club Muster GmbH", Json.string(node, "company", "name"));
     }
@@ -85,7 +148,7 @@ public class LexofficeContactsTest {
     public void customerSurvivesARoundTrip() throws Exception {
         Customer before = club();
         Customer after = LexofficeContacts.customerFrom(
-                Json.parse(LexofficeContacts.customerToJson(before, false)));
+                Json.parse(LexofficeContacts.customerToJson(before, kleinunternehmer(), false)));
 
         assertEquals(before.officialName, after.officialName);
         assertEquals(before.placeName, after.placeName);
@@ -114,7 +177,7 @@ public class LexofficeContactsTest {
         before.city = "Hamburg";
 
         Customer after = LexofficeContacts.customerFrom(
-                Json.parse(LexofficeContacts.customerToJson(before, false)));
+                Json.parse(LexofficeContacts.customerToJson(before, kleinunternehmer(), false)));
         assertEquals("Muster Club", after.placeName);
         assertEquals("Hamburg", after.city);
         assertEquals("Muster Club", after.billingName());

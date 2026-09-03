@@ -134,7 +134,7 @@ public class ContactsArchive {
             for (Customer c : all) {
                 String name = String.format(Locale.US, "contacts/%04d-%s.json", index++,
                         Slug.slug(c.displayName()));
-                put(zip, name, LexofficeContacts.customerToJson(c, strict));
+                put(zip, name, LexofficeContacts.customerToJson(c, issuer, strict));
             }
         } finally {
             zip.close();

@@ -583,7 +583,7 @@ public class InvoiceActivity extends BaseActivity {
         // the address the first version got wrong is what it is for.
         invoice.issuerSnapshot = LexofficeContacts.issuerToJson(issuer, false);
         invoice.customerSnapshot = customer == null ? null
-                : LexofficeContacts.customerToJson(customer, false);
+                : LexofficeContacts.customerToJson(customer, issuer, false);
         boolean inPlace = replacing != null && !withNewNumber;
         String superseded = withNewNumber && replacing != null ? replacing.number : null;
         if (inPlace) {

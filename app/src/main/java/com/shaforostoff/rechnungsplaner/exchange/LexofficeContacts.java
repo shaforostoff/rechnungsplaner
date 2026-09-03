@@ -1,6 +1,7 @@
 package com.shaforostoff.rechnungsplaner.exchange;
 
 import com.shaforostoff.rechnungsplaner.data.Customer;
+import com.shaforostoff.rechnungsplaner.data.InvoiceBuilder;
 import com.shaforostoff.rechnungsplaner.data.Issuer;
 import com.shaforostoff.rechnungsplaner.data.TaxMode;
 import com.shaforostoff.rechnungsplaner.util.Json;
@@ -27,7 +28,12 @@ public final class LexofficeContacts {
 
     // ------------------------------------------------------------------ write
 
-    public static String customerToJson(Customer c, boolean strict) {
+    /**
+     * @param issuer needed for {@code allowTaxFreeInvoices}: whether invoices to this customer
+     *               carry VAT is a question about the seller as much as the customer, and most
+     *               customers answer it by inheriting the issuer's default rather than setting one
+     */
+    public static String customerToJson(Customer c, Issuer issuer, boolean strict) {
         Json.Obj root = new Json.Obj();
         if (c.lexofficeId != null && !c.lexofficeId.trim().isEmpty()) {
             root.put("id", c.lexofficeId);
@@ -38,7 +44,11 @@ public final class LexofficeContacts {
         Json.Obj company = new Json.Obj();
         company.put("name", c.billingName());
         company.put("vatRegistrationId", c.vatId);
-        company.put("allowTaxFreeInvoices", false);
+        // The effective mode, resolved the way an invoice would resolve it. Hard-coding false here
+        // told a Kleinunternehmer's importer that every one of their customers must be charged
+        // VAT -- the opposite of every invoice the app then produced.
+        company.put("allowTaxFreeInvoices",
+                !InvoiceBuilder.resolveTaxMode(issuer, c, null).chargesVat());
         Json.Obj person = contactPerson(c.contactName, c.email, c.phone);
         if (person != null) {
             company.put("contactPersons", new Json.Arr().add(person));
@@ -90,8 +100,10 @@ public final class LexofficeContacts {
         company.put("name", i.name);
         company.put("taxNumber", i.taxNumber);
         company.put("vatRegistrationId", i.vatId);
-        // Kleinunternehmer invoices carry no VAT, which is exactly what this flag means.
-        company.put("allowTaxFreeInvoices", i.defaultTaxMode == TaxMode.KLEINUNTERNEHMER);
+        // Every mode at rate zero issues without VAT, which is exactly what this flag means --
+        // Kleinunternehmer, but reverse charge and an intra-EU supply just as much.
+        company.put("allowTaxFreeInvoices",
+                !InvoiceBuilder.resolveTaxMode(i, null, null).chargesVat());
         Json.Obj person = contactPerson(i.contactName, i.email, i.phone);
         if (person != null) company.put("contactPersons", new Json.Arr().add(person));
         root.put("company", company);
