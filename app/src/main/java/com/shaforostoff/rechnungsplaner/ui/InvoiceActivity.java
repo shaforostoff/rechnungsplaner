@@ -2,6 +2,7 @@ package com.shaforostoff.rechnungsplaner.ui;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -44,6 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Builds, checks and issues an invoice.
@@ -666,8 +668,58 @@ public class InvoiceActivity extends BaseActivity {
             }
             // The folder name is what the user recognises; the tree URI is not readable.
             String folder = SafExporter.displayName(this, tree);
-            Ui.toast(this, folder == null ? getString(R.string.saved_to_folder_unnamed)
+            offerToOpen(folder == null ? getString(R.string.saved_to_folder_unnamed)
                     : getString(R.string.saved_to_folder, folder));
+        } catch (IOException e) {
+            Ui.toast(this, getString(R.string.import_failed, String.valueOf(e.getMessage())));
+        }
+    }
+
+    /**
+     * Reports the save, and offers to open the PDF when the chosen format produced one.
+     *
+     * <p>A dialog rather than the toast this replaces, because the obvious next thing after saving
+     * an invoice is looking at it, and a toast cannot be acted on. An XML-only format falls back
+     * to the toast: there is no viewer worth offering for an XRechnung.
+     */
+    private void offerToOpen(String message) {
+        final File pdf = firstPdf();
+        if (pdf == null) {
+            Ui.toast(this, message);
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setMessage(message)
+                .setNegativeButton(R.string.action_close, null)
+                .setPositiveButton(R.string.action_open_pdf, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        openPdf(pdf);
+                    }
+                })
+                .show();
+    }
+
+    private File firstPdf() {
+        for (File f : filesToShare()) {
+            if (f.getName().toLowerCase(Locale.US).endsWith(".pdf")) return f;
+        }
+        return null;
+    }
+
+    /**
+     * Opens the archive's copy through this app's own provider, not the document just written to
+     * the chosen folder.
+     *
+     * <p>Both are the same bytes, and this app can grant a read on what it serves itself.
+     * Re-delegating the read it holds on the picked tree would put the outcome in the hands of
+     * whichever provider backs that folder, which for a cloud one need not be a local file at all.
+     */
+    private void openPdf(File pdf) {
+        try {
+            startActivity(Sharing.view(this, pdf));
+        } catch (ActivityNotFoundException e) {
+            Ui.toast(this, R.string.no_pdf_viewer);
         } catch (IOException e) {
             Ui.toast(this, getString(R.string.import_failed, String.valueOf(e.getMessage())));
         }

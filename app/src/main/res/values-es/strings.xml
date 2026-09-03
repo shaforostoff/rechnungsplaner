@@ -5,6 +5,9 @@
     <string name="tab_settings">Ajustes</string>
 
     <string name="action_save">Guardar</string>
+    <string name="action_open_pdf">Abrir PDF</string>
+    <string name="action_close">Cerrar</string>
+    <string name="no_pdf_viewer">Ninguna app de este teléfono puede abrir un PDF.</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_delete">Eliminar</string>
     <string name="action_share">Compartir</string>

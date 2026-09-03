@@ -121,7 +121,9 @@ failure modes differ between the three, so passing one says little about the oth
 4. Bill two gigs of one customer on one invoice: two XML line items, each with its own BG-26
    period, and a header BG-14 spanning both.
 5. Share to Telegram and to a mail app; the attachment opens, the file name matches
-   `%issuername%-%Y-%M-%D`, and the invoice number reads `2026-001`.
+   `%issuername%-%Y-%M-%D`, and the invoice number reads `2026-001`. Then save to the chosen
+   folder and take the offer to open the PDF: the viewer must show the invoice, not an empty
+   document. Repeat with an XML-only output format, where the offer must not appear at all.
 6. Set the app to English and the customer's invoice language to German, then Spanish: the PDF
    labels and number formatting change, the UI does not, and the XML amounts stay dot-decimal.
 7. Export the tour list with two customers in one city: those two lines show venues, the rest
