@@ -28,12 +28,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The two bulk exports, the contacts import, the way in from the device calendar, and the full
- * backup.
+ * The full backup, the two bulk exports, and the way in from the device calendar.
+ *
+ * <p>Each section is one body of data with every direction it travels in on it: the backup is
+ * written and restored in one place, and the contacts archive is exported and imported in one
+ * place, because splitting a round trip across two sections asks the reader to notice that two
+ * headings are about the same file.
  *
  * <p>The backup sits at the top because it is the one action here that matters when something has
- * gone wrong, and the restore sits next to it rather than with the imports below: those merge into
- * what is already on the phone, while this replaces it.
+ * gone wrong. Its restore replaces what is on the phone, where the contacts import merges into it
+ * -- which is the difference the two captions have to carry, since the buttons look alike.
  */
 public class ExportActivity extends BaseActivity {
 
@@ -87,17 +91,14 @@ public class ExportActivity extends BaseActivity {
             }
         });
 
-        f.section(R.string.export_contacts);
-        f.caption(getString(R.string.export_contacts_desc));
+        f.section(R.string.contacts_archive);
+        f.caption(getString(R.string.contacts_archive_desc));
         f.primaryButton(R.string.action_export, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 exportContacts();
             }
         });
-
-        f.section(R.string.import_contacts);
-        f.caption(getString(R.string.import_contacts_desc));
         f.secondaryButton(R.string.action_import, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -148,7 +149,7 @@ public class ExportActivity extends BaseActivity {
             List<File> files = new ArrayList<File>();
             files.add(file);
             startActivity(Sharing.share(this, files, null,
-                    getString(R.string.export_contacts), null,
+                    getString(R.string.contacts_archive), null,
                     getString(R.string.action_share)));
         } catch (IOException e) {
             Ui.toast(this, getString(R.string.import_failed, String.valueOf(e.getMessage())));

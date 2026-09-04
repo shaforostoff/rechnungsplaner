@@ -184,10 +184,8 @@
     <string name="restore_failed">No se pudo restaurar: %1$s</string>
     <string name="export_tour_list">Lista de gira</string>
     <string name="export_tour_list_desc">Todos los trabajos próximos, una línea cada una. Donde una ciudad tiene varios clientes, se nombra la sala.</string>
-    <string name="export_contacts">Archivo de contactos</string>
-    <string name="export_contacts_desc">Todos los contactos como zip de JSON compatible con lexoffice, un archivo por contacto.</string>
-    <string name="import_contacts">Importar contactos</string>
-    <string name="import_contacts_desc">Lee un archivo de esta app, un contacto suelto o una página de la API de lexoffice.</string>
+    <string name="contacts_archive">Archivo de contactos</string>
+    <string name="contacts_archive_desc">Todos los contactos como zip de JSON, un archivo por contacto. La importación lee un archivo de esta app o un contacto suelto.</string>
     <string name="copied_to_clipboard">Copiado</string>
     <string name="nothing_to_export">Nada que exportar.</string>
     <string name="import_summary">%1$d nuevos, %2$d actualizados</string>

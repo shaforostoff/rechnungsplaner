@@ -195,10 +195,8 @@
     <string name="restore_failed">Could not restore: %1$s</string>
     <string name="export_tour_list">Tour list</string>
     <string name="export_tour_list_desc">All upcoming jobs, one line each. Where a city has more than one customer, the place is named instead.</string>
-    <string name="export_contacts">Contacts archive</string>
-    <string name="export_contacts_desc">All contacts as a zip of lexoffice-compatible JSON, one file per contact.</string>
-    <string name="import_contacts">Import contacts</string>
-    <string name="import_contacts_desc">Reads an archive from this app, a single contact, or a page from the lexoffice API.</string>
+    <string name="contacts_archive">Contacts archive</string>
+    <string name="contacts_archive_desc">All contacts as a zipped JSON, one file per contact. Import reads an archive from this app, or a single contact.</string>
     <string name="copied_to_clipboard">Copied</string>
     <string name="nothing_to_export">Nothing to export.</string>
     <string name="import_summary">%1$d new, %2$d updated</string>

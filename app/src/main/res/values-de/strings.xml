@@ -184,10 +184,8 @@
     <string name="restore_failed">Wiederherstellen fehlgeschlagen: %1$s</string>
     <string name="export_tour_list">Tourliste</string>
     <string name="export_tour_list_desc">Alle kommenden Aufträge, eine Zeile pro Auftrag. Wo eine Stadt mehrere Kunden hat, steht stattdessen die Location.</string>
-    <string name="export_contacts">Kontakt-Archiv</string>
-    <string name="export_contacts_desc">Alle Kontakte als ZIP mit lexoffice-kompatiblem JSON, eine Datei je Kontakt.</string>
-    <string name="import_contacts">Kontakte importieren</string>
-    <string name="import_contacts_desc">Liest ein Archiv dieser App, einen einzelnen Kontakt oder eine Seite aus der lexoffice-API.</string>
+    <string name="contacts_archive">Kontakt-Archiv</string>
+    <string name="contacts_archive_desc">Alle Kontakte als ZIP mit JSON, eine Datei je Kontakt. Der Import liest ein Archiv dieser App oder einen einzelnen Kontakt.</string>
     <string name="copied_to_clipboard">Kopiert</string>
     <string name="nothing_to_export">Nichts zu exportieren.</string>
     <string name="import_summary">%1$d neu, %2$d aktualisiert</string>
