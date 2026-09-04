@@ -123,7 +123,6 @@
     <string name="issuer_incomplete">Rellena tus datos antes de crear una factura.</string>
 
     <string name="title_invoice">Factura</string>
-    <string name="invoice_years_hint">Agrupadas por el año en que llegó el dinero. Si una factura se pagó después del año en que se trabajó, toca su botón de año, o mantén pulsada la factura para elegir. Arrastrarla también funciona.</string>
     <string name="move_to_year">→ %1$d</string>
     <string name="move_to_year_desc">Marcar la factura %1$s como pagada en %2$d</string>
     <string name="paid_in_year">Pagada en %1$d</string>

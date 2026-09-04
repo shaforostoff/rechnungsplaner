@@ -79,15 +79,6 @@ public class InvoiceListActivity extends BaseActivity {
             return;
         }
 
-        TextView hint = new TextView(this);
-        hint.setText(R.string.invoice_years_hint);
-        hint.setTextSize(12f);
-        hint.setTextColor(getColor(R.color.text_secondary));
-        LinearLayout.LayoutParams hintLp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        hintLp.bottomMargin = dp(10);
-        body().addView(hint, hintLp);
-
         for (Integer year : yearsToShow(all)) body().addView(group(year.intValue(), all));
     }
 

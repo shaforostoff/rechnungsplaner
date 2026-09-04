@@ -123,7 +123,6 @@
     <string name="issuer_incomplete">Trage deine Daten ein, bevor du eine Rechnung erstellst.</string>
 
     <string name="title_invoice">Rechnung</string>
-    <string name="invoice_years_hint">Gruppiert nach dem Jahr des Zahlungseingangs. Wurde eine Rechnung erst nach dem Leistungsjahr bezahlt, auf ihre Jahres-Schaltfläche tippen oder die Rechnung lange drücken. Ziehen funktioniert auch.</string>
     <string name="move_to_year">→ %1$d</string>
     <string name="move_to_year_desc">Rechnung %1$s als bezahlt in %2$d markieren</string>
     <string name="paid_in_year">Bezahlt in %1$d</string>
