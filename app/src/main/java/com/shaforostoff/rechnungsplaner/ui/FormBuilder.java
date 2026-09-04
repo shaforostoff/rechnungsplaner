@@ -16,6 +16,9 @@ import android.widget.TextView;
 
 import com.shaforostoff.rechnungsplaner.R;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Builds the label-above-outlined-field forms the app uses.
  *
@@ -23,17 +26,49 @@ import com.shaforostoff.rechnungsplaner.R;
  * between them, and the XML would be several hundred lines of near-identical blocks. Building them
  * here also makes the one affordance worth being consistent about impossible to get wrong: a field
  * XRechnung requires gets a blue outline, everywhere, from one code path.
+ *
+ * <p>What building them here does cost is view ids, which the framework needs to save what was
+ * typed. {@link #identify} is where they come from.
  */
 public class FormBuilder {
 
     private final Context ctx;
     private final LinearLayout container;
     private final float density;
+    /** Label resources already spent as ids, shared with the builders {@link #row} makes. */
+    private final Set<Integer> identified;
 
     public FormBuilder(Context ctx, LinearLayout container) {
+        this(ctx, container, new HashSet<Integer>());
+    }
+
+    private FormBuilder(Context ctx, LinearLayout container, Set<Integer> identified) {
         this.ctx = ctx;
         this.container = container;
+        this.identified = identified;
         this.density = ctx.getResources().getDisplayMetrics().density;
+    }
+
+    /**
+     * Gives a widget the id its state will be saved under.
+     *
+     * <p>The framework saves view state in a map keyed by id, and skips a view that has none. That
+     * is why a form built in code loses what was typed into it whenever the activity is recreated:
+     * on a rotation, and now also when the system turns the app dark at sunset. A generated id is
+     * no help, since it has to be the same number after the rebuild as it was before it.
+     *
+     * <p>The label's string resource is that number. It is a compile-time constant, so it survives
+     * the rebuild; no screen here labels two widgets the same, so it is unique within the form;
+     * and it is the one thing about a field that is really its identity, so a form that comes back
+     * a different shape drops the state rather than pouring one field's text into another.
+     *
+     * <p>Where a label is reused anyway -- the invoice screen lists a checkbox per gig under a
+     * single "Date" -- the later widgets are left without an id, which is what every widget had
+     * before any of this. Two views sharing an id would be worse than none, each overwriting the
+     * other's state.
+     */
+    private void identify(View view, int labelRes) {
+        if (identified.add(Integer.valueOf(labelRes))) view.setId(labelRes);
     }
 
     public int dp(float value) {
@@ -70,7 +105,8 @@ public class FormBuilder {
 
         // No bottom margin: the fields inside bring their own.
         container.addView(row, matchWidth());
-        return new Row(new FormBuilder(ctx, left), new FormBuilder(ctx, right));
+        return new Row(new FormBuilder(ctx, left, identified),
+                new FormBuilder(ctx, right, identified));
     }
 
     /** The two halves of a {@link #row()}, to build a field in each. */
@@ -156,6 +192,7 @@ public class FormBuilder {
         }
         et.setBackgroundResource(required ? R.drawable.field_required : R.drawable.field);
         et.setPadding(dp(12), dp(10), dp(12), dp(10));
+        identify(et, labelRes);
         LinearLayout.LayoutParams lp = matchWidth();
         lp.bottomMargin = dp(10);
         container.addView(et, lp);
@@ -174,6 +211,7 @@ public class FormBuilder {
         et.setTextSize(15f);
         et.setBackgroundResource(R.drawable.field);
         et.setPadding(dp(12), dp(10), dp(12), dp(10));
+        identify(et, labelRes);
         LinearLayout.LayoutParams lp = matchWidth();
         lp.bottomMargin = dp(10);
         container.addView(et, lp);
@@ -189,6 +227,7 @@ public class FormBuilder {
         }
         spinner.setBackgroundResource(required ? R.drawable.field_required : R.drawable.field);
         spinner.setPadding(dp(8), dp(4), dp(8), dp(4));
+        identify(spinner, labelRes);
         LinearLayout.LayoutParams lp = matchWidth();
         lp.bottomMargin = dp(10);
         container.addView(spinner, lp);
@@ -206,6 +245,7 @@ public class FormBuilder {
         tv.setBackgroundResource(required ? R.drawable.field_required : R.drawable.field);
         tv.setPadding(dp(12), dp(12), dp(12), dp(12));
         tv.setOnClickListener(onClick);
+        identify(tv, labelRes);
         LinearLayout.LayoutParams lp = matchWidth();
         lp.bottomMargin = dp(10);
         container.addView(tv, lp);
@@ -217,6 +257,7 @@ public class FormBuilder {
         cb.setText(labelRes);
         cb.setChecked(checked);
         cb.setTextSize(15f);
+        identify(cb, labelRes);
         LinearLayout.LayoutParams lp = matchWidth();
         lp.bottomMargin = dp(8);
         container.addView(cb, lp);

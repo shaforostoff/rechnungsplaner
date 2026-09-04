@@ -151,6 +151,29 @@ executed. Specifically unverified:
   grid read as one surface at night, that the status and navigation bar icons come out legible
   against the app's own background now that targetSdk 37 draws behind them, and that the platform
   dialogs' lighter grey sits acceptably against a palette darker than theirs.
+- Switching night mode recreates the activity, as rotation always has, and until now no screen
+  survived that with what had been typed into it: the forms are built in code, view state is
+  saved under a view's id, and nothing called `setId`. `FormBuilder` now gives every labelled
+  widget its label's string resource as its id, which is stable across the rebuild because it is
+  a compile-time constant. The scheme rests on an invariant no test enforces: no screen labels two
+  widgets the same. It holds today -- 64 labelled widgets across five screens, all distinct -- and
+  where it is broken deliberately, by the invoice screen's checkbox-per-gig under one "Date", the
+  builder hands out the id once and leaves the rest without one rather than letting two views
+  overwrite each other's state.
+- Two screens keep answers that no view holds, and those are carried by
+  `onRetainNonConfigurationInstance` rather than through the bundle. On the gig screen the three
+  pickers write the date, the times and the customer straight into the `Gig`, so the object is
+  carried whole. On the invoice screen it is which gigs are ticked and a hand-typed number. The
+  boundary this draws is deliberate and untested: a rotation or the sunset flip keeps an unsaved
+  gig entire, and the process being killed in the background keeps only what went through the
+  bundle, which is the typed fields but not the picked date.
+- The invoice screen's per-gig checkboxes are explicitly opted out of view-state saving. Restoring
+  one would fire the listener that rebuilds the whole form, from inside the framework's own walk
+  of the view tree, over the array it is still iterating. Argued, not executed: nothing here has
+  run a configuration change on a device.
+- Untouched by any of this: the month grid on the calendar screen keeps neither the month being
+  looked at nor the selected day across a recreate, so it lands back on today. It is a custom
+  `View` with no id and no `onSaveInstanceState`, and it holds nothing the user typed.
 
 **Strict PDF/A-3b conformance is claimed in the XMP but not proven.** The output intent, the
 generated sRGB profile and the metadata stream are built to the requirements, but only veraPDF
@@ -275,3 +298,9 @@ failure modes differ between the three, so passing one says little about the oth
     colour. Check the status and navigation bar icons under both settings, and the primary
     button's label against its now-lighter fill. Then leave the phone on automatic and confirm it
     turns over at sunset without help.
+21. Surviving a recreate. Half-fill a new gig -- pick a date and a start time, choose a customer,
+    type a fee and a note -- then rotate the phone, and confirm every one of them is still there
+    and that the screen still says it is a new gig. Repeat on a customer and on "My details".
+    Then on an invoice draft: tick a second night, type a number over the offered one, rotate, and
+    confirm both survive and the totals still match the ticks. Do it all again by switching the
+    system dark theme instead of rotating, which is the same event.

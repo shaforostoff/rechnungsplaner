@@ -144,6 +144,30 @@ public class InvoiceActivity extends BaseActivity {
     private String numberOverride;
     private List<File> lastFiles = new ArrayList<File>();
 
+    /**
+     * The two answers on a draft that are the user's rather than the data's, carried across a
+     * rebuild the way {@code GigEditActivity} carries its gig.
+     *
+     * <p>Both would otherwise be recomputed from scratch when the activity is recreated, which
+     * unticks every gig that had been added to the bill and drops a hand-typed number back to the
+     * next one in the series.
+     */
+    private static final class Unsaved {
+        final List<Boolean> selected;
+        final String numberOverride;
+
+        Unsaved(List<Boolean> selected, String numberOverride) {
+            this.selected = new ArrayList<Boolean>(selected);
+            this.numberOverride = numberOverride;
+        }
+    }
+
+    @Override
+    public Object onRetainNonConfigurationInstance() {
+        captureNumber();
+        return new Unsaved(selected, numberOverride);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -167,6 +191,7 @@ public class InvoiceActivity extends BaseActivity {
             return;
         }
         if (replacing == null) customer = new CustomerDao(this).byId(invoice.customerId);
+        restoreUnsaved();
 
         setScreenTitle(invoice.number == null ? getString(R.string.title_invoice) : invoice.number);
         render();
@@ -301,6 +326,30 @@ public class InvoiceActivity extends BaseActivity {
         return names;
     }
 
+    /**
+     * Puts the carried answers back over the freshly built draft.
+     *
+     * <p>Only when the ticks still line up with the gigs. Nothing can have billed one of them
+     * while this screen was being recreated, so the lengths should always match; if they somehow
+     * do not, the indices mean something else now and applying them would tick the wrong nights.
+     *
+     * <p>Nothing at all for an invoice that has been issued: it is a record being looked at rather
+     * than a draft being decided, and rebuilding it here would replace the document on screen with
+     * an empty one built from the gigs a draft would have had.
+     */
+    private void restoreUnsaved() {
+        if (issued) return;
+        Unsaved carried = (Unsaved) getLastNonConfigurationInstance();
+        if (carried == null) return;
+        numberOverride = carried.numberOverride;
+        if (carried.selected.size() == selected.size()) {
+            for (int i = 0; i < selected.size(); i++) {
+                selected.set(i, carried.selected.get(i));
+            }
+        }
+        rebuildInvoice();
+    }
+
     private String draftNumber() {
         return numberOverride != null ? numberOverride
                 : invoices.peekNextNumber(settings.getInvoiceNumberPattern(), invoice.issueDate);
@@ -335,6 +384,11 @@ public class InvoiceActivity extends BaseActivity {
                 Gig g = selectableGigs.get(i);
                 android.widget.CheckBox box = f.check(R.string.label_date,
                         selected.get(i).booleanValue());
+                // One box per gig under a single label, so only the first could take an id
+                // anyway -- and restoring it would fire the listener below, which throws this
+                // whole form away while the framework is still walking it. The list above is
+                // where these ticks live, and restoreUnsaved is what carries them.
+                box.setSaveEnabled(false);
                 box.setText(getString(R.string.two_part_label,
                         Dates.forLanguage(g.date, uiLanguage()),
                         Ui.money(g.totalNetCents())));

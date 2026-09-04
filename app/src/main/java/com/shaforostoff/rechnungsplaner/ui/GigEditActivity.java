@@ -84,6 +84,34 @@ public class GigEditActivity extends BaseActivity {
      */
     private Gig.Status autoStatus;
 
+    /**
+     * The answers this screen holds that no view does, carried across a rebuild.
+     *
+     * <p>The fields and spinners look after themselves now that {@code FormBuilder} gives them
+     * ids, but the three pickers write straight into the gig, so the date, the times and the
+     * customer live in that object and nowhere else. This carries it by reference, which is all a
+     * configuration change needs and is cheaper than teaching the data classes to serialise
+     * themselves for a bundle they would only use here.
+     *
+     * <p>The consequence is the boundary: a rotation or the flip into dark mode keeps an
+     * unsaved gig whole, and the process being killed in the background does not. The typed
+     * fields survive that too, since those go through the bundle; the picked date does not.
+     */
+    private static final class Unsaved {
+        final Gig gig;
+        final Gig.Status autoStatus;
+
+        Unsaved(Gig gig, Gig.Status autoStatus) {
+            this.gig = gig;
+            this.autoStatus = autoStatus;
+        }
+    }
+
+    @Override
+    public Object onRetainNonConfigurationInstance() {
+        return new Unsaved(gig, autoStatus);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,17 +120,25 @@ public class GigEditActivity extends BaseActivity {
         issuers = new IssuerDao(this);
         settings = new SettingsStore(this);
 
-        long id = getIntent().getLongExtra(EXTRA_GIG_ID, -1L);
-        gig = id > 0L ? gigs.byId(id) : null;
-        boolean isNew = gig == null;
-        if (isNew) {
-            gig = new Gig();
-            String date = getIntent().getStringExtra(EXTRA_DATE);
-            gig.date = Dates.isValid(date) ? date : Dates.today();
-            gig.status = Gig.defaultStatusFor(gig.date);
-            autoStatus = gig.status;
-            gig.serviceId = getIntent().getLongExtra(EXTRA_SERVICE_ID, -1L);
+        Unsaved carried = (Unsaved) getLastNonConfigurationInstance();
+        if (carried != null) {
+            gig = carried.gig;
+            autoStatus = carried.autoStatus;
+        } else {
+            long id = getIntent().getLongExtra(EXTRA_GIG_ID, -1L);
+            gig = id > 0L ? gigs.byId(id) : null;
+            if (gig == null) {
+                gig = new Gig();
+                String date = getIntent().getStringExtra(EXTRA_DATE);
+                gig.date = Dates.isValid(date) ? date : Dates.today();
+                gig.status = Gig.defaultStatusFor(gig.date);
+                autoStatus = gig.status;
+                gig.serviceId = getIntent().getLongExtra(EXTRA_SERVICE_ID, -1L);
+            }
         }
+        // Whether the gig exists yet, rather than whether it was loaded: a carried-over gig that
+        // was saved on the way to the invoice screen is no longer a new one.
+        boolean isNew = gig.id <= 0L;
         setScreenTitle(isNew ? R.string.title_new_gig : R.string.title_edit_gig);
         addTitleAction(R.string.action_save, new View.OnClickListener() {
             @Override
