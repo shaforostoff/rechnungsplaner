@@ -36,7 +36,7 @@ public class GigDao {
         return query("customer_id = ?", new String[]{Long.toString(customerId)}, "date DESC");
     }
 
-    /** Played but not yet billed, which is what the invoice screen offers to bill together. */
+    /** Executed but not yet billed, which is what the invoice screen offers to bill together. */
     public List<Gig> billableFor(long customerId) {
         return query("customer_id = ? AND invoice_id <= 0",
                 new String[]{Long.toString(customerId)}, "date");

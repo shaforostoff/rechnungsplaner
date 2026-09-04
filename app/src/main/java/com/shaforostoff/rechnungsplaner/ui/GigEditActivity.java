@@ -647,7 +647,7 @@ public class GigEditActivity extends BaseActivity {
 
     private String[] statusLabels() {
         return new String[]{
-                getString(R.string.status_planned), getString(R.string.status_played),
+                getString(R.string.status_planned), getString(R.string.status_executed),
                 getString(R.string.status_invoiced), getString(R.string.status_paid),
         };
     }

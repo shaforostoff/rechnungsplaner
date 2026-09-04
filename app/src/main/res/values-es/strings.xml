@@ -70,10 +70,10 @@
     <string name="crosses_midnight">Termina a la mañana siguiente. Se factura la fecha de inicio.</string>
     <string name="needs_date">Hace falta una fecha.</string>
 
-    <string name="status_planned">Prevista</string>
-    <string name="status_played">Tocada</string>
-    <string name="status_invoiced">Facturada</string>
-    <string name="status_paid">Pagada</string>
+    <string name="status_planned">Previsto</string>
+    <string name="status_executed">Ejecutado</string>
+    <string name="status_invoiced">Facturado</string>
+    <string name="status_paid">Pagado</string>
 
     <string name="taxmode_inherit_value">Heredar: %1$s</string>
     <string name="taxmode_kleinunternehmer">Pequeña empresa, § 19 UStG</string>

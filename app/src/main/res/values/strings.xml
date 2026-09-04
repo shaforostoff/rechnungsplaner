@@ -76,7 +76,7 @@
     <string name="needs_date">A date is required.</string>
 
     <string name="status_planned">Planned</string>
-    <string name="status_played">Played</string>
+    <string name="status_executed">Executed</string>
     <string name="status_invoiced">Invoiced</string>
     <string name="status_paid">Paid</string>
 

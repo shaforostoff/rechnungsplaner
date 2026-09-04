@@ -20,7 +20,7 @@ specifically so they can be tested on the JVM. The `ui` package cannot be, but i
 | Tour list | The per-city, per-customer disambiguation rule |
 | Contacts archive | Round-trip, plus reading a contact straight from the lexoffice API shape |
 | Fee fields | Both decimal separators, grouping, junk and overflow; and that what a field shows reads back as the same cents |
-| Gig status | A past date starts as played, including across a year boundary |
+| Gig status | A past date starts as executed, including across a year boundary |
 | Invoice corrections | Redoing an issued invoice keeps its number, row and issue date while recomputing fees, snapshots and periods |
 | Superseding invoices | A replacement takes a new number and today's date, records what it replaces, and states it in the document language |
 | BG-3 placement | The preceding-invoice reference sits where each syntax requires -- before the parties in UBL, after the totals in CII -- and is absent entirely when there is nothing to reference |

@@ -12,6 +12,14 @@ import com.shaforostoff.rechnungsplaner.util.Dates;
  */
 public class Gig {
 
+    /**
+     * Where the job has got to.
+     *
+     * <p>{@code PLAYED} is shown as "Executed", because the work is no longer only a DJ-set and a
+     * workshop is not played. The constant keeps its old name deliberately: it is written into the
+     * {@code status} column verbatim, so renaming it would need a migration to rewrite every row
+     * already stored -- a lot of moving parts for a word nobody but a reader of this file sees.
+     */
     public enum Status {
         PLANNED, PLAYED, INVOICED, PAID;
 
@@ -26,11 +34,11 @@ public class Gig {
     }
 
     /**
-     * The status a newly entered gig starts in: a set whose date has already passed has been
-     * played, so entering last month's gig should not require correcting the status by hand.
+     * The status a newly entered gig starts in: work whose date has already passed has been done,
+     * so entering last month's job should not require correcting the status by hand.
      *
-     * <p>Today counts as not yet played -- a set is entered before it happens, not during it -- and
-     * ISO dates compare lexicographically, so no parsing is needed.
+     * <p>Today counts as not yet executed -- a job is entered before it happens, not during it --
+     * and ISO dates compare lexicographically, so no parsing is needed.
      */
     public static Status defaultStatusFor(String isoDate) {
         if (!Dates.isValid(isoDate)) return Status.PLANNED;

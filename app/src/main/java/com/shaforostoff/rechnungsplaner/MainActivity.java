@@ -336,7 +336,7 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
 
     private String statusLabel(Gig.Status status) {
         switch (status) {
-            case PLAYED: return getString(R.string.status_played);
+            case PLAYED: return getString(R.string.status_executed);
             case INVOICED: return getString(R.string.status_invoiced);
             case PAID: return getString(R.string.status_paid);
             case PLANNED:
