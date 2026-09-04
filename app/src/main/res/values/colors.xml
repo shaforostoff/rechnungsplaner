@@ -1,8 +1,15 @@
 <resources>
     <!-- Borrowed from the reference app's palette: a single strong blue for anything that is
-         required, actionable or selected, and greys for everything else. -->
+         required, actionable or selected, and greys for everything else.
+
+         Every colour here has a counterpart in values-night/colors.xml, and the whole app reaches
+         its colours through these names, so the dark palette is the only place the night look is
+         decided. -->
     <color name="accent">#1A56DB</color>
+    <color name="accent_pressed">#14429F</color>
     <color name="accent_faint">#E3ECFD</color>
+    <!-- Text on top of an accent-filled surface, which is the primary button and nothing else. -->
+    <color name="on_accent">#FFFFFF</color>
     <color name="border">#D5D8DE</color>
     <color name="surface">#FFFFFF</color>
     <color name="background">#F7F8FA</color>

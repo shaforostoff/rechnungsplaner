@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- The platform Material theme, with no appcompat: the app takes no UI dependencies. -->
-    <style name="Theme.Rechnungsplaner" parent="android:Theme.Material.Light.NoActionBar">
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- The platform Material theme, with no appcompat: the app takes no UI dependencies. That
+         rules out DayNight, so the day/night split is done the way the resource system does it:
+         a values-night copy of this one style, holding nothing but the other parent. Everything
+         the theme sets is a reference, so the values below never need a second copy. -->
+    <style name="Base.Rechnungsplaner" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.Rechnungsplaner" parent="Base.Rechnungsplaner">
         <item name="android:colorAccent">@color/accent</item>
         <item name="android:windowBackground">@color/background</item>
         <item name="android:textColorPrimary">@color/text_primary</item>
+        <!-- From targetSdk 35 the system bars are transparent and the app's own background shows
+             through them, so nothing but these decides whether their icons are legible. -->
+        <item name="android:windowLightStatusBar">@bool/light_system_bars</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">@bool/light_system_bars</item>
     </style>
 </resources>

@@ -141,6 +141,16 @@ executed. Specifically unverified:
   This includes the field mechanics whose *decisions* are tested -- that the account holder mirrors
   the name is pinned as a rule, but nothing has confirmed the `TextWatcher` is wired to the right
   two fields.
+- The dark theme has never been looked at on a screen. What was checked is the half that is
+  mechanical: the compiled release APK really does carry two values for every colour and for
+  `light_system_bars` after resource shrinking, and `Base.Rechnungsplaner` really does resolve to
+  `Theme.Material.Light.NoActionBar` by day and `Theme.Material.NoActionBar` at night, which is
+  what switches the platform's own dialogs, pickers and spinner popups with the rest. The contrast
+  ratios in the night palette were computed rather than seen; the lowest pairing the app draws is
+  secondary text on a card, at 6.4:1. Unverified: that the header, the bottom bar and the month
+  grid read as one surface at night, that the status and navigation bar icons come out legible
+  against the app's own background now that targetSdk 37 draws behind them, and that the platform
+  dialogs' lighter grey sits acceptably against a palette darker than theirs.
 
 **Strict PDF/A-3b conformance is claimed in the XMP but not proven.** The output intent, the
 generated sRGB profile and the metadata stream are built to the requirements, but only veraPDF
@@ -259,3 +269,9 @@ failure modes differ between the three, so passing one says little about the oth
     confirm the save is refused and names the holder. Repeat with the holder archived, and with
     the case changed (`k-007` against `K-007`), which must also be refused. Then confirm a
     customer keeps its own number when saved unchanged.
+20. Dark theme. Turn the system dark theme on with the app open and walk every screen: the month
+    grid, the forms, the invoice list and its cards, a date picker, a confirmation dialog and a
+    spinner dropdown. Nothing should stay light, and no text should land on a background its own
+    colour. Check the status and navigation bar icons under both settings, and the primary
+    button's label against its now-lighter fill. Then leave the phone on automatic and confirm it
+    turns over at sunset without help.

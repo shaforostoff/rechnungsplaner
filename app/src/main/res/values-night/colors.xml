@@ -1,0 +1,21 @@
+<resources>
+    <!-- The night palette, picked up automatically when the system is in dark mode.
+
+         Not the light colours inverted: the accent is lightened rather than darkened, because a
+         blue chosen to carry weight against white disappears against near-black. The greys hold
+         the same roles they do by day, background sitting a shade below surface so that a card
+         still reads as a card, and every pairing the app actually draws clears 4.5:1, the darkest
+         being secondary text on a card at 6.4:1. -->
+    <color name="accent">#7EA6F6</color>
+    <color name="accent_pressed">#5C86D6</color>
+    <color name="accent_faint">#1E2A44</color>
+    <!-- The accent fill is now the light half of the pair, so its text has to be the dark one. -->
+    <color name="on_accent">#0E1626</color>
+    <color name="border">#333842</color>
+    <color name="surface">#1A1D23</color>
+    <color name="background">#111318</color>
+    <color name="text_primary">#E8EAED</color>
+    <color name="text_secondary">#9AA0AA</color>
+    <color name="warning">#F0A44A</color>
+    <color name="error">#F2807A</color>
+</resources>

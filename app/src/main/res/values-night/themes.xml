@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The dark half of the pair. Only the parent changes: it is what turns the platform's own
+         widgets (dialogs, date and time pickers, spinner popups, the text cursor) dark, which
+         the colours in values-night cannot reach. -->
+    <style name="Base.Rechnungsplaner" parent="android:Theme.Material.NoActionBar" />
+</resources>

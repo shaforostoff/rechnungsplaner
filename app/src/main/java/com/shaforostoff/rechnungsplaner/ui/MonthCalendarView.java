@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -15,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 
+import com.shaforostoff.rechnungsplaner.R;
 import com.shaforostoff.rechnungsplaner.util.Dates;
 
 import java.util.Collections;
@@ -82,18 +82,21 @@ public class MonthCalendarView extends View {
         super(context, attrs);
 
         float density = getResources().getDisplayMetrics().density;
+        // Through the palette rather than as literals, so the grid turns over with everything
+        // else when the system goes dark -- a black-on-black month being the one thing a
+        // hand-drawn view gets wrong that a stock widget does not.
         dayPaint.setTextSize(14f * density);
-        dayPaint.setColor(Color.BLACK);
+        dayPaint.setColor(context.getColor(R.color.text_primary));
         dayPaint.setTextAlign(Paint.Align.CENTER);
 
         headerPaint.setTextSize(11f * density);
-        headerPaint.setColor(Color.parseColor("#777777"));
+        headerPaint.setColor(context.getColor(R.color.text_secondary));
         headerPaint.setTextAlign(Paint.Align.CENTER);
         headerPaint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
 
-        markerPaint.setColor(Color.parseColor("#1A56DB"));
-        selectionPaint.setColor(Color.parseColor("#E3ECFD"));
-        todayPaint.setColor(Color.parseColor("#1A56DB"));
+        markerPaint.setColor(context.getColor(R.color.accent));
+        selectionPaint.setColor(context.getColor(R.color.accent_faint));
+        todayPaint.setColor(context.getColor(R.color.accent));
         todayPaint.setStyle(Paint.Style.STROKE);
         todayPaint.setStrokeWidth(1.5f * density);
 

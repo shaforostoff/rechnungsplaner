@@ -228,7 +228,7 @@ public class FormBuilder {
         b.setText(labelRes);
         b.setAllCaps(false);
         b.setTextSize(16f);
-        b.setTextColor(0xFFFFFFFF);
+        b.setTextColor(ctx.getColor(R.color.on_accent));
         b.setBackgroundResource(R.drawable.button_primary);
         b.setOnClickListener(onClick);
         LinearLayout.LayoutParams lp = matchWidth();
