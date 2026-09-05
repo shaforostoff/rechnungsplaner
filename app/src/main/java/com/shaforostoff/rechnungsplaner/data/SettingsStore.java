@@ -104,7 +104,12 @@ public class SettingsStore {
         prefs.edit().putString(K_UI_LANGUAGE, isBlank(tag) ? LANGUAGE_SYSTEM : tag).apply();
     }
 
-    /** Omits the app-specific extension block from the contacts export. */
+    /**
+     * Omits the app-specific extension block from the contacts export.
+     *
+     * <p>No longer offered on the settings screen; the export follows whatever was last chosen
+     * there, which for everyone who never touched it is the lenient default.
+     */
     public boolean isStrictLexofficeExport() {
         return prefs.getBoolean(K_STRICT_LEXOFFICE, false);
     }

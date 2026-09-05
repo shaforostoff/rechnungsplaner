@@ -9,7 +9,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -65,7 +64,6 @@ public class SettingsActivity extends BaseActivity {
     private TextView folderField;
     private Spinner tourFormatSpinner;
     private Spinner languageSpinner;
-    private CheckBox strictBox;
 
     @Override
     protected int bottomTab() {
@@ -139,10 +137,6 @@ public class SettingsActivity extends BaseActivity {
                 new String[]{getString(R.string.language_system), "English", "Deutsch", "Espanol"},
                 indexOf(UI_LANGUAGE_TAGS, settings.getUiLanguage()), false);
         watchLanguage();
-
-        strictBox = f.check(R.string.setting_strict_lexoffice,
-                settings.isStrictLexofficeExport());
-        f.caption(getString(R.string.setting_strict_lexoffice_desc));
 
         updatePreviews();
     }
@@ -303,7 +297,6 @@ public class SettingsActivity extends BaseActivity {
         settings.setCustomerNumberPattern(customerNumberField.getText().toString());
         saveMailWording();
         settings.setTourDateFormat(TOUR_FORMATS[FormBuilder.selectionOf(tourFormatSpinner)]);
-        settings.setStrictLexofficeExport(strictBox.isChecked());
         settings.setUiLanguage(UI_LANGUAGE_TAGS[FormBuilder.selectionOf(languageSpinner)]);
     }
 
