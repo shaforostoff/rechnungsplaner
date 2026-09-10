@@ -71,9 +71,11 @@ public class IssuerEditActivity extends BaseActivity {
         nameField = f.field(R.string.label_name, issuer.name, true,
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         streetField = f.field(R.string.label_street, issuer.street, true);
-        postcodeField = f.field(R.string.label_postcode, issuer.postcode, true,
+        // As on the customer screen: one line of the address, the city given the wider half.
+        FormBuilder.Row where = f.row(1f, 2f);
+        postcodeField = where.left.field(R.string.label_postcode, issuer.postcode, true,
                 InputType.TYPE_CLASS_TEXT);
-        cityField = f.field(R.string.label_city, issuer.city, true);
+        cityField = where.right.field(R.string.label_city, issuer.city, true);
         countryField = f.field(R.string.label_country, issuer.countryCode, true,
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
 

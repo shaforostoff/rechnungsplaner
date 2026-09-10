@@ -90,9 +90,12 @@ public class CustomerEditActivity extends BaseActivity {
         officialNameField = f.field(R.string.label_official_name, customer.officialName, true,
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         streetField = f.field(R.string.label_street, customer.street, true);
-        postcodeField = f.field(R.string.label_postcode, customer.postcode, true,
+        // Post code and city are one answer written on one line of an address, and the code is
+        // only a few digits, so the city gets twice the width.
+        FormBuilder.Row where = f.row(1f, 2f);
+        postcodeField = where.left.field(R.string.label_postcode, customer.postcode, true,
                 InputType.TYPE_CLASS_TEXT);
-        cityField = f.field(R.string.label_city, customer.city, true);
+        cityField = where.right.field(R.string.label_city, customer.city, true);
         countryField = f.field(R.string.label_country, customer.countryCode, true,
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
         emailField = f.field(R.string.label_email, customer.email, true,

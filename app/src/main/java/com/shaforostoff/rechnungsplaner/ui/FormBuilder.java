@@ -85,6 +85,17 @@ public class FormBuilder {
      * apart the moment one label wraps in a longer language.
      */
     public Row row() {
+        return row(1f, 1f);
+    }
+
+    /**
+     * The same line, split unevenly, for a pair whose halves are not the same size: a post code is
+     * a handful of digits and the city beside it is a word.
+     *
+     * @param leftWeight  share of the line the left column takes
+     * @param rightWeight share of the line the right column takes
+     */
+    public Row row(float leftWeight, float rightWeight) {
         LinearLayout row = new LinearLayout(ctx);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setBaselineAligned(false);
@@ -92,14 +103,14 @@ public class FormBuilder {
         LinearLayout left = new LinearLayout(ctx);
         left.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams leftParams = new LinearLayout.LayoutParams(0,
-                LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+                LinearLayout.LayoutParams.WRAP_CONTENT, leftWeight);
         leftParams.rightMargin = dp(6);
         row.addView(left, leftParams);
 
         LinearLayout right = new LinearLayout(ctx);
         right.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(0,
-                LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+                LinearLayout.LayoutParams.WRAP_CONTENT, rightWeight);
         rightParams.leftMargin = dp(6);
         row.addView(right, rightParams);
 
