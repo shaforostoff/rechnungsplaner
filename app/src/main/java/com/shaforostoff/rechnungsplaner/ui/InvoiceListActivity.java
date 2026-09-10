@@ -291,8 +291,7 @@ public class InvoiceListActivity extends BaseActivity {
 
         Customer customer = customers.byId(invoice.customerId);
         StringBuilder detail = new StringBuilder();
-        detail.append(Dates.forLanguage(invoice.issueDate,
-                getResources().getConfiguration().getLocales().get(0).getLanguage()));
+        detail.append(gigDate(invoice));
         if (customer != null) detail.append(" · ").append(customer.displayName());
         detail.append(" · ").append(Ui.money(invoice.grandTotalCents));
 
@@ -329,6 +328,28 @@ public class InvoiceListActivity extends BaseActivity {
         lp.bottomMargin = dp(8);
         shell.setLayoutParams(lp);
         return shell;
+    }
+
+    /**
+     * When the work happened, which is what an invoice is looked up by.
+     *
+     * <p>The date the document was written is on the document and almost never the question here:
+     * a set played on 28 December and invoiced on 2 January is remembered as the December gig, and
+     * the year headings above already group by the tax year, so repeating an issue date told
+     * nobody anything. A period spanning several days shows both ends, as on the PDF.
+     */
+    private String gigDate(Invoice invoice) {
+        String language = getResources().getConfiguration().getLocales().get(0).getLanguage();
+        String start = invoice.serviceDate();
+        if (start == null) return "";
+        // Collapse a period that begins and ends on the same day -- two gigs on one night make
+        // one, and "05.09.2026 – 05.09.2026" reads as a mistake.
+        boolean span = invoice.deliveryDate == null && Dates.isValid(invoice.periodEnd)
+                && !invoice.periodEnd.equals(start);
+        return span
+                ? Dates.forLanguage(start, language) + " – "
+                        + Dates.forLanguage(invoice.periodEnd, language)
+                : Dates.forLanguage(start, language);
     }
 
     /**

@@ -112,9 +112,24 @@ public class Invoice {
      * this year or the one after, and never drifts further because this does not move.
      */
     public int serviceYear() {
-        if (Dates.isValid(deliveryDate)) return Dates.year(deliveryDate);
-        if (Dates.isValid(periodStart)) return Dates.year(periodStart);
-        return Dates.isValid(issueDate) ? Dates.year(issueDate) : 0;
+        String date = serviceDate();
+        return date == null ? 0 : Dates.year(date);
+    }
+
+    /**
+     * The day the work happened: the delivery date for a single DJ-set, the first day of the
+     * period for several, and the issue date only when neither was recorded.
+     *
+     * <p>The same precedence {@link #serviceYear()} reads its answer from, kept in one place
+     * because the lists show the date and the totals count the year, and the two disagreeing
+     * would be a bug nobody would think to look for.
+     *
+     * @return the {@code yyyy-MM-dd} date, or null when no date on this invoice can be read
+     */
+    public String serviceDate() {
+        if (Dates.isValid(deliveryDate)) return deliveryDate;
+        if (Dates.isValid(periodStart)) return periodStart;
+        return Dates.isValid(issueDate) ? issueDate : null;
     }
 
     public void takeIdentityFrom(Invoice original) {
