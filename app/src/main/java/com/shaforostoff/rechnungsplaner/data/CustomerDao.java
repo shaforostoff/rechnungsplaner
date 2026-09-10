@@ -22,6 +22,14 @@ public class CustomerDao {
     /** How far the sequence may step past taken numbers before the attempt is abandoned. */
     private static final int COLLISION_ATTEMPTS = 100;
 
+    /** The name the lists sort by: the official one, else the venue, else the city. */
+    private static final String NAME_ORDER =
+            "COALESCE(NULLIF(official_name, ''), place_name, city) COLLATE NOCASE";
+
+    /** How many jobs a customer has, as an expression a plain query can order by. */
+    private static final String GIG_COUNT = "(SELECT COUNT(*) FROM " + Db.T_GIG
+            + " WHERE " + Db.T_GIG + ".customer_id = " + Db.T_CUSTOMER + "._id)";
+
     private final Db db;
 
     public CustomerDao(Context ctx) {
@@ -29,10 +37,25 @@ public class CustomerDao {
     }
 
     public List<Customer> all(boolean includeArchived) {
+        return listed(includeArchived, NAME_ORDER);
+    }
+
+    /**
+     * Every customer, the ones with the most jobs first.
+     *
+     * <p>What the list and the picker get scrolled for is the venue that books again every season,
+     * and among a few hundred imported contacts that one sits wherever the alphabet left it.
+     * Contacts nothing has been booked with fall to the bottom, still in alphabetical order among
+     * themselves so a name can be found there by eye.
+     */
+    public List<Customer> byGigCount(boolean includeArchived) {
+        return listed(includeArchived, GIG_COUNT + " DESC, " + NAME_ORDER);
+    }
+
+    private List<Customer> listed(boolean includeArchived, String order) {
         List<Customer> out = new ArrayList<Customer>();
         Cursor c = db.getReadableDatabase().query(Db.T_CUSTOMER, null,
-                includeArchived ? null : "archived = 0", null, null, null,
-                "COALESCE(NULLIF(official_name, ''), place_name, city) COLLATE NOCASE");
+                includeArchived ? null : "archived = 0", null, null, null, order);
         try {
             while (c.moveToNext()) out.add(read(c));
         } finally {

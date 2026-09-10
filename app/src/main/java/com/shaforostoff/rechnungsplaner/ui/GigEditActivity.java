@@ -508,7 +508,7 @@ public class GigEditActivity extends BaseActivity {
 
     private void pickCustomer() {
         customerChoices.clear();
-        customerChoices.addAll(customers.all(false));
+        customerChoices.addAll(customers.byGigCount(false));
 
         final String[] labels = new String[customerChoices.size() + 1];
         for (int i = 0; i < customerChoices.size(); i++) {

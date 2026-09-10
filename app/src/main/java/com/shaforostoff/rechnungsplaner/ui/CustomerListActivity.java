@@ -40,7 +40,7 @@ public class CustomerListActivity extends BaseActivity {
         super.onResume();
         body().removeAllViews();
 
-        List<Customer> all = customers.all(true);
+        List<Customer> all = customers.byGigCount(true);
         if (all.isEmpty()) {
             TextView empty = new TextView(this);
             empty.setText(R.string.customers_empty);
