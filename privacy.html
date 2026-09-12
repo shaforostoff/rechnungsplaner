@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Privacy Policy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+      line-height: 1.6;
+      color: #222;
+      background: #fafafa;
+    }
+    h1, h2 {
+      color: #111;
+    }
+    h1 {
+      margin-bottom: 0.2em;
+    }
+    h2 {
+      margin-top: 1.6em;
+    }
+    a {
+      color: #0066cc;
+    }
+    code {
+      background: #eee;
+      padding: 0 3px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Privacy Policy</h1>
+  <p><strong>Last updated:</strong> September 12, 2026</p>
+
+  <h2>1. Introduction</h2>
+  <p>
+    This application (“Rechnungsplaner”) is an offline app for planning gigs and issuing
+    invoices for them, including the German e-invoicing formats (ZUGFeRD / Factur-X and
+    XRechnung). We take user privacy seriously and are committed to being transparent
+    about how Rechnungsplaner handles data.
+  </p>
+
+  <h2>2. Data Collection and Use</h2>
+  <p>
+    Rechnungsplaner does <strong>not collect</strong> personal information, device
+    identifiers, usage analytics, or advertising identifiers. It does not request the
+    <code>INTERNET</code> permission, has no network access, and cannot transmit your
+    data to us or to any server. Nothing you enter is ever seen by the developer.
+  </p>
+  <p>
+    Everything the app works with is entered by you and kept in the app's
+    <strong>private on-device storage</strong> (inaccessible to other apps):
+  </p>
+  <ul>
+    <li>
+      <strong>Your own details</strong> — business name, address, contact details, VAT
+      ID (USt-IdNr) and tax number, bank details (IBAN, BIC, account holder), and your
+      tax and payment-term defaults, as required to appear on an invoice.
+    </li>
+    <li>
+      <strong>Your customers</strong> — venue and registered name, address, contact
+      person, email, phone, VAT ID, customer number, buyer reference and your own notes.
+    </li>
+    <li>
+      <strong>Gigs, services and invoices</strong> — dates, places, fees, line items,
+      and the generated invoice files, which are archived in app-private storage so a
+      past invoice can be re-sent years later exactly as it was issued.
+    </li>
+    <li>
+      <strong>Your preferences</strong> — output format, file-name and invoice-number
+      patterns, interface and invoice language, the chosen calendar and the chosen
+      export folder.
+    </li>
+  </ul>
+  <p>
+    This data is stored purely so the app can do its job. It is not profiled, analysed,
+    or used for any purpose other than producing your invoices and showing your own
+    records back to you.
+  </p>
+
+  <h2 id="permissions">3. Permissions</h2>
+  <p>
+    Rechnungsplaner requests only two permissions, and they serve a single optional
+    feature:
+  </p>
+  <ul>
+    <li>
+      <strong>Calendar access</strong> (<code>READ_CALENDAR</code>,
+      <code>WRITE_CALENDAR</code>) — used only if you turn on calendar mirroring and
+      pick a calendar. The app then writes your gigs into that calendar as ordinary
+      events (title, location, your notes, and a short marker line that lets the app
+      recognise its own events again), updates or removes those events when a gig
+      changes, and reads events back from that one calendar over the date range you ask
+      it to import, so you can adopt entries you made elsewhere. It does not read any
+      other calendar, and it never reads your calendar unless you asked for an import or
+      for mirroring.
+    </li>
+  </ul>
+  <p>
+    The app requests <strong>no storage permission</strong>. Saving invoices and backups
+    uses the Android system folder picker (Storage Access Framework): the app can only
+    write to the folder you chose yourself. Sharing an invoice hands the single file you
+    selected to the app you pick from the share sheet, through a read-only link limited
+    to one directory.
+  </p>
+
+  <h2>4. When Data Leaves Your Device</h2>
+  <p>
+    The app itself has no way to send anything anywhere. Data leaves your device only
+    through actions you take, and only to destinations you choose:
+  </p>
+  <ul>
+    <li>
+      <strong>Calendar mirroring</strong> — if the calendar you pick belongs to an online
+      account (for example a Google account), Android's own calendar sync will upload
+      those events to that account, just as it does for events you create in your
+      calendar app. Those events contain the gig's title, place and your notes. This is
+      handled by Android and by that account provider under their privacy policies, not
+      by Rechnungsplaner. Choosing a local, on-device calendar avoids it entirely.
+    </li>
+    <li>
+      <strong>Sharing an invoice</strong> — the generated PDF and/or XML is passed to the
+      app you choose (mail app, messenger, and so on), with the customer's address and
+      your message text pre-filled for mail apps. What happens next is governed by that
+      app and by your mail provider.
+    </li>
+    <li>
+      <strong>Saving and exporting</strong> — invoices, the contacts export and the full
+      backup archive are written to the folder you picked. If that folder belongs to a
+      cloud storage provider, your files go there. These files contain personal data of
+      your customers and, in the case of a backup, your own bank details.
+    </li>
+    <li>
+      <strong>Device backup</strong> — Android may include the app's data in your device's
+      own backup if you have backups switched on. That is a platform feature governed by
+      your device settings and your account provider; the app takes no active part in it.
+    </li>
+  </ul>
+
+  <h2>5. Third-Party Sharing</h2>
+  <p>
+    Rechnungsplaner does not share any data with third parties, advertisers, analytics
+    providers, or external services. It contains no ads, no trackers and no third-party
+    SDKs. The contacts export produces a file in the shape the lexoffice API accepts, but
+    the app does not contact lexoffice or any other service — the file is simply saved
+    for you to use as you see fit.
+  </p>
+
+  <h2>6. Security</h2>
+  <p>
+    Your database, the invoice archive and your settings live in app-private storage,
+    which other apps on the device cannot read. Files offered to the share sheet are
+    copied into a single directory that is served read-only, so a share cannot be turned
+    into access to your invoice history. Because the app has no network access, there is
+    no transmission of your data that could be intercepted.
+  </p>
+  <p>
+    Files you export or share leave this protection by design. Keeping exported invoices,
+    contact exports and backup archives safe is up to you and the storage or messaging
+    service you send them to.
+  </p>
+
+  <h2>7. Your Customers' Data</h2>
+  <p>
+    The customer details you enter are yours, and under the GDPR you are the controller
+    of them. The developer has no access to them, receives no copy of them, and cannot
+    retrieve or delete them for you. You can edit or delete any customer, gig or invoice
+    in the app at any time, and uninstalling the app removes its data from the device —
+    bearing in mind that invoices you have already issued are normally subject to
+    statutory retention periods.
+  </p>
+
+  <h2>8. Changes to This Policy</h2>
+  <p>
+    We may update this Privacy Policy from time to time. Any changes will be posted on this page.
+  </p>
+
+  <h2>9. Contact</h2>
+  <p>
+    If you have any questions about this Privacy Policy, you may contact the developer Mykola Shaforostov at:<br />
+    <strong>Email:</strong> shaforostoff@gmail.com
+  </p>
+</body>
+</html>
