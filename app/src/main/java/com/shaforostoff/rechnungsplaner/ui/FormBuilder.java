@@ -157,18 +157,17 @@ public class FormBuilder {
         return tv;
     }
 
-    /** The legend explaining what the blue outlines mean. */
+    /**
+     * The legend explaining what the blue outlines mean.
+     *
+     * <p>A grey caption, not the filled accent card it used to be. That card opened the form with
+     * rounded corners, padding and coloured text on a tinted fill -- the shape of a field with
+     * something in it -- so the first thing the screen said looked like the first thing the user
+     * had typed. The outlines below carry the colour; the sentence about them only has to be
+     * readable.
+     */
     public TextView requiredLegend() {
-        TextView tv = new TextView(ctx);
-        tv.setText(R.string.required_for_xrechnung);
-        tv.setTextSize(12f);
-        tv.setTextColor(ctx.getColor(R.color.accent));
-        tv.setBackgroundResource(R.drawable.card_accent);
-        tv.setPadding(dp(10), dp(8), dp(10), dp(8));
-        LinearLayout.LayoutParams lp = matchWidth();
-        lp.bottomMargin = dp(12);
-        container.addView(tv, lp);
-        return tv;
+        return caption(ctx.getString(R.string.required_for_xrechnung));
     }
 
     public EditText field(int labelRes, String value, boolean required) {
