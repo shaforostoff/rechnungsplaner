@@ -304,8 +304,7 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
         StringBuilder detail = new StringBuilder();
         String time = Ui.timeOfDay(gig.startMillis);
         if (!time.isEmpty()) detail.append(time).append(" · ");
-        detail.append(Ui.money(gig.totalNetCents()));
-        detail.append(" · ").append(statusLabel(gig.status));
+        detail.append(statusLabel(gig.status));
 
         TextView subtitle = new TextView(this);
         subtitle.setText(detail.toString());
