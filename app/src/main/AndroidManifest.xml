@@ -7,6 +7,26 @@
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
 
+    <!-- Package visibility. From API 30 an app sees only the packages it declares an interest in,
+         and both halves of the share sheet have to be seen to be told apart: who answers a
+         mailto:, and who answers the send this app is about to make. Without these the queries
+         come back empty, every target looks like a mail app, and the subject goes back to being
+         silently dropped by the messengers. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND_MULTIPLE" />
+            <data android:mimeType="*/*" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

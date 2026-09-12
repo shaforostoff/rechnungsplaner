@@ -3,7 +3,10 @@ package com.shaforostoff.rechnungsplaner.output;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Bundle;
 
 import com.shaforostoff.rechnungsplaner.util.Paths;
 import com.shaforostoff.rechnungsplaner.util.ShareProvider;
@@ -15,7 +18,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Builds the share-sheet intents for generated invoices.
@@ -23,7 +28,8 @@ import java.util.List;
  * <p>{@code ACTION_SEND} with an attachment is used even for email, rather than a {@code mailto:}
  * {@code ACTION_SENDTO}, because the latter cannot reliably carry a file. One chooser then covers
  * mail apps, Telegram and everything else, with the customer's address pre-filled for the mail
- * ones.
+ * ones and the subject folded into the message for the ones that would drop it -- see
+ * {@link #subjectFoldedIntoText}.
  */
 public final class Sharing {
 
@@ -104,7 +110,57 @@ public final class Sharing {
         }
         if (clip != null) send.setClipData(clip);
 
-        return Intent.createChooser(send, chooserTitle);
+        Intent chooser = Intent.createChooser(send, chooserTitle);
+        Bundle perTarget = subjectFoldedIntoText(ctx, send, subject, body);
+        if (perTarget != null) chooser.putExtra(Intent.EXTRA_REPLACEMENT_EXTRAS, perTarget);
+        return chooser;
+    }
+
+    /**
+     * Hands the subject back to every target that would otherwise throw it away.
+     *
+     * <p>A messenger -- WhatsApp, Telegram, Signal -- reads {@code EXTRA_TEXT} and ignores
+     * {@code EXTRA_SUBJECT} completely, so the line naming the job and the night it was played,
+     * which is the entire point of the subject, never reaches the booker.
+     * {@code EXTRA_REPLACEMENT_EXTRAS} is the system's answer to exactly this: one chooser,
+     * different extras per target package, settled before the sheet opens rather than discovered
+     * after the user has already picked. The mail apps keep subject and body apart; everyone else
+     * gets them as one message.
+     *
+     * <p>Mail apps are found, not listed. Anything that answers a {@code mailto:} is one, which
+     * covers a client this app has never heard of -- where keeping a list of messengers instead
+     * would mean the newest one always got the broken version.
+     *
+     * <p>The replacement adds to the target's extras rather than clearing them, so a messenger is
+     * still handed the subject it was always going to ignore. Only {@code EXTRA_TEXT} changes.
+     *
+     * @return the per-package extras, or null when there is no subject to rescue or no target
+     *         that needs it rescued
+     */
+    @SuppressWarnings("deprecation") // The ResolveInfoFlags overload is API 33; minSdk here is 24.
+    private static Bundle subjectFoldedIntoText(Context ctx, Intent send, String subject,
+                                                String body) {
+        if (!notEmpty(subject)) return null;
+        PackageManager pm = ctx.getPackageManager();
+
+        Set<String> mailApps = new HashSet<String>();
+        Intent mailto = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"));
+        for (ResolveInfo info : pm.queryIntentActivities(mailto, 0)) {
+            mailApps.add(info.activityInfo.packageName);
+        }
+
+        String merged = notEmpty(body) ? subject + "\n\n" + body : subject;
+        Bundle replacements = new Bundle();
+        for (ResolveInfo info : pm.queryIntentActivities(send, 0)) {
+            String pkg = info.activityInfo.packageName;
+            // A package with several share activities resolves more than once, and one bundle
+            // covers all of them.
+            if (mailApps.contains(pkg) || replacements.containsKey(pkg)) continue;
+            Bundle extras = new Bundle();
+            extras.putString(Intent.EXTRA_TEXT, merged);
+            replacements.putBundle(pkg, extras);
+        }
+        return replacements.isEmpty() ? null : replacements;
     }
 
     /** Opens a single generated file in a viewer. */
