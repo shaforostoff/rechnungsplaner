@@ -160,6 +160,9 @@
     <string name="invoice_number_then">La factura posterior a esta será %1$s</string>
     <string name="invoice_number_off_pattern">Se guarda tal cual, pero no encaja en el patrón %1$s, así que la siguiente factura no continuará desde él.</string>
     <string name="invoice_number_taken">La factura %1$s ya existe</string>
+    <string name="action_delete_invoice">Eliminar factura</string>
+    <string name="confirm_delete_invoice">¿Eliminar la factura %1$s? Sus trabajos vuelven a ser facturables y su número puede volver a usarse. Solo para una que nunca se envió — una factura enviada se rectifica, no se elimina.</string>
+    <string name="invoice_deleted">Factura %1$s eliminada</string>
     <string name="invoice_supersedes">Factura %1$s emitida, sustituye a %2$s</string>
     <string name="label_replaces">Sustituye a</string>
     <string name="label_replaced_by">Sustituida por</string>

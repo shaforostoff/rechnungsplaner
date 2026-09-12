@@ -469,7 +469,43 @@ public class InvoiceActivity extends BaseActivity {
                     saveToFolder();
                 }
             });
+            // Last, and well away from Share: the two are one tap apart and only one of them can
+            // be taken back.
+            f.secondaryButton(R.string.action_delete_invoice, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    confirmDelete();
+                }
+            });
         }
+    }
+
+    /**
+     * Deletes this invoice, once asked, for the one that should never have been written.
+     *
+     * <p>The confirmation spells out both halves of what is about to happen, because both are
+     * decisions: that this document never left the user's hands -- one that did is cancelled with
+     * a credit note, which is what "Recreate" above offers -- and that its number goes back to the
+     * series, which is the reason to delete rather than correct. Creating an invoice against the
+     * wrong gig and wanting the number back for the right one is the case this exists for.
+     */
+    private void confirmDelete() {
+        final String number = invoice.number;
+        final long id = invoice.id;
+        Ui.confirm(this, getString(R.string.confirm_delete_invoice, number),
+                R.string.action_delete, new Runnable() {
+                    @Override
+                    public void run() {
+                        // Files first: if that fails, the invoice is still on screen and still
+                        // whole, and deleting it can be tried again. The other order would leave
+                        // a directory of documents nothing points at any more.
+                        new InvoiceWriter(InvoiceActivity.this).deleteArchive(id);
+                        invoices.delete(id, settings.getInvoiceNumberPattern());
+                        Ui.toast(InvoiceActivity.this,
+                                getString(R.string.invoice_deleted, number));
+                        finish();
+                    }
+                });
     }
 
     private View summaryCard() {

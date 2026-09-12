@@ -87,6 +87,21 @@ public class InvoiceWriter {
     }
 
     /**
+     * Throws away an invoice's archived files, for one that is being deleted.
+     *
+     * <p>Flat rather than recursive: one directory of documents per invoice is the whole of the
+     * layout, and a delete that walked a tree here would be a delete that could walk out of one.
+     */
+    public void deleteArchive(long invoiceId) {
+        File dir = new File(archiveRoot(ctx), Long.toString(invoiceId));
+        File[] written = dir.listFiles();
+        if (written != null) {
+            for (File file : written) file.delete();
+        }
+        dir.delete();
+    }
+
+    /**
      * Renders, validates and writes every file the format calls for.
      *
      * <p>Validation problems are reported, never enforced. A draft for a club that has not yet sent

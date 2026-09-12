@@ -170,6 +170,9 @@
     <string name="invoice_number_then">The invoice after this one becomes %1$s</string>
     <string name="invoice_number_off_pattern">Kept as typed, but it does not fit the pattern %1$s, so the next invoice will not continue from it.</string>
     <string name="invoice_number_taken">Invoice %1$s already exists</string>
+    <string name="action_delete_invoice">Delete invoice</string>
+    <string name="confirm_delete_invoice">Delete invoice %1$s? Its jobs become billable again and its number can be used again. Only for one that was never sent — a sent invoice is corrected, not deleted.</string>
+    <string name="invoice_deleted">Invoice %1$s deleted</string>
     <string name="invoice_supersedes">Invoice %1$s issued, replacing %2$s</string>
     <string name="label_replaces">Replaces</string>
     <string name="label_replaced_by">Replaced by</string>

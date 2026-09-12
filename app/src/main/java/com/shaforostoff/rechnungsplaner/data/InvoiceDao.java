@@ -81,7 +81,7 @@ public class InvoiceDao {
      * a fee that changed, a customer whose details arrived late, an address that was stale when
      * the invoice was first written -- and wrong for an invoice the customer has already paid
      * against, which German practice cancels with a credit note instead. The UI owns that
-     * distinction, as it does for {@link #deleteDraft}.
+     * distinction, as it does for {@link #delete}.
      *
      * @param gigIds the gigs the corrected invoice bills, which need not be the original set
      */
@@ -293,23 +293,65 @@ public class InvoiceDao {
     }
 
     /**
-     * Deletes an unsent invoice and releases its gigs.
+     * Deletes an invoice, releases its gigs, and hands its number back to the series.
      *
-     * <p>Only ever offered for a draft. An invoice that has left the building must be cancelled
-     * with a credit note, not deleted, and the UI is responsible for not offering this then.
+     * <p>For the invoice that should never have existed -- drawn up against the wrong gig, or for
+     * the wrong booker, and caught before it went anywhere. An invoice already in the customer's
+     * hands is a different matter and is cancelled with a credit note rather than deleted; the UI
+     * says so before it gets this far, as it does for {@link #reissue}.
+     *
+     * <p>Its lines and the record of its files go with it, by cascade. The gigs go back to
+     * billable, including any marked paid: the payment may well have happened, but the document
+     * it was made against is gone, and a gig that cannot be billed again is worse than one that
+     * has to be marked paid again.
+     *
+     * @param numberPattern the user's pattern, needed to read the sequence out of the number
      */
-    public void deleteDraft(long invoiceId) {
+    public void delete(long invoiceId, String numberPattern) {
         SQLiteDatabase w = db.getWritableDatabase();
         w.beginTransaction();
         try {
+            Invoice doomed = header(w, invoiceId);
             ContentValues v = new ContentValues();
             v.put("invoice_id", -1L);
             v.put("status", Gig.Status.PLAYED.name());
             w.update(Db.T_GIG, v, "invoice_id = ?", new String[]{Long.toString(invoiceId)});
             w.delete(Db.T_INVOICE, "_id = ?", new String[]{Long.toString(invoiceId)});
+            if (doomed != null) releaseNumber(w, numberPattern, doomed.issueDate, doomed.number);
             w.setTransactionSuccessful();
         } finally {
             w.endTransaction();
+        }
+    }
+
+    /**
+     * Winds the year's series back one, when the deleted invoice was the last one issued.
+     *
+     * <p>This is what lets the number be used again, which is the point of deleting rather than
+     * correcting: a number spent on a mistake and then skipped is a gap in the series that has to
+     * be explained years later. Section 14 UStG asks for unique, not gapless, so the gap would be
+     * allowed -- but not having one is better, and nothing was ever sent under that number.
+     *
+     * <p>Only from the top. An invoice deleted from the middle of the series leaves the counter
+     * alone, because winding it back there would re-mint numbers that later invoices already
+     * carry. Its own number is free either way once the row is gone -- the column's UNIQUE
+     * constraint is all that guarded it -- so it can be typed back into the next invoice by hand.
+     */
+    private void releaseNumber(SQLiteDatabase w, String pattern, String issueDate, String number) {
+        int sequence = PatternFormatter.extractSequence(pattern, number);
+        String key = counterKey(issueDate);
+        if (sequence < 0 || sequence != counterValue(w, key)) return;
+        setCounter(w, key, sequence - 1);
+    }
+
+    /** The header alone, read inside a transaction that is about to delete it. */
+    private static Invoice header(SQLiteDatabase w, long invoiceId) {
+        Cursor c = w.query(Db.T_INVOICE, null, "_id = ?", new String[]{Long.toString(invoiceId)},
+                null, null, null);
+        try {
+            return c.moveToFirst() ? read(c) : null;
+        } finally {
+            c.close();
         }
     }
 
