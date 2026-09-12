@@ -188,6 +188,18 @@ public final class InvoiceBuilder {
         return what + " am " + date;
     }
 
+    /**
+     * The generic word for the work, for a job that names no service.
+     *
+     * <p>Public so the share subject can fall back to the same word its invoice line already uses:
+     * a line reading "Leistung am 12.09.2026" and a mail announcing a "Service" would be the same
+     * job called two things in one send.
+     */
+    public static String serviceNoun(String language) {
+        return fallbackNoun(language == null ? "de"
+                : language.toLowerCase(java.util.Locale.US));
+    }
+
     private static String fallbackNoun(String lang) {
         if (lang.startsWith("en")) return "Service";
         if (lang.startsWith("es")) return "Servicio";

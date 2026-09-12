@@ -36,6 +36,20 @@ public final class PatternFormatter {
     public static final String FORMAT = "format";
     public static final String SEQ = "seq";
 
+    /**
+     * Share-text only: what was done, and the day it was done on, written out for a reader rather
+     * than split into parts the way {@link #GIG_DAY} and friends are.
+     *
+     * <p>Deliberately absent from {@link #TOKENS}. That array is the legend offered under the
+     * file-name and invoice-number fields, and the token list {@link #extractSequence} matches a
+     * number against; neither of those is ever given these two values, so listing them there would
+     * advertise a token that expands to itself. {@link #format} reads whatever was actually
+     * {@code put}, not this array, which is what lets the share text have them without the file
+     * name being told they exist.
+     */
+    public static final String SERVICE = "service";
+    public static final String GIG_DATE = "gigdate";
+
     /** Every token the UI should offer in its legend, in the order it should list them. */
     public static final String[] TOKENS = {
             ISSUER_NAME, CUSTOMER_NAME, PLACE, CITY, INVOICE_NO,

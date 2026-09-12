@@ -1,8 +1,12 @@
 package com.shaforostoff.rechnungsplaner.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class PatternFormatterTest {
 
@@ -142,5 +146,39 @@ public class PatternFormatterTest {
         assertEquals("100% analog, Club Muster GmbH", f.format("100% analog, %customername%"));
         assertEquals("50%% still reads as typed", f.format("50%% still reads as typed"));
         assertEquals("a trailing percent survives %", f.format("a trailing percent survives %"));
+    }
+
+    @Test
+    public void expandsTheShareSubjectFromTheWorkAndItsDate() {
+        // What the booker sees in their inbox: which job, on which night. The invoice number is
+        // still available, it just no longer has to carry the subject on its own.
+        PatternFormatter f = new PatternFormatter()
+                .put(PatternFormatter.SERVICE, "DJ-Set")
+                .put(PatternFormatter.GIG_DATE, "15.08.2026")
+                .put(PatternFormatter.INVOICE_NO, "2026-038");
+
+        assertEquals("Rechnung: DJ-Set am 15.08.2026",
+                f.format("Rechnung: %service% am %gigdate%"));
+        assertEquals("Invoice: DJ-Set on 15.08.2026",
+                f.format("Invoice: %service% on %gigdate%"));
+    }
+
+    @Test
+    public void readsGigDateWholeRatherThanAsTheGigDayToken() {
+        // %gigdate% and %gigD overlap in spelling but not in case, and longest-match is what
+        // settles them for a formatter holding both. "15ate" is the alternative.
+        PatternFormatter f = formatter().put(PatternFormatter.GIG_DATE, "15.08.2026");
+        assertEquals("15.08.2026", f.format("%gigdate%"));
+        assertEquals("15", f.format("%gigD%"));
+    }
+
+    @Test
+    public void keepsShareTokensOutOfTheFileNameAndNumberLegend() {
+        // Only the share text is ever given these two, so listing them under the file-name field
+        // would offer the user a token that expands to itself -- which is what it does here.
+        List<String> legend = Arrays.asList(PatternFormatter.TOKENS);
+        assertFalse(legend.contains(PatternFormatter.SERVICE));
+        assertFalse(legend.contains(PatternFormatter.GIG_DATE));
+        assertEquals("%service% %gigdate%", formatter().format("%service% %gigdate%"));
     }
 }

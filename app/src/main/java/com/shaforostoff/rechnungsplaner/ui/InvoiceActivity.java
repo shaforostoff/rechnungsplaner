@@ -774,12 +774,40 @@ public class InvoiceActivity extends BaseActivity {
         String pattern = firstWritten(perCustomer, global, getString(defaultRes));
         return new PatternFormatter()
                 .put(PatternFormatter.INVOICE_NO, invoice.number)
+                .put(PatternFormatter.SERVICE, workBilled())
+                .put(PatternFormatter.GIG_DATE,
+                        Dates.forLanguage(invoice.serviceDate(), invoice.language))
                 .put(PatternFormatter.ISSUER_NAME, issuer.name)
                 .put(PatternFormatter.CUSTOMER_NAME, customer == null ? "" : customer.displayName())
                 .put(PatternFormatter.PLACE, customer == null ? "" : customer.placeName)
                 .put(PatternFormatter.CITY, customer == null ? "" : customer.city)
                 .putDate(invoice.issueDate)
                 .format(pattern);
+    }
+
+    /**
+     * What kind of work this invoice bills, for the subject line the booker sees.
+     *
+     * <p>Distinct service names, not one per gig: a weekend of three sets for the same club is one
+     * invoice and one kind of work, and "DJ-Set, DJ-Set, DJ-Set" in a subject helps nobody. Read
+     * from the gigs rather than the invoice lines because a line already carries its date inside
+     * its description, and the subject states the date once, on its own.
+     *
+     * <p>A job entered before the service list existed names no service, and falls back to the
+     * same generic noun its own invoice line was written with.
+     */
+    private String workBilled() {
+        Map<Long, String> names = serviceNames();
+        List<String> kinds = new ArrayList<String>();
+        for (Gig gig : gigs.forInvoice(invoice.id)) {
+            String name = names.get(Long.valueOf(gig.serviceId));
+            if (name == null || name.trim().isEmpty() || kinds.contains(name)) continue;
+            kinds.add(name);
+        }
+        if (kinds.isEmpty()) return InvoiceBuilder.serviceNoun(invoice.language);
+        StringBuilder out = new StringBuilder(kinds.get(0));
+        for (int i = 1; i < kinds.size(); i++) out.append(", ").append(kinds.get(i));
+        return out.toString();
     }
 
     private static String firstWritten(String... candidates) {
