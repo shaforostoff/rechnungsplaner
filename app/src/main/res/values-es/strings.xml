@@ -26,7 +26,7 @@
         <item>D</item>
     </string-array>
 
-    <string name="no_gigs_on_day">Nada este día.</string>
+    <string name="no_gigs_on_day">Nada en este día.</string>
     <string name="menu_issuer">Mis datos</string>
     <string name="menu_today">Hoy</string>
 
@@ -35,13 +35,13 @@
     <string name="service_multi_day">Varios días (pide fecha final, no horas)</string>
     <string name="service_sync_calendar">Sincronizar con el calendario elegido</string>
     <string name="label_end_date">Último día</string>
-    <string name="end_date_hint">El mismo día que el inicio salvo que lo cambies. El trabajo sigue archivado en el día en que empezó.</string>
+    <string name="end_date_hint">El mismo día que el inicio salvo que lo cambies. El trabajo sigue constando en el día en que empezó.</string>
     <string name="end_before_start">El último día no puede ser anterior al primero.</string>
     <string name="hint_service_name">Cómo llamas a este trabajo</string>
     <string name="label_service">Servicio</string>
     <string name="action_rename">Renombrar</string>
     <string name="confirm_delete_service">¿Quitar %1$s? Los trabajos ya registrados conservan el nombre.</string>
-    <string name="service_deleted">%1$s quitado</string>
+    <string name="service_deleted">Se ha quitado %1$s</string>
     <string name="service_archived">%1$s ya no aparece como botón. Los trabajos que lo usaban conservan el nombre.</string>
     <string name="no_services_yet">Aún no hay servicios. Añade uno para empezar a registrar trabajo.</string>
     <string name="title_new_gig">Nuevo trabajo</string>
@@ -62,21 +62,21 @@
     <string name="no_customer">Sin cliente</string>
     <string name="action_create_invoice">Crear factura</string>
     <string name="action_link_invoice">Vincular a una factura existente</string>
-    <string name="invoice_choice">%1$s · %2$s · sesiones: %3$d</string>
+    <string name="invoice_choice">%1$s · %2$s · trabajos: %3$d</string>
     <string name="linked_to_invoice">Vinculada a %1$s. Usa «Rehacer» para reconstruirla desde este trabajo.</string>
     <string name="no_invoices_to_link">Este cliente no tiene facturas a las que vincular.</string>
     <string name="action_open_invoice">Abrir factura</string>
     <string name="confirm_delete_gig">¿Eliminar este trabajo?</string>
-    <string name="crosses_midnight">Termina a la mañana siguiente. Se factura la fecha de inicio.</string>
+    <string name="crosses_midnight">Termina a la mañana siguiente. Se factura con la fecha de inicio.</string>
     <string name="needs_date">Hace falta una fecha.</string>
 
     <string name="status_planned">Previsto</string>
-    <string name="status_executed">Ejecutado</string>
+    <string name="status_executed">Realizado</string>
     <string name="status_invoiced">Facturado</string>
     <string name="status_paid">Pagado</string>
 
     <string name="taxmode_inherit_value">Heredar: %1$s</string>
-    <string name="taxmode_kleinunternehmer">Pequeña empresa, § 19 UStG</string>
+    <string name="taxmode_kleinunternehmer">Pequeño empresario, § 19 UStG</string>
     <string name="taxmode_standard_19">19 %</string>
     <string name="taxmode_reduced_7">7 % (actuación artística)</string>
     <string name="taxmode_reverse_charge">Inversión del sujeto pasivo</string>
@@ -84,7 +84,7 @@
 
     <string name="title_new_customer">Nuevo cliente</string>
     <string name="title_edit_customer">Cliente</string>
-    <string name="customers_empty">Aún no hay clientes. Añade uno al reservar tu primera sesión.</string>
+    <string name="customers_empty">Aún no hay clientes. Añade uno cuando cierres tu primera sesión.</string>
     <string name="label_official_name">Razón social</string>
     <string name="label_street">Calle</string>
     <string name="label_postcode">Código postal</string>
@@ -113,7 +113,7 @@
     <string name="label_name">Nombre</string>
     <string name="label_tax_number">Número fiscal</string>
     <string name="label_account_holder">Titular de la cuenta</string>
-    <string name="label_default_tax_mode">Tributación por defecto</string>
+    <string name="label_default_tax_mode">Régimen de IVA por defecto</string>
     <string name="label_exemption_text">Texto de exención</string>
     <string name="hint_exemption_text">Déjalo vacío para el texto legal</string>
     <string name="label_due_days">Plazo de pago (días)</string>
@@ -126,13 +126,13 @@
     <string name="move_to_year">→ %1$d</string>
     <string name="move_to_year_desc">Marcar la factura %1$s como pagada en %2$d</string>
     <string name="paid_in_year">Pagada en %1$d</string>
-    <string name="label_earned_year">trabajo de %1$d</string>
+    <string name="label_earned_year">prestación %1$d</string>
     <string name="invoice_no_year">Esta factura no tiene fecha desde la que calcular.</string>
     <string name="year_heading">%1$d</string>
-    <string name="year_total">%1$s total: %2$s</string>
+    <string name="year_total">Total %1$s: %2$s</string>
     <string name="year_total_vat">neto %1$s · IVA %2$s</string>
-    <string name="year_total_excluded">sustituidas y no contadas: %1$d</string>
-    <string name="year_total_empty">Todavía nada cobrado. Arrastra aquí una factura si se pagó este año.</string>
+    <string name="year_total_excluded">sustituidas, sin contar: %1$d</string>
+    <string name="year_total_empty">Aún no se ha cobrado nada. Arrastra aquí una factura si se pagó este año.</string>
     <string name="invoice_moved_to_year">%1$s cuenta como pagada en %2$s</string>
     <string name="invoices_empty">Aún no hay facturas.</string>
     <string name="label_invoice_number">Número de factura</string>
@@ -148,7 +148,7 @@
     <string name="action_create">Crear</string>
     <string name="action_create_anyway">Crear igualmente</string>
     <string name="invoice_created">Factura %1$s creada</string>
-    <string name="action_recreate">Recrear factura</string>
+    <string name="action_recreate">Rehacer factura</string>
     <string name="action_overwrite">Sobrescribir</string>
     <string name="confirm_overwrite_invoice">¿Reemplazar la factura %1$s? Conserva su número y se eliminan los archivos ya generados.</string>
     <string name="invoice_recreated">Factura %1$s reemplazada</string>
@@ -158,7 +158,7 @@
     <string name="confirm_supersede_invoice">¿Emitir una factura rectificativa que sustituya a %1$s? %1$s se conserva en tus registros y la nueva indica que la sustituye.</string>
     <string name="invoice_number_auto">Déjalo vacío para el siguiente de la serie: %1$s</string>
     <string name="invoice_number_then">La factura posterior a esta será %1$s</string>
-    <string name="invoice_number_off_pattern">Se guarda tal cual, pero no encaja en el patrón %1$s, así que la siguiente factura no continuará desde él.</string>
+    <string name="invoice_number_off_pattern">Se guarda tal cual, pero no encaja en el patrón %1$s, así que la siguiente factura no continuará a partir de ese número.</string>
     <string name="invoice_number_taken">La factura %1$s ya existe</string>
     <string name="action_delete_invoice">Eliminar factura</string>
     <string name="confirm_delete_invoice">¿Eliminar la factura %1$s? Sus trabajos vuelven a ser facturables y su número puede volver a usarse. Solo para una que nunca se envió — una factura enviada se rectifica, no se elimina.</string>
@@ -172,7 +172,7 @@
     <string name="saved_to_folder_unnamed">Guardado en la carpeta elegida</string>
     <string name="no_export_folder">Aún no hay carpeta de exportación. Elígela en Ajustes.</string>
     <string name="mail_subject">Factura %invoiceno%</string>
-    <string name="mail_body">Estimados señores:\n\nadjunto la factura %invoiceno%.\n\nUn saludo\n%issuername%</string>
+    <string name="mail_body">Señoras y señores:\n\nAdjunto la factura %invoiceno%.\n\nUn saludo,\n%issuername%</string>
     <string name="select_gigs_to_bill">Elige los trabajos a facturar</string>
 
     <string name="title_import_export">Importar/Exportar</string>
@@ -181,18 +181,18 @@
     <string name="action_restore">Restaurar</string>
     <string name="backup_failed">No se pudo escribir la copia: %1$s</string>
     <string name="restore_not_a_backup">Ese zip no es una copia de seguridad completa de esta app.</string>
-    <string name="restore_summary">Creada %1$s\n\nContactos: %2$d\nTrabajos: %3$d\nFacturas: %4$d\nArchivos: %5$d\nAjustes: %6$d</string>
+    <string name="restore_summary">Creada el %1$s\n\nContactos: %2$d\nTrabajos: %3$d\nFacturas: %4$d\nArchivos: %5$d\nAjustes: %6$d</string>
     <string name="restore_replaces_everything">Al restaurar se reemplaza todo lo que hay en este teléfono, y no se puede deshacer.</string>
     <string name="restore_done">Restaurado</string>
     <string name="restore_failed">No se pudo restaurar: %1$s</string>
     <string name="export_tour_list">Lista de gira</string>
-    <string name="export_tour_list_desc">Todos los trabajos próximos, una línea cada una. Donde una ciudad tiene varios clientes, se nombra la sala.</string>
+    <string name="export_tour_list_desc">Todos los trabajos próximos, una línea por trabajo. Donde una ciudad tiene varios clientes, se nombra la sala.</string>
     <string name="contacts_archive">Archivo de contactos</string>
-    <string name="contacts_archive_desc">Todos los contactos como zip de JSON, un archivo por contacto. La importación lee un archivo de esta app o un contacto suelto.</string>
+    <string name="contacts_archive_desc">Todos los contactos como ZIP de JSON, un archivo por contacto. La importación lee un ZIP de esta app o un contacto suelto.</string>
     <string name="copied_to_clipboard">Copiado</string>
     <string name="nothing_to_export">Nada que exportar.</string>
     <string name="import_summary">%1$d nuevos, %2$d actualizados</string>
-    <string name="import_replace_issuer">El archivo también contiene tus datos. ¿Reemplazarlos?</string>
+    <string name="import_replace_issuer">También se han encontrado tus datos. ¿Reemplazarlos?</string>
     <string name="import_failed">No se pudo leer el archivo: %1$s</string>
 
     <string name="title_import_calendar">Importar del calendario</string>
@@ -212,7 +212,7 @@
     <string name="setting_tour_date_format">Formato de fecha de la lista</string>
     <string name="setting_ui_language">Idioma de la app</string>
     <string name="setting_customer_number_pattern">Patrón de número de cliente</string>
-    <string name="setting_customer_number_desc">Déjalo vacío para escribir los números de cliente a mano. Aquí solo valen los comodines de secuencia y fecha, y la serie continúa por encima del número solo-dígitos más alto que ya exista — así, al importar tus contactos antiguos se conserva su numeración.</string>
+    <string name="setting_customer_number_desc">Déjalo vacío para escribir los números de cliente a mano. Aquí solo valen los comodines de secuencia y fecha, y la serie continúa por encima del número más alto formado solo por dígitos que ya exista — así, al importar tus contactos antiguos se conserva su numeración.</string>
     <string name="customer_number_taken">El número de cliente %1$s ya pertenece a %2$s</string>
     <string name="customer_number_manual">Vista previa: entrada manual</string>
     <string name="setting_strict_lexoffice">Exportación lexoffice estricta</string>
@@ -260,7 +260,7 @@
     <string name="field_invoice_totals">Totales</string>
     <string name="field_tax_exemption_reason">Motivo de exención de IVA</string>
     <string name="field_tax_rate">Tipo de IVA</string>
-    <string name="problem_missing">Falta %1$s (%2$s)</string>
+    <string name="problem_missing">Falta: %1$s (%2$s)</string>
     <string name="problem_generic">%1$s (%2$s)</string>
 
     <string name="inv_title">Factura</string>
@@ -282,7 +282,7 @@
     <string name="inv_payment_heading">Pago</string>
     <string name="inv_account_holder">Titular de la cuenta</string>
     <string name="inv_reference">Concepto</string>
-    <string name="inv_payable_by">Pagadero hasta el %1$s sin deducción.</string>
+    <string name="inv_payable_by">Pagadero hasta el %1$s sin descuento.</string>
     <string name="inv_vat_id">NIF-IVA</string>
     <string name="inv_tax_number">Número fiscal</string>
     <string name="inv_page">Página %1$d de %2$d</string>
