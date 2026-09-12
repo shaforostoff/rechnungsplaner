@@ -224,6 +224,10 @@
     <string name="calendar_permission_denied">Sin acceso al calendario, los trabajos se quedan solo en esta app.</string>
     <string name="calendar_google_hint">Los eventos de un calendario de Google se sincronizan con Google automáticamente.</string>
 
+    <!-- ===== About ===== -->
+    <string name="about_heading">Acerca de</string>
+    <string name="about_license">Rechnungsplaner es software libre bajo la Licencia Pública General de GNU, versión 2. Código fuente:</string>
+
     <string name="format_zugferd_xrechnung">PDF ZUGFeRD (perfil XRechnung)</string>
     <string name="format_zugferd_en16931">PDF ZUGFeRD (perfil EN 16931)</string>
     <string name="format_xrechnung_ubl">XML XRechnung 3.0 (UBL)</string>

@@ -224,6 +224,10 @@
     <string name="calendar_permission_denied">Ohne Kalenderzugriff bleiben die Aufträge nur in dieser App.</string>
     <string name="calendar_google_hint">Termine in einem Google-Kalender werden automatisch mit Google synchronisiert.</string>
 
+    <!-- ===== About ===== -->
+    <string name="about_heading">Über die App</string>
+    <string name="about_license">Rechnungsplaner ist freie Software unter der GNU General Public License, Version 2. Quellcode:</string>
+
     <string name="format_zugferd_xrechnung">ZUGFeRD-PDF (Profil XRechnung)</string>
     <string name="format_zugferd_en16931">ZUGFeRD-PDF (Profil EN 16931)</string>
     <string name="format_xrechnung_ubl">XRechnung 3.0 XML (UBL)</string>

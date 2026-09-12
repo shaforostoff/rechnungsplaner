@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.util.Linkify;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -138,7 +139,26 @@ public class SettingsActivity extends BaseActivity {
                 indexOf(UI_LANGUAGE_TAGS, settings.getUiLanguage()), false);
         watchLanguage();
 
+        about(f);
+
         updatePreviews();
+    }
+
+    /**
+     * The licence and where the source lives, at the foot of the last screen.
+     *
+     * <p>Linkify rather than an explicit ACTION_VIEW: it gives the URL the platform's own handling
+     * -- tap to open, long-press to copy -- and leaves the address itself visible, which is the
+     * part a GPL notice is actually for. The link colour is set because the theme takes its own
+     * from the platform, and that blue is not this app's.
+     */
+    private void about(FormBuilder f) {
+        f.section(R.string.about_heading);
+        f.caption(getString(R.string.about_license));
+        TextView url = f.caption(getString(R.string.about_url));
+        url.setTextSize(14f);
+        url.setLinkTextColor(getColor(R.color.accent));
+        Linkify.addLinks(url, Linkify.WEB_URLS);
     }
 
     /**

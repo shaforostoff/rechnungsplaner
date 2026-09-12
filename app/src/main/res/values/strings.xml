@@ -237,6 +237,11 @@
     <string name="calendar_permission_denied">Without calendar access, jobs stay in this app only.</string>
     <string name="calendar_google_hint">Events in a Google calendar sync up to Google automatically.</string>
 
+    <!-- ===== About ===== -->
+    <string name="about_heading">About</string>
+    <string name="about_license">Rechnungsplaner is free software under the GNU General Public License, version 2. Source code:</string>
+    <string name="about_url" translatable="false">https://github.com/shaforostoff/rechnungsplaner/</string>
+
     <string name="format_zugferd_xrechnung">ZUGFeRD PDF (XRechnung profile)</string>
     <string name="format_zugferd_en16931">ZUGFeRD PDF (EN 16931 profile)</string>
     <string name="format_xrechnung_ubl">XRechnung 3.0 XML (UBL)</string>
