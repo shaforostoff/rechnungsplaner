@@ -22,7 +22,9 @@ import com.shaforostoff.rechnungsplaner.util.Dates;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -39,6 +41,19 @@ public class InvoiceListActivity extends BaseActivity {
 
     private InvoiceDao invoices;
     private CustomerDao customers;
+
+    /** Per-render lookups, refilled by {@link #render()} before any row is built. */
+    private Map<Long, String> replacements = Collections.emptyMap();
+    private Map<Long, Customer> customersById = Collections.emptyMap();
+    private String displayLanguage;
+
+    /** The display language, resolved once per render rather than per row. */
+    private String language() {
+        if (displayLanguage == null) {
+            displayLanguage = getResources().getConfiguration().getLocales().get(0).getLanguage();
+        }
+        return displayLanguage;
+    }
 
     @Override
     protected int bottomTab() {
@@ -77,6 +92,15 @@ public class InvoiceListActivity extends BaseActivity {
             empty.setTextColor(getColor(R.color.text_secondary));
             body().addView(empty);
             return;
+        }
+
+        // The replacement number and the customer used to be a query each, per row, every time
+        // the screen came back. Two queries now answer them for the whole list.
+        displayLanguage = null;
+        replacements = invoices.replacementNumbers();
+        customersById = new HashMap<Long, Customer>();
+        for (Customer c : customers.all(true)) {
+            customersById.put(Long.valueOf(c.id), c);
         }
 
         for (Integer year : yearsToShow(all)) body().addView(group(year.intValue(), all));
@@ -123,7 +147,7 @@ public class InvoiceListActivity extends BaseActivity {
             // A superseded invoice is on screen because it is part of the record, but it was
             // replaced by another that is also in this list -- counting both would declare the
             // same fee twice, which is the one error here that matters.
-            if (invoices.replacementNumberOf(invoice.id) != null) {
+            if (replacements.containsKey(Long.valueOf(invoice.id))) {
                 superseded++;
                 continue;
             }
@@ -261,7 +285,7 @@ public class InvoiceListActivity extends BaseActivity {
 
         // Which of two invoices for the same gig is the current one is not guessable from a date,
         // so a superseded one says so on its face and is struck through.
-        String replacedBy = invoices.replacementNumberOf(invoice.id);
+        String replacedBy = replacements.get(Long.valueOf(invoice.id));
         if (replacedBy != null) {
             number.setPaintFlags(number.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
             TextView replaced = new TextView(this);
@@ -289,7 +313,7 @@ public class InvoiceListActivity extends BaseActivity {
             row.addView(earned);
         }
 
-        Customer customer = customers.byId(invoice.customerId);
+        Customer customer = customersById.get(Long.valueOf(invoice.customerId));
         StringBuilder detail = new StringBuilder();
         detail.append(gigDate(invoice));
         if (customer != null) detail.append(" · ").append(customer.displayName());
@@ -339,7 +363,7 @@ public class InvoiceListActivity extends BaseActivity {
      * nobody anything. A period spanning several days shows both ends, as on the PDF.
      */
     private String gigDate(Invoice invoice) {
-        String language = getResources().getConfiguration().getLocales().get(0).getLanguage();
+        String language = language();
         String start = invoice.serviceDate();
         if (start == null) return "";
         // Collapse a period that begins and ends on the same day -- two gigs on one night make

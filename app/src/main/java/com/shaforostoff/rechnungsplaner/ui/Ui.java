@@ -115,11 +115,26 @@ public final class Ui {
         }
     }
 
-    /** Cents formatted with the currency symbol, for display only. */
-    public static String money(long cents) {
-        NumberFormat f = NumberFormat.getCurrencyInstance();
-        f.setCurrency(Currency.getInstance("EUR"));
-        return f.format(cents / 100.0);
+    private static NumberFormat moneyFormat;
+    private static Locale moneyLocale;
+
+    /**
+     * Cents formatted with the currency symbol, for display only.
+     *
+     * <p>The formatter is kept rather than rebuilt: every invoice row asks for one or more
+     * amounts, and {@code getCurrencyInstance} builds a {@code DecimalFormat} and a full set of
+     * symbols each time it is called. Keyed on the default locale so a language change is still
+     * picked up -- the formatter carries the decimal separator and the symbol's position, which
+     * are exactly what changes with it.
+     */
+    public static synchronized String money(long cents) {
+        Locale current = Locale.getDefault();
+        if (moneyFormat == null || !current.equals(moneyLocale)) {
+            moneyFormat = NumberFormat.getCurrencyInstance(current);
+            moneyFormat.setCurrency(Currency.getInstance("EUR"));
+            moneyLocale = current;
+        }
+        return moneyFormat.format(cents / 100.0);
     }
 
     /**

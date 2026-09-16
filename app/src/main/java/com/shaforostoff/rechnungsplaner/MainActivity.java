@@ -28,6 +28,7 @@ import com.shaforostoff.rechnungsplaner.util.Dates;
 
 import java.text.DateFormatSymbols;
 import java.util.List;
+import java.util.Locale;
 
 /** The calendar: a month grid, and the DJ-sets on whichever day is selected. */
 public class MainActivity extends BaseActivity implements MonthCalendarView.Listener {
@@ -38,6 +39,16 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
     private CustomerDao customers;
     private ServiceDao services;
     private String selectedDate;
+
+    /**
+     * The month names, read from the locale once.
+     *
+     * <p>{@code DateFormatSymbols.getInstance} loads a locale's whole date-symbol set and hands
+     * back a fresh array each time. The title is rewritten on every month change, and paging
+     * through the calendar was doing that work per page for thirteen strings that do not move.
+     */
+    private String[] monthNames;
+    private Locale monthNamesLocale;
 
     @Override
     protected int bottomTab() {
@@ -94,7 +105,7 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
 
     @Override
     public void onMonthChanged(int year, int month) {
-        setScreenTitle(monthTitle(year, month));
+        // refreshMonth sets the title from the calendar, which is already on this month.
         refreshMonth();
     }
 
@@ -105,9 +116,12 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
     }
 
     private String monthTitle(int year, int month) {
-        String[] months = DateFormatSymbols.getInstance(
-                getResources().getConfiguration().getLocales().get(0)).getMonths();
-        String name = month >= 1 && month <= 12 ? months[month - 1] : "";
+        Locale locale = getResources().getConfiguration().getLocales().get(0);
+        if (monthNames == null || !locale.equals(monthNamesLocale)) {
+            monthNames = DateFormatSymbols.getInstance(locale).getMonths();
+            monthNamesLocale = locale;
+        }
+        String name = month >= 1 && month <= 12 ? monthNames[month - 1] : "";
         return name + " " + year;
     }
 
@@ -294,9 +308,8 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
         row.setBackgroundResource(R.drawable.card);
         row.setPadding(dp(14), dp(12), dp(14), dp(12));
 
-        Customer customer = customers.byId(gig.customerId);
         TextView title = new TextView(this);
-        title.setText(where(gig, customer));
+        title.setText(where(gig));
         title.setTextSize(16f);
         title.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
         row.addView(title);
@@ -326,8 +339,11 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
         return row;
     }
 
-    private String where(Gig gig, Customer customer) {
+    private String where(Gig gig) {
+        // The customer is only a fallback for a gig with no place name, so it is looked up when
+        // that happens rather than for every row -- this runs once per gig on the selected day.
         if (gig.placeName != null && !gig.placeName.trim().isEmpty()) return gig.placeName.trim();
+        Customer customer = customers.byId(gig.customerId);
         if (customer != null) return customer.displayName();
         if (gig.city != null && !gig.city.trim().isEmpty()) return gig.city.trim();
         return getString(R.string.title_edit_gig);

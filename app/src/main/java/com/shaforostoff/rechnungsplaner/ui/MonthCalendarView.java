@@ -17,6 +17,7 @@ import android.view.animation.DecelerateInterpolator;
 import com.shaforostoff.rechnungsplaner.R;
 import com.shaforostoff.rechnungsplaner.util.Dates;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -47,6 +48,21 @@ public class MonthCalendarView extends View {
     private static final int ROWS = 6;
     private static final int COLUMNS = 7;
 
+    /**
+     * Cell labels for every day a month can have, indexed by day of month.
+     *
+     * <p>{@code onDraw} runs for two months on every frame of a paging drag, and
+     * {@code Integer.toString} there was minting sixty-odd short-lived strings per frame for
+     * numbers that never change.
+     */
+    private static final String[] DAY_LABELS = buildDayLabels();
+
+    private static String[] buildDayLabels() {
+        String[] labels = new String[32];
+        for (int day = 1; day <= 31; day++) labels[day] = Integer.toString(day);
+        return labels;
+    }
+
     /** Below this the drag snaps back rather than completing the month change. */
     private static final float COMMIT_FRACTION = 0.33f;
     private static final int SETTLE_MIN_MS = 130;
@@ -66,6 +82,25 @@ public class MonthCalendarView extends View {
     private final String today = Dates.today();
     private Map<String, Integer> gigCounts = Collections.emptyMap();
     private Listener listener;
+
+    /**
+     * Marker counts by day of month, for the three months a drag can put on screen.
+     *
+     * <p>The map is keyed by ISO date, so asking it per cell meant building a date string for
+     * every cell of every drawn month on every frame. These are refilled only when the data or
+     * the month actually changes, which leaves the draw path free of allocation.
+     */
+    private final int[] countsPrevious = new int[32];
+    private final int[] countsCurrent = new int[32];
+    private final int[] countsNext = new int[32];
+
+    /** {@link #selectedDate} and {@link #today} split out, so drawing compares ints. */
+    private int selectedYear;
+    private int selectedMonth;
+    private int selectedDay;
+    private final int todayYear = Dates.year(today);
+    private final int todayMonth = Dates.month(today);
+    private final int todayDay = Dates.day(today);
 
     /** How far the grid is currently shifted from its resting place, in pixels. */
     private float dragX;
@@ -103,6 +138,9 @@ public class MonthCalendarView extends View {
         year = Dates.year(today);
         month = Dates.month(today);
         selectedDate = today;
+        selectedYear = todayYear;
+        selectedMonth = todayMonth;
+        selectedDay = todayDay;
 
         gestures = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
             @Override
@@ -183,7 +221,31 @@ public class MonthCalendarView extends View {
 
     public void setGigCounts(Map<String, Integer> counts) {
         this.gigCounts = counts == null ? Collections.<String, Integer>emptyMap() : counts;
+        rebuildCounts();
         invalidate();
+    }
+
+    /**
+     * Refills the per-day marker counts for the three months that can be drawn.
+     *
+     * <p>Called when the data or the current month changes, which is the whole point: the date
+     * strings the map is keyed by get built here, a few dozen times on a month change, rather
+     * than once per cell per frame on the draw path.
+     */
+    private void rebuildCounts() {
+        fillCounts(countsPrevious, previousMonthYear(), previousMonth());
+        fillCounts(countsCurrent, year, month);
+        fillCounts(countsNext, nextMonthYear(), nextMonth());
+    }
+
+    private void fillCounts(int[] into, int y, int m) {
+        Arrays.fill(into, 0);
+        if (gigCounts.isEmpty()) return;
+        int days = Dates.daysInMonth(y, m);
+        for (int day = 1; day <= days; day++) {
+            Integer count = gigCounts.get(Dates.iso(y, m, day));
+            if (count != null) into[day] = count.intValue();
+        }
     }
 
     public void showMonth(int year, int month) {
@@ -193,6 +255,7 @@ public class MonthCalendarView extends View {
         dragX = 0f;
         this.year = year;
         this.month = month;
+        rebuildCounts();
         invalidate();
         if (listener != null) listener.onMonthChanged(year, month);
     }
@@ -202,6 +265,9 @@ public class MonthCalendarView extends View {
         selectedDate = isoDate;
         int y = Dates.year(isoDate);
         int m = Dates.month(isoDate);
+        selectedYear = y;
+        selectedMonth = m;
+        selectedDay = Dates.day(isoDate);
         if (y != year || m != month) {
             showMonth(y, m);
         } else {
@@ -271,17 +337,18 @@ public class MonthCalendarView extends View {
                     headerPaint.getTextSize() * 1.3f, headerPaint);
         }
 
-        drawMonth(canvas, year, month, dragX);
+        drawMonth(canvas, year, month, countsCurrent, dragX);
         // Only the neighbour the drag is uncovering needs drawing, and it sits exactly one screen
         // away from the current one.
         if (dragX > 0f) {
-            drawMonth(canvas, previousMonthYear(), previousMonth(), dragX - getWidth());
+            drawMonth(canvas, previousMonthYear(), previousMonth(), countsPrevious,
+                    dragX - getWidth());
         } else if (dragX < 0f) {
-            drawMonth(canvas, nextMonthYear(), nextMonth(), dragX + getWidth());
+            drawMonth(canvas, nextMonthYear(), nextMonth(), countsNext, dragX + getWidth());
         }
     }
 
-    private void drawMonth(Canvas canvas, int year, int month, float offsetX) {
+    private void drawMonth(Canvas canvas, int year, int month, int[] counts, float offsetX) {
         float columnWidth = getWidth() / (float) COLUMNS;
         float headerHeight = headerPaint.getTextSize() * 2.2f;
         float rowHeight = (getHeight() - headerHeight) / ROWS;
@@ -296,24 +363,23 @@ public class MonthCalendarView extends View {
             int column = index % COLUMNS;
             float cx = offsetX + (column + 0.5f) * columnWidth;
             float cy = headerHeight + (row + 0.5f) * rowHeight;
-            String date = Dates.iso(year, month, day);
 
-            if (date.equals(selectedDate)) {
+            if (year == selectedYear && month == selectedMonth && day == selectedDay) {
                 cell.set(cx - radius, cy - radius, cx + radius, cy + radius);
                 canvas.drawOval(cell, selectionPaint);
             }
-            if (date.equals(today)) {
+            if (year == todayYear && month == todayMonth && day == todayDay) {
                 cell.set(cx - radius, cy - radius, cx + radius, cy + radius);
                 canvas.drawOval(cell, todayPaint);
             }
 
             float baseline = cy + dayPaint.getTextSize() * 0.35f;
-            canvas.drawText(Integer.toString(day), cx, baseline, dayPaint);
+            canvas.drawText(DAY_LABELS[day], cx, baseline, dayPaint);
 
-            Integer count = gigCounts.get(date);
-            if (count != null && count > 0) {
+            int count = counts[day];
+            if (count > 0) {
                 // Up to three dots; beyond that the count stops being worth counting at a glance.
-                int dots = Math.min(3, count.intValue());
+                int dots = Math.min(3, count);
                 float dotRadius = radius * 0.13f;
                 float spacing = dotRadius * 3f;
                 float startX = cx - (dots - 1) * spacing / 2f;

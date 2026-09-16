@@ -1,7 +1,6 @@
 package com.shaforostoff.rechnungsplaner.util;
 
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -56,7 +55,12 @@ public final class Dates {
     }
 
     public static boolean isValid(String isoDate) {
-        return calendarFor(isoDate) != null;
+        if (isoDate == null || isoDate.length() != 10) return false;
+        if (isoDate.charAt(4) != '-' || isoDate.charAt(7) != '-') return false;
+        int y = part(isoDate, 0, 4);
+        int m = part(isoDate, 5, 7);
+        int d = part(isoDate, 8, 10);
+        return y >= 1000 && m >= 1 && m <= 12 && d >= 1 && d <= daysInMonth(y, m);
     }
 
     public static int year(String isoDate) {
@@ -143,41 +147,62 @@ public final class Dates {
         return isValid(isoDate) ? isoDate.substring(0, 8) + "01" : isoDate;
     }
 
-    /** Days in the month containing the given date, honouring leap years. */
+    /**
+     * Days in the month containing the given date, honouring leap years.
+     *
+     * <p>Arithmetic rather than a {@code GregorianCalendar}, because this is called for every cell
+     * of the month grid on every frame of a paging drag, and constructing a calendar there was
+     * allocating on the draw path. The leap rule is the proleptic Gregorian one, which differs
+     * from {@code GregorianCalendar} only for Februaries before the 1582 cutover -- outside the
+     * range {@link #isValid} accepts anything useful from, and centuries away from an invoice.
+     *
+     * @param month 1 through 12; anything else is not a month and gets 0
+     */
     public static int daysInMonth(int year, int month) {
-        Calendar c = new GregorianCalendar(year, month - 1, 1);
-        return c.getActualMaximum(Calendar.DAY_OF_MONTH);
+        switch (month) {
+            case 1: case 3: case 5: case 7: case 8: case 10: case 12:
+                return 31;
+            case 4: case 6: case 9: case 11:
+                return 30;
+            case 2:
+                return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28;
+            default:
+                return 0;
+        }
     }
+
+    /** Per-month offsets for {@link #mondayBasedDayOfWeek}. */
+    private static final int[] SAKAMOTO = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
 
     /**
      * Day of week as 0 for Monday through 6 for Sunday, which is the order a German month grid is
      * drawn in, unlike {@link Calendar}'s Sunday-first numbering.
      */
     public static int mondayBasedDayOfWeek(int year, int month, int day) {
-        Calendar c = new GregorianCalendar(year, month - 1, day);
-        int dow = c.get(Calendar.DAY_OF_WEEK);
-        return (dow + 5) % 7;
+        // Sakamoto's method: no calendar to build, which matters because the month grid asks this
+        // once per drawn month per frame. Sunday-based internally, then shifted to Monday.
+        int y = month < 3 ? year - 1 : year;
+        int sundayBased = (y + y / 4 - y / 100 + y / 400 + SAKAMOTO[month - 1] + day) % 7;
+        return (sundayBased + 6) % 7;
     }
 
+    /** Digits read in place: {@code substring} plus {@code parseInt} allocated on every check. */
     private static int part(String isoDate, int from, int to) {
         if (isoDate == null || isoDate.length() < to) return 0;
-        try {
-            return Integer.parseInt(isoDate.substring(from, to));
-        } catch (NumberFormatException e) {
-            return 0;
+        int value = 0;
+        for (int i = from; i < to; i++) {
+            char c = isoDate.charAt(i);
+            if (c < '0' || c > '9') return 0;
+            value = value * 10 + (c - '0');
         }
+        return value;
     }
 
     private static Calendar calendarFor(String isoDate) {
-        if (isoDate == null || isoDate.length() != 10) return null;
-        if (isoDate.charAt(4) != '-' || isoDate.charAt(7) != '-') return null;
-        int y = part(isoDate, 0, 4);
-        int m = part(isoDate, 5, 7);
-        int d = part(isoDate, 8, 10);
-        if (y < 1000 || m < 1 || m > 12 || d < 1 || d > daysInMonth(y, m)) return null;
+        if (!isValid(isoDate)) return null;
         Calendar c = Calendar.getInstance(TimeZone.getDefault());
         c.clear();
-        c.set(y, m - 1, d, 0, 0, 0);
+        c.set(part(isoDate, 0, 4), part(isoDate, 5, 7) - 1, part(isoDate, 8, 10), 0, 0, 0);
         return c;
     }
 }

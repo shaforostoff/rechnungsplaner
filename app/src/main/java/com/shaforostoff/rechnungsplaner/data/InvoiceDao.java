@@ -10,7 +10,9 @@ import com.shaforostoff.rechnungsplaner.util.Dates;
 import com.shaforostoff.rechnungsplaner.util.PatternFormatter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /** Reads and writes invoices, their lines, their generated files, and the number sequence. */
 public class InvoiceDao {
@@ -379,6 +381,30 @@ public class InvoiceDao {
         } finally {
             c.close();
         }
+    }
+
+    /**
+     * Every superseded invoice, mapped to the number that replaced it.
+     *
+     * <p>The same question {@link #replacementNumberOf} answers for one invoice, asked once for
+     * all of them. The list screen needs it for every row it draws, and asking per row meant a
+     * query and a cursor each -- on the main thread, on every return to the screen.
+     *
+     * <p>Read oldest first so that when an invoice has been superseded more than once the last
+     * write wins, which is the newest replacement: the same one the single-invoice lookup picks
+     * with its {@code DESC} ordering.
+     */
+    public Map<Long, String> replacementNumbers() {
+        Map<Long, String> out = new HashMap<Long, String>();
+        Cursor c = db.getReadableDatabase().query(Db.T_INVOICE,
+                new String[]{"replaces_id", "number"}, "replaces_id > 0", null, null, null,
+                "issue_date ASC, _id ASC");
+        try {
+            while (c.moveToNext()) out.put(Long.valueOf(c.getLong(0)), c.getString(1));
+        } finally {
+            c.close();
+        }
+        return out;
     }
 
     /** Forgets the files recorded for an invoice, for when they are about to be replaced. */
