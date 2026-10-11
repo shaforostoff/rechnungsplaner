@@ -24,7 +24,6 @@ import com.shaforostoff.rechnungsplaner.output.SafExporter;
 import com.shaforostoff.rechnungsplaner.util.Dates;
 import com.shaforostoff.rechnungsplaner.util.PatternFormatter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -88,7 +87,7 @@ public class SettingsActivity extends BaseActivity {
 
         FormBuilder f = form();
 
-        formatSpinner = f.spinner(R.string.setting_output_format, formatLabels(),
+        formatSpinner = f.spinner(R.string.setting_output_format, Ui.formatLabels(this),
                 settings.getOutputFormat().ordinal(), false);
 
         fileNameField = f.field(R.string.setting_filename_pattern, settings.getFileNamePattern(),
@@ -365,28 +364,6 @@ public class SettingsActivity extends BaseActivity {
     private String folderLabel() {
         String name = SafExporter.displayName(this, settings.getExportTreeUri());
         return name == null ? getString(R.string.not_set) : name;
-    }
-
-    private String[] formatLabels() {
-        OutputFormat[] formats = OutputFormat.values();
-        List<String> labels = new ArrayList<String>(formats.length);
-        for (OutputFormat format : formats) {
-            switch (format) {
-                case ZUGFERD_EN16931:
-                    labels.add(getString(R.string.format_zugferd_en16931));
-                    break;
-                case XRECHNUNG_UBL: labels.add(getString(R.string.format_xrechnung_ubl)); break;
-                case XRECHNUNG_CII: labels.add(getString(R.string.format_xrechnung_cii)); break;
-                case XRECHNUNG_23_UBL:
-                    labels.add(getString(R.string.format_xrechnung_23_ubl));
-                    break;
-                case PDF_ONLY: labels.add(getString(R.string.format_pdf_only)); break;
-                case MAX_COMPAT: labels.add(getString(R.string.format_max_compat)); break;
-                case ZUGFERD_XRECHNUNG:
-                default: labels.add(getString(R.string.format_zugferd_xrechnung));
-            }
-        }
-        return labels.toArray(new String[0]);
     }
 
     private static int indexOf(String[] values, String value) {

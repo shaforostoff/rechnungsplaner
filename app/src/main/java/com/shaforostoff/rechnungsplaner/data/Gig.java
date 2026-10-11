@@ -66,7 +66,6 @@ public class Gig {
     public String notes;
     public Status status = Status.PLANNED;
 
-    /** Set once the gig has been billed. */
     /**
      * Last day of the work, for a service measured in days. Null on a single-day job.
      *
@@ -77,6 +76,7 @@ public class Gig {
     public String endDate;
     /** Which kind of work this was. -1 on a job that predates the service list. */
     public long serviceId = -1L;
+    /** Set once the gig has been billed. */
     public long invoiceId = -1L;
 
     /** The mirrored device-calendar event, or -1 when not mirrored. */

@@ -186,8 +186,10 @@ public class InvoiceWriter {
                 .put(PatternFormatter.FORMAT, format.name().toLowerCase(java.util.Locale.US))
                 .putDate(invoice.issueDate)
                 .putGigDate(firstGigDate);
-        String sequence = trailingDigits(invoice.number);
-        if (sequence != null) f.putSequence(Integer.parseInt(sequence));
+        // Read back through the number pattern: trailing digits would take the year from 001-2026.
+        int sequence = PatternFormatter.extractSequence(settings.getInvoiceNumberPattern(),
+                invoice.number);
+        if (sequence >= 0) f.putSequence(sequence);
         return f.formatFileName(settings.getFileNamePattern());
     }
 
@@ -227,16 +229,5 @@ public class InvoiceWriter {
 
     private static String title(EnInvoice en) {
         return "Rechnung " + (en.number == null ? "" : en.number);
-    }
-
-    /** The sequence part of "2026-001", so %seq tokens work in the file-name pattern too. */
-    private static String trailingDigits(String number) {
-        if (number == null) return null;
-        int end = number.length();
-        int start = end;
-        while (start > 0 && Character.isDigit(number.charAt(start - 1))) start--;
-        if (start == end) return null;
-        String digits = number.substring(start, end);
-        return digits.length() > 9 ? null : digits;
     }
 }

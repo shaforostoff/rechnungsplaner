@@ -80,16 +80,6 @@ public class Invoice {
     public String replacesDate;
 
     /**
-     * Makes this freshly built invoice a correction of {@code original} rather than a new
-     * document: same row, same number, same creation time.
-     *
-     * <p>Only those three. Everything else on a correction is deliberately the newly computed
-     * value -- the totals, the party snapshots, the dates derived from current settings -- because
-     * being wrong or stale is the reason for redoing one at all. Section 14 UStG wants the number
-     * series unique, which a correction reusing its own number does not break; issuing a second
-     * document under the same number would.
-     */
-    /**
      * The year this invoice counts in.
      *
      * <p>{@link #paidYear} when it has been set, otherwise the year of the work: the delivery date
@@ -132,6 +122,16 @@ public class Invoice {
         return Dates.isValid(issueDate) ? issueDate : null;
     }
 
+    /**
+     * Makes this freshly built invoice a correction of {@code original} rather than a new
+     * document: same row, same number, same creation time.
+     *
+     * <p>Only those three. Everything else on a correction is deliberately the newly computed
+     * value -- the totals, the party snapshots, the dates derived from current settings -- because
+     * being wrong or stale is the reason for redoing one at all. Section 14 UStG wants the number
+     * series unique, which a correction reusing its own number does not break; issuing a second
+     * document under the same number would.
+     */
     public void takeIdentityFrom(Invoice original) {
         this.id = original.id;
         this.number = original.number;

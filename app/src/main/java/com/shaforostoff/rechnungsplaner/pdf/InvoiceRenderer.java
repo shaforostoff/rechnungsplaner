@@ -6,6 +6,7 @@ import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Picture;
 import android.graphics.Typeface;
 import android.graphics.pdf.PdfDocument;
 
@@ -44,6 +45,8 @@ public class InvoiceRenderer {
     private static final int PAGE_HEIGHT = 842;
     private static final float MARGIN = 56f;
     private static final float LINE = 13f;
+    /** The column headings and their rule, above the first line of every page's table. */
+    private static final float TABLE_HEAD = 5f + LINE;
 
     private final Resources res;
     private final Locale locale;
@@ -86,7 +89,7 @@ public class InvoiceRenderer {
     public byte[] render(EnInvoice inv) throws IOException {
         PdfDocument doc = new PdfDocument();
         try {
-            List<List<EnLine>> pages = paginate(inv.lines);
+            List<List<EnLine>> pages = paginate(inv);
             for (int index = 0; index < pages.size(); index++) {
                 PdfDocument.Page page = doc.startPage(
                         new PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, index + 1)
@@ -104,29 +107,31 @@ public class InvoiceRenderer {
 
     private void drawPage(Canvas c, EnInvoice inv, List<EnLine> lines, int pageIndex,
                           int pageCount) {
-        float y = MARGIN;
-        boolean first = pageIndex == 0;
+        float y = drawHeader(c, inv, pageIndex == 0);
+        y = drawTable(c, inv, lines, y);
+        if (pageIndex == pageCount - 1) drawClosing(c, inv, y);
+        drawFooter(c, inv, pageIndex + 1, pageCount);
+    }
 
+    /** The address and meta blocks on the first page, a running title on the others. */
+    private float drawHeader(Canvas c, EnInvoice inv, boolean first) {
+        float y = MARGIN;
         if (first) {
             y = drawSender(c, inv.seller, y);
             y = drawRecipient(c, inv.buyer, y + 18f);
             y = drawMeta(c, inv, y + 24f);
-            y += 18f;
-        } else {
-            c.drawText(res.getString(R.string.inv_title) + " " + nullToEmpty(inv.number),
-                    MARGIN, y, bold);
-            y += LINE * 2;
+            return y + 18f;
         }
+        c.drawText(res.getString(R.string.inv_title) + " " + nullToEmpty(inv.number),
+                MARGIN, y, bold);
+        return y + LINE * 2;
+    }
 
-        y = drawTable(c, inv, lines, y);
-
-        boolean last = pageIndex == pageCount - 1;
-        if (last) {
-            y = drawTotals(c, inv, y + 10f);
-            y = drawTaxNotes(c, inv, y + 14f);
-            drawPayment(c, inv, y + 16f);
-        }
-        drawFooter(c, inv, pageIndex + 1, pageCount);
+    /** Totals, tax notes and payment details: what follows the last line. */
+    private float drawClosing(Canvas c, EnInvoice inv, float y) {
+        y = drawTotals(c, inv, y + 10f);
+        y = drawTaxNotes(c, inv, y + 14f);
+        return drawPayment(c, inv, y + 16f);
     }
 
     private float drawSender(Canvas c, EnParty s, float y) {
@@ -304,8 +309,8 @@ public class InvoiceRenderer {
         return y;
     }
 
-    private void drawPayment(Canvas c, EnInvoice inv, float y) {
-        if (!notEmpty(inv.iban)) return;
+    private float drawPayment(Canvas c, EnInvoice inv, float y) {
+        if (!notEmpty(inv.iban)) return y;
         c.drawText(res.getString(R.string.inv_payment_heading), MARGIN, y, bold);
         y += LINE;
         if (notEmpty(inv.dueDate)) {
@@ -323,7 +328,9 @@ public class InvoiceRenderer {
         if (notEmpty(inv.remittanceInformation)) {
             c.drawText(labelled(R.string.inv_reference, inv.remittanceInformation), MARGIN, y,
                     body);
+            y += LINE;
         }
+        return y;
     }
 
     private void drawFooter(Canvas c, EnInvoice inv, int page, int pages) {
@@ -347,21 +354,53 @@ public class InvoiceRenderer {
     }
 
     /** Splits lines across pages, leaving room for the totals block on the last one. */
-    private List<List<EnLine>> paginate(List<EnLine> lines) {
+    /**
+     * Splits the lines into pages by measured height rather than by count.
+     *
+     * <p>The header and the closing block are drawn once onto a throwaway recording to learn how
+     * tall they are, so the arithmetic here cannot drift from the drawing code. The closing block
+     * -- totals, tax notes, bank details -- must fit under the last line, or it would print over
+     * the footer or past the page edge; when it does not, the last line moves to a page of its
+     * own so the totals still follow a line item.
+     */
+    private List<List<EnLine>> paginate(EnInvoice inv) {
+        float bottom = PAGE_HEIGHT - MARGIN - 6f;
+        float firstTop = drawHeader(scratch(), inv, true) + TABLE_HEAD;
+        float laterTop = drawHeader(scratch(), inv, false) + TABLE_HEAD;
+        float closing = drawClosing(scratch(), inv, 0f);
+
         List<List<EnLine>> pages = new ArrayList<List<EnLine>>();
         List<EnLine> current = new ArrayList<EnLine>();
-        // The first page loses roughly 300 points to the address and meta blocks.
-        int capacity = 26;
-        for (EnLine line : lines) {
-            if (current.size() >= capacity) {
+        float y = firstTop;
+        for (EnLine line : inv.lines) {
+            float h = rowHeight(line);
+            if (!current.isEmpty() && y + h > bottom) {
                 pages.add(current);
                 current = new ArrayList<EnLine>();
-                capacity = 44;
+                y = laterTop;
             }
             current.add(line);
+            y += h;
+        }
+        if (current.size() > 1 && y + closing > bottom) {
+            EnLine moved = current.remove(current.size() - 1);
+            pages.add(current);
+            current = new ArrayList<EnLine>();
+            current.add(moved);
         }
         pages.add(current);
         return pages;
+    }
+
+    private static Canvas scratch() {
+        return new Picture().beginRecording(PAGE_WIDTH, PAGE_HEIGHT);
+    }
+
+    /** What one line takes in {@link #drawTable}; the two must change together. */
+    private float rowHeight(EnLine line) {
+        float[] col = columns();
+        int rows = wrap(describe(line), col[2] - col[1] - 20f, body).size();
+        return LINE + (rows - 1) * (LINE - 3f) + 3f;
     }
 
     private String describe(EnLine line) {

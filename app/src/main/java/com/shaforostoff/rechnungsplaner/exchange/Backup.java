@@ -347,6 +347,9 @@ public class Backup {
         // action rather than telling the user to pick a folder.
         String tree = settings.getExportTreeUri();
         if (tree != null && !holdsPermission(tree)) settings.clearExportTreeUri();
+        // A calendar id is a row in one device's calendar database; on another phone the same
+        // number can be a different calendar entirely. Mirroring waits until one is picked again.
+        settings.setCalendarId(-1L);
     }
 
     private boolean holdsPermission(String treeUri) {

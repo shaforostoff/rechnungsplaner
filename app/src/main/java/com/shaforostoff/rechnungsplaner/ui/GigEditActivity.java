@@ -460,9 +460,10 @@ public class GigEditActivity extends BaseActivity {
                     startField.setText(Ui.timeOfDay(millis));
                 } else {
                     // An end earlier than the start means the set runs past midnight, so the end
-                    // belongs to the following day rather than being invalid.
+                    // belongs to the following day rather than being invalid. Built from the next
+                    // date rather than +24h, which is an hour off on a clock-change night.
                     if (gig.startMillis > 0L && millis <= gig.startMillis) {
-                        millis += 86_400_000L;
+                        millis = atTime(Dates.plusDays(gig.date, 1), hour, minute);
                     }
                     gig.endMillis = millis;
                     endField.setText(Ui.timeOfDay(millis));
@@ -587,7 +588,6 @@ public class GigEditActivity extends BaseActivity {
         return TaxModeLabels.withInherit(this, issuers.load(), customers.byId(gig.customerId));
     }
 
-    /** The gig's invoice number, for the dialog that offers to redo it. */
     /**
      * Points this gig at an invoice that already exists.
      *
@@ -640,6 +640,7 @@ public class GigEditActivity extends BaseActivity {
         Ui.toast(this, getString(R.string.linked_to_invoice, invoice.number));
     }
 
+    /** The gig's invoice number, for the dialog that offers to redo it. */
     private String invoiceNumber() {
         Invoice invoice = new InvoiceDao(this).byId(gig.invoiceId);
         return invoice == null ? "" : invoice.number;

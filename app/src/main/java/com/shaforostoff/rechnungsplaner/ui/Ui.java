@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.widget.Toast;
 
 import com.shaforostoff.rechnungsplaner.R;
+import com.shaforostoff.rechnungsplaner.data.OutputFormat;
 
 import java.text.NumberFormat;
 import java.util.Currency;
@@ -149,5 +150,28 @@ public final class Ui {
         c.setTimeInMillis(millis);
         return String.format(Locale.US, "%02d:%02d", c.get(java.util.Calendar.HOUR_OF_DAY),
                 c.get(java.util.Calendar.MINUTE));
+    }
+
+    /** The output formats in spinner order, named for the user, for every screen offering them. */
+    public static String[] formatLabels(Context ctx) {
+        OutputFormat[] formats = OutputFormat.values();
+        String[] labels = new String[formats.length];
+        for (int i = 0; i < formats.length; i++) {
+            switch (formats[i]) {
+                case ZUGFERD_EN16931:
+                    labels[i] = ctx.getString(R.string.format_zugferd_en16931);
+                    break;
+                case XRECHNUNG_UBL: labels[i] = ctx.getString(R.string.format_xrechnung_ubl); break;
+                case XRECHNUNG_CII: labels[i] = ctx.getString(R.string.format_xrechnung_cii); break;
+                case XRECHNUNG_23_UBL:
+                    labels[i] = ctx.getString(R.string.format_xrechnung_23_ubl);
+                    break;
+                case PDF_ONLY: labels[i] = ctx.getString(R.string.format_pdf_only); break;
+                case MAX_COMPAT: labels[i] = ctx.getString(R.string.format_max_compat); break;
+                case ZUGFERD_XRECHNUNG:
+                default: labels[i] = ctx.getString(R.string.format_zugferd_xrechnung);
+            }
+        }
+        return labels;
     }
 }

@@ -147,6 +147,7 @@ public class CalendarImportActivity extends BaseActivity {
         gig.syncUuid = event.orphanedUuid != null ? event.orphanedUuid
                 : UUID.randomUUID().toString();
         gigs.save(gig);
+        new CalendarMirror(this).claim(gig);
         startActivity(GigEditActivity.editIntent(this, gig.id));
     }
 }

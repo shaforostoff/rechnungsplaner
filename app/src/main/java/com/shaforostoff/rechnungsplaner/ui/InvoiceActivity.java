@@ -306,13 +306,6 @@ public class InvoiceActivity extends BaseActivity {
     }
 
     /**
-     * The number the draft is showing: what the user typed, or the next in the series.
-     *
-     * <p>Held separately from the field because ticking a gig rebuilds the whole form, and a
-     * number typed for a mid-year switch must not quietly revert to the series when the invoice
-     * grows a second night.
-     */
-    /**
      * Every service name by id, including retired ones.
      *
      * <p>Read fresh each rebuild rather than cached: a job billed here may name a service that was
@@ -350,6 +343,13 @@ public class InvoiceActivity extends BaseActivity {
         rebuildInvoice();
     }
 
+    /**
+     * The number the draft is showing: what the user typed, or the next in the series.
+     *
+     * <p>Held separately from the field because ticking a gig rebuilds the whole form, and a
+     * number typed for a mid-year switch must not quietly revert to the series when the invoice
+     * grows a second night.
+     */
     private String draftNumber() {
         return numberOverride != null ? numberOverride
                 : invoices.peekNextNumber(settings.getInvoiceNumberPattern(), invoice.issueDate);
@@ -416,7 +416,7 @@ public class InvoiceActivity extends BaseActivity {
                 updateNumberHint();
             }
 
-            formatSpinner = f.spinner(R.string.label_format, formatLabels(),
+            formatSpinner = f.spinner(R.string.label_format, Ui.formatLabels(this),
                     settings.getOutputFormat().ordinal(), false);
             f.caption(getString(R.string.two_part_label, getString(R.string.label_filename),
                     new InvoiceWriter(this).baseName(issuer, customer, invoice,
@@ -900,26 +900,6 @@ public class InvoiceActivity extends BaseActivity {
             settings.setExportTreeUri(data.getData().toString());
             saveToFolder();
         }
-    }
-
-    private String[] formatLabels() {
-        OutputFormat[] formats = OutputFormat.values();
-        String[] labels = new String[formats.length];
-        for (int i = 0; i < formats.length; i++) {
-            switch (formats[i]) {
-                case ZUGFERD_EN16931: labels[i] = getString(R.string.format_zugferd_en16931); break;
-                case XRECHNUNG_UBL: labels[i] = getString(R.string.format_xrechnung_ubl); break;
-                case XRECHNUNG_CII: labels[i] = getString(R.string.format_xrechnung_cii); break;
-                case XRECHNUNG_23_UBL:
-                    labels[i] = getString(R.string.format_xrechnung_23_ubl);
-                    break;
-                case PDF_ONLY: labels[i] = getString(R.string.format_pdf_only); break;
-                case MAX_COMPAT: labels[i] = getString(R.string.format_max_compat); break;
-                case ZUGFERD_XRECHNUNG:
-                default: labels[i] = getString(R.string.format_zugferd_xrechnung);
-            }
-        }
-        return labels;
     }
 
     private View line(String label, String value, boolean emphasised) {

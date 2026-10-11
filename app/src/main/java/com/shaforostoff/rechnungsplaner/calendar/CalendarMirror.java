@@ -144,7 +144,7 @@ public class CalendarMirror {
 
         ContentResolver resolver = ctx.getContentResolver();
         try {
-            if (gig.calendarEventId > 0L && gig.calendarId == calendarId && exists(gig.calendarEventId)) {
+            if (gig.calendarId == calendarId && ownsEvent(gig)) {
                 Uri uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI,
                         gig.calendarEventId);
                 resolver.update(uri, v, null, null);
@@ -167,12 +167,32 @@ public class CalendarMirror {
         }
     }
 
+    /**
+     * Writes the gig's marker into an event the user chose to adopt, so later writes recognise
+     * the event as this gig's instead of creating a second one beside it.
+     */
+    public void claim(Gig gig) {
+        if (gig.calendarEventId <= 0L || !hasPermission()) return;
+        ContentValues v = new ContentValues();
+        v.put(CalendarContract.Events.DESCRIPTION, GigEventCodec.description(gig));
+        try {
+            ctx.getContentResolver().update(ContentUris.withAppendedId(
+                    CalendarContract.Events.CONTENT_URI, gig.calendarEventId), v, null, null);
+        } catch (SecurityException ignored) {
+            // Then the next save mirrors into a fresh event; the gig itself is unaffected.
+        }
+    }
+
     /** Removes the mirrored event, if there is one. Silent when there is not. */
     public void delete(Gig gig) {
         if (gig.calendarEventId <= 0L || !hasPermission()) return;
         try {
-            ctx.getContentResolver().delete(ContentUris.withAppendedId(
-                    CalendarContract.Events.CONTENT_URI, gig.calendarEventId), null, null);
+            // Only an event that is provably this gig's: after a restore the stored id may name
+            // someone's unrelated appointment, and that must not be deleted. The link goes anyway.
+            if (ownsEvent(gig)) {
+                ctx.getContentResolver().delete(ContentUris.withAppendedId(
+                        CalendarContract.Events.CONTENT_URI, gig.calendarEventId), null, null);
+            }
         } catch (SecurityException ignored) {
             // Nothing useful to do; the gig itself is unaffected.
         }
@@ -242,13 +262,23 @@ public class CalendarMirror {
         return out;
     }
 
-    private boolean exists(long eventId) {
+    /**
+     * Whether the gig's stored event exists and carries this gig's marker.
+     *
+     * <p>Event ids belong to one device's calendar database. A backup restored onto another phone
+     * -- the app's own or Android's -- brings back ids that there name other events, so the id alone
+     * is never trusted: the sync uuid written into the description is what proves the event ours.
+     */
+    private boolean ownsEvent(Gig gig) {
+        if (gig.calendarEventId <= 0L || gig.syncUuid == null || gig.syncUuid.isEmpty()) {
+            return false;
+        }
         Cursor c = ctx.getContentResolver().query(
-                ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId),
-                new String[]{CalendarContract.Events._ID}, null, null, null);
+                ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, gig.calendarEventId),
+                new String[]{CalendarContract.Events.DESCRIPTION}, null, null, null);
         if (c == null) return false;
         try {
-            return c.moveToFirst();
+            return c.moveToFirst() && gig.syncUuid.equals(GigEventCodec.uuidIn(c.getString(0)));
         } finally {
             c.close();
         }

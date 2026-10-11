@@ -5,6 +5,7 @@ import com.shaforostoff.rechnungsplaner.util.Dates;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -20,11 +21,6 @@ public final class InvoiceBuilder {
     }
 
     /**
-     * Builds an unsaved draft. The number is left blank; {@link InvoiceDao#issue} allocates it.
-     *
-     * @param gigs one or more gigs, all for the same customer
-     */
-    /**
      * Package-private, so only the tests in this package can leave the service names out.
      *
      * <p>A production caller without them would silently bill every line as "Leistung", which is
@@ -36,6 +32,9 @@ public final class InvoiceBuilder {
     }
 
     /**
+     * Builds an unsaved draft. The number is left blank; {@link InvoiceDao#issue} allocates it.
+     *
+     * @param gigs         one or more gigs, all for the same customer
      * @param serviceNames the name of each service by id, for the line text; a job whose service
      *                     is missing from it falls back to a neutral noun
      */
@@ -71,7 +70,8 @@ public final class InvoiceBuilder {
         }
 
         for (Gig gig : sorted) {
-            TaxMode gigMode = firstNonNull(gig.taxMode, mode);
+            // Each job on its own: one job's override must not become another job's fallback.
+            TaxMode gigMode = resolveTaxMode(issuer, customer, Collections.singletonList(gig));
             if (gig.feeCents != 0L) {
                 inv.lines.add(line(gig, gigMode, single,
                         describeGig(gig, serviceNames.get(Long.valueOf(gig.serviceId)),
@@ -139,13 +139,18 @@ public final class InvoiceBuilder {
         return notEmpty(issuer.defaultInvoiceLanguage) ? issuer.defaultInvoiceLanguage.trim() : "de";
     }
 
-    /** The user's own wording when they set one, else the statutory German default. */
+    /**
+     * The user's own wording when they set one, else the statutory German default.
+     *
+     * <p>The own wording is written for the issuer's default mode only: a § 19 sentence typed for
+     * the Kleinunternehmer case must not become the stated reason for a reverse-charge invoice.
+     */
     public static String resolveExemptionText(Issuer issuer, TaxMode mode) {
-        if (notEmpty(issuer.exemptionText)) return issuer.exemptionText.trim();
+        boolean issuersOwnMode = mode == resolveTaxMode(issuer, null, null);
+        if (issuersOwnMode && notEmpty(issuer.exemptionText)) return issuer.exemptionText.trim();
         return mode.defaultReason;
     }
 
-    /** What a gig line says on the invoice, in the invoice's own language. */
     /**
      * The note naming the invoice this one corrects, in the document's language.
      *
@@ -242,22 +247,15 @@ public final class InvoiceBuilder {
 
     private static List<Gig> sortedByDate(List<Gig> gigs) {
         List<Gig> out = new ArrayList<Gig>(gigs == null ? new ArrayList<Gig>() : gigs);
-        // ISO dates sort chronologically as strings, so no parsing is needed.
-        for (int i = 1; i < out.size(); i++) {
-            Gig g = out.get(i);
-            int j = i - 1;
-            while (j >= 0 && compare(out.get(j).date, g.date) > 0) {
-                out.set(j + 1, out.get(j));
-                j--;
+        // ISO dates sort chronologically as strings, so no parsing is needed. Stable, nulls first.
+        Collections.sort(out, new Comparator<Gig>() {
+            @Override
+            public int compare(Gig a, Gig b) {
+                if (a.date == null) return b.date == null ? 0 : -1;
+                return b.date == null ? 1 : a.date.compareTo(b.date);
             }
-            out.set(j + 1, g);
-        }
+        });
         return out;
-    }
-
-    private static int compare(String a, String b) {
-        if (a == null) return b == null ? 0 : -1;
-        return b == null ? 1 : a.compareTo(b);
     }
 
     /** The last day any of these jobs covers, which a job running over days can push past. */
@@ -267,10 +265,6 @@ public final class InvoiceBuilder {
             if (gig.lastDay().compareTo(latest) > 0) latest = gig.lastDay();
         }
         return latest;
-    }
-
-    private static TaxMode firstNonNull(TaxMode a, TaxMode b) {
-        return a != null ? a : b;
     }
 
     private static boolean notEmpty(String s) {

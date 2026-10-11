@@ -151,12 +151,12 @@ public class InvoiceDao {
      * Consumes the next number in the year's series.
      *
      * <p>Section 14 UStG wants the series unique, not gapless, so a number burnt by a cancelled
-     * draft is simply never reused. The counter is per year and resets on 1 January.
+     * draft is simply never reused. A pattern naming the year restarts on 1 January; one that does
+     * not runs straight on (see {@link #seriesValue}).
      */
     private String allocateNumber(SQLiteDatabase w, String pattern, String issueDate) {
-        String key = counterKey(issueDate);
-        int next = counterValue(w, key) + 1;
-        setCounter(w, key, next);
+        int next = seriesValue(w, pattern, issueDate) + 1;
+        setCounter(w, counterKey(issueDate), next);
         return new PatternFormatter().putDate(issueDate).putSequence(next).format(pattern);
     }
 
@@ -175,14 +175,13 @@ public class InvoiceDao {
      */
     private void adoptSequence(SQLiteDatabase w, String pattern, String issueDate, String number) {
         int sequence = PatternFormatter.extractSequence(pattern, number);
-        String key = counterKey(issueDate);
-        if (sequence < 0 || sequence <= counterValue(w, key)) return;
-        setCounter(w, key, sequence);
+        if (sequence < 0 || sequence <= seriesValue(w, pattern, issueDate)) return;
+        setCounter(w, counterKey(issueDate), sequence);
     }
 
     /** What the next number would be, for the preview in the invoice screen. Consumes nothing. */
     public String peekNextNumber(String pattern, String issueDate) {
-        int next = counterValue(db.getReadableDatabase(), counterKey(issueDate)) + 1;
+        int next = seriesValue(db.getReadableDatabase(), pattern, issueDate) + 1;
         return new PatternFormatter().putDate(issueDate).putSequence(next).format(pattern);
     }
 
@@ -217,6 +216,30 @@ public class InvoiceDao {
         v.put("paid_year", year);
         db.getWritableDatabase().update(Db.T_INVOICE, v, "_id = ?",
                 new String[]{Long.toString(invoiceId)});
+    }
+
+    /**
+     * Where the series stands for an invoice of this date.
+     *
+     * <p>The counter is kept per year, which is right for a pattern that names the year. One that
+     * does not -- {@code RE-%seq4%}, numbered straight through -- would otherwise restart at 1 every
+     * January and collide with last year's first invoice, so it carries on from the highest year.
+     */
+    private static int seriesValue(SQLiteDatabase r, String pattern, String issueDate) {
+        if (restartsEachYear(pattern)) return counterValue(r, counterKey(issueDate));
+        Cursor c = r.rawQuery("SELECT MAX(value) FROM " + Db.T_COUNTER
+                + " WHERE key GLOB 'invoice_seq_*'", null);
+        try {
+            return c.moveToFirst() ? c.getInt(0) : 0;
+        } finally {
+            c.close();
+        }
+    }
+
+    /** True when the pattern names the year, so each year's numbers are already distinct. */
+    static boolean restartsEachYear(String pattern) {
+        return pattern == null || pattern.contains("%" + PatternFormatter.YEAR)
+                || pattern.contains("%" + PatternFormatter.YEAR_SHORT);
     }
 
     private static String counterKey(String issueDate) {
@@ -341,9 +364,8 @@ public class InvoiceDao {
      */
     private void releaseNumber(SQLiteDatabase w, String pattern, String issueDate, String number) {
         int sequence = PatternFormatter.extractSequence(pattern, number);
-        String key = counterKey(issueDate);
-        if (sequence < 0 || sequence != counterValue(w, key)) return;
-        setCounter(w, key, sequence - 1);
+        if (sequence < 0 || sequence != seriesValue(w, pattern, issueDate)) return;
+        setCounter(w, counterKey(issueDate), sequence - 1);
     }
 
     /** The header alone, read inside a transaction that is about to delete it. */

@@ -209,6 +209,30 @@ public class InvoiceBuilderTest {
     }
 
     @Test
+    public void issuerWordingStaysWithTheModeItWasWrittenFor() {
+        Issuer i = issuer();
+        i.exemptionText = "Umsatzsteuerbefreit nach § 19 UStG (Kleinunternehmer)";
+        assertEquals(TaxMode.REVERSE_CHARGE.defaultReason,
+                InvoiceBuilder.resolveExemptionText(i, TaxMode.REVERSE_CHARGE));
+    }
+
+    @Test
+    public void oneGigsOverrideIsNotAnotherGigsFallback() {
+        Issuer i = issuer();
+        i.vatId = "DE123456789";
+        Customer c = club();
+        c.defaultTaxMode = TaxMode.STANDARD_19;
+        Gig concert = gig("2026-08-15", 10000L);
+        concert.taxMode = TaxMode.REDUCED_7;
+        Gig workshop = gig("2026-08-16", 10000L);
+
+        Invoice inv = InvoiceBuilder.build(i, c, Arrays.asList(concert, workshop), "2026-09-05");
+        assertEquals(70, inv.lines.get(0).ratePermille);
+        assertEquals(190, inv.lines.get(1).ratePermille);
+        assertEquals(700L + 1900L, inv.taxTotalCents);
+    }
+
+    @Test
     public void computesDueDateFromTheIssuerTerms() {
         Issuer i = issuer();
         i.defaultDueDays = 14;
