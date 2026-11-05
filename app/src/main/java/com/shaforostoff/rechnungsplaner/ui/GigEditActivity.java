@@ -151,6 +151,12 @@ public class GigEditActivity extends BaseActivity {
         });
 
         buildForm(isNew);
+
+        // With a single customer there is nothing to choose, so a new job starts with them.
+        if (isNew && carried == null && gig.customerId <= 0L) {
+            List<Customer> only = customers.all(false);
+            if (only.size() == 1) applyCustomer(only.get(0));
+        }
     }
 
     /**
