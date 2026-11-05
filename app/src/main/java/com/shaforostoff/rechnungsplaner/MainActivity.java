@@ -136,7 +136,7 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
         heading.setPadding(0, dp(16), 0, dp(8));
         dayList.addView(heading);
 
-        List<Gig> onDay = gigs.between(isoDate, isoDate);
+        List<Gig> onDay = gigs.onDay(isoDate);
         if (onDay.isEmpty()) {
             TextView empty = new TextView(this);
             empty.setText(R.string.no_gigs_on_day);

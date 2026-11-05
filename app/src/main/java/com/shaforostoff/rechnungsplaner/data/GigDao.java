@@ -27,6 +27,12 @@ public class GigDao {
         return query("date >= ? AND date <= ?", new String[]{fromIso, toIso}, "date, start_millis");
     }
 
+    /** Gigs on a day, including multiday ones that started earlier and still run. */
+    public List<Gig> onDay(String iso) {
+        return query("date <= ? AND (date = ? OR end_date >= ?)", new String[]{iso, iso, iso},
+                "date, start_millis");
+    }
+
     /** Everything from today onwards, for the tour-list export. */
     public List<Gig> upcoming() {
         return query("date >= ?", new String[]{Dates.today()}, "date, start_millis");
@@ -60,13 +66,15 @@ public class GigDao {
     /** How many gigs fall on each date in the range, for the month grid's day markers. */
     public Map<String, Integer> countsByDate(String fromIso, String toIso) {
         Map<String, Integer> out = new HashMap<String, Integer>();
-        Cursor c = db.getReadableDatabase().rawQuery(
-                "SELECT date, COUNT(*) FROM " + Db.T_GIG + " WHERE date >= ? AND date <= ?"
-                        + " GROUP BY date", new String[]{fromIso, toIso});
-        try {
-            while (c.moveToNext()) out.put(c.getString(0), c.getInt(1));
-        } finally {
-            c.close();
+        for (Gig g : query("date <= ? AND (date >= ? OR end_date >= ?)",
+                new String[]{toIso, fromIso, fromIso}, null)) {
+            String last = g.lastDay();
+            for (String d = g.date; d.compareTo(last) <= 0 && d.compareTo(toIso) <= 0;
+                    d = Dates.plusDays(d, 1)) {
+                if (d.compareTo(fromIso) < 0) continue;
+                Integer n = out.get(d);
+                out.put(d, n == null ? 1 : n + 1);
+            }
         }
         return out;
     }
