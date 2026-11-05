@@ -148,6 +148,21 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
             dayList.addView(gigRow(gig));
         }
 
+        dayList.addView(addButton("+", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showTypes(isoDate);
+            }
+        }, null));
+    }
+
+    /** The overlay behind the "+": a button per job type, and one to create a type. */
+    private void showTypes(final String isoDate) {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(16), dp(8), dp(16), dp(16));
+        final AlertDialog dialog = new AlertDialog.Builder(this).setView(box).create();
+
         List<Service> offered = services.all(false);
         if (offered.isEmpty()) {
             // A fresh install seeds nothing: what this business sells is not for the app to guess,
@@ -157,29 +172,33 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
             none.setTextSize(13f);
             none.setTextColor(getColor(R.color.text_secondary));
             none.setPadding(0, dp(8), 0, 0);
-            dayList.addView(none);
+            box.addView(none);
         }
         for (final Service service : offered) {
-            dayList.addView(addButton(service.displayName(), new View.OnClickListener() {
+            box.addView(addButton(service.displayName(), new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    dialog.dismiss();
                     startActivity(GigEditActivity.createIntent(MainActivity.this, isoDate,
                             service.id));
                 }
             }, new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
+                    dialog.dismiss();
                     editService(service);
                     return true;
                 }
             }));
         }
-        dayList.addView(addButton(getString(R.string.add_service), new View.OnClickListener() {
+        box.addView(addButton(getString(R.string.add_service), new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                dialog.dismiss();
                 nameService(new Service());
             }
         }, null));
+        dialog.show();
     }
 
     /**
