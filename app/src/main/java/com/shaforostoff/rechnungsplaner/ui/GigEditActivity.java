@@ -71,6 +71,7 @@ public class GigEditActivity extends BaseActivity {
     private EditText notesField;
     private TextView midnightHint;
     private TextView endDateField;
+    private boolean multiDayForm;
 
     private static final int REQUEST_NEW_CUSTOMER = 1;
 
@@ -204,8 +205,12 @@ public class GigEditActivity extends BaseActivity {
         if (own != null && !containsService(own.id)) serviceChoices.add(own);
         if (own == null && !serviceChoices.isEmpty()) own = serviceChoices.get(0);
         final boolean multiDay = own != null && own.multiDay;
+        multiDayForm = multiDay;
 
-        dateField = f.pickerField(R.string.label_date, displayDate(), true,
+        // First and last day are one answer and short enough to share a line.
+        FormBuilder.Row days = multiDay ? f.row() : null;
+        dateField = (multiDay ? days.left : f).pickerField(
+                multiDay ? R.string.label_first_day : R.string.label_date, displayDate(), true,
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -216,7 +221,7 @@ public class GigEditActivity extends BaseActivity {
             // Work measured in days is asked for an end date instead of two clock times: a week
             // of it has no start hour worth recording, and the pair of pickers would be asking
             // the wrong question in a form that has no room for spare ones.
-            endDateField = f.pickerField(R.string.label_end_date, displayEndDate(), false,
+            endDateField = days.right.pickerField(R.string.label_end_date, displayEndDate(), false,
                     new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -373,7 +378,7 @@ public class GigEditActivity extends BaseActivity {
         if (Dates.isValid(gig.date)) {
             c.set(Dates.year(gig.date), Dates.month(gig.date) - 1, Dates.day(gig.date));
         }
-        new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+        DatePickerDialog dialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int day) {
                 String previous = gig.date;
@@ -386,7 +391,9 @@ public class GigEditActivity extends BaseActivity {
                 updateMidnightHint();
                 followDateWithStatus();
             }
-        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
+        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+        if (multiDayForm) dialog.setTitle(R.string.label_first_day);
+        dialog.show();
     }
 
     /**
@@ -432,7 +439,7 @@ public class GigEditActivity extends BaseActivity {
         String current = gig.lastDay();
         Calendar c = Calendar.getInstance();
         c.set(Dates.year(current), Dates.month(current) - 1, Dates.day(current));
-        new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+        DatePickerDialog dialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int day) {
                 String chosen = Dates.iso(year, month + 1, day);
@@ -443,7 +450,9 @@ public class GigEditActivity extends BaseActivity {
                 gig.endDate = chosen.equals(gig.date) ? null : chosen;
                 endDateField.setText(displayEndDate());
             }
-        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
+        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+        dialog.setTitle(R.string.label_end_date);
+        dialog.show();
     }
 
     private String displayEndDate() {

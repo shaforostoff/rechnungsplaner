@@ -52,6 +52,7 @@
     <string name="title_new_gig">New job</string>
     <string name="title_edit_gig">Job</string>
     <string name="label_date">Date</string>
+    <string name="label_first_day">First day</string>
     <string name="label_start">Start</string>
     <string name="label_end">End</string>
     <string name="label_customer">Customer</string>

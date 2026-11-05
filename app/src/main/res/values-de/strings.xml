@@ -47,6 +47,7 @@
     <string name="title_new_gig">Neuer Auftrag</string>
     <string name="title_edit_gig">Auftrag</string>
     <string name="label_date">Datum</string>
+    <string name="label_first_day">Erster Tag</string>
     <string name="label_start">Beginn</string>
     <string name="label_end">Ende</string>
     <string name="label_customer">Kunde</string>
