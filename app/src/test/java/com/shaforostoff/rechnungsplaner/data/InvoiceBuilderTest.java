@@ -165,6 +165,29 @@ public class InvoiceBuilderTest {
     }
 
     @Test
+    public void aMultiDayJobStatesItsRange() {
+        Gig g = gig("2026-08-15", 35000L);
+        g.endDate = "2026-08-17";
+        assertEquals("DJ-Set vom 15.08.2026 bis 17.08.2026", InvoiceBuilder.describeGig(g, "DJ-Set", "de"));
+        assertEquals("DJ-Set from 2026-08-15 to 2026-08-17", InvoiceBuilder.describeGig(g, "DJ-Set", "en"));
+        assertEquals("DJ-Set del 15.08.2026 al 17.08.2026", InvoiceBuilder.describeGig(g, "DJ-Set", "es"));
+    }
+
+    @Test
+    public void wholeMonthsAreNamedWithoutDates() {
+        Gig g = gig("2026-02-01", 35000L);
+        g.endDate = "2026-02-28";
+        assertEquals("DJ-Set im Februar 2026", InvoiceBuilder.describeGig(g, "DJ-Set", "de"));
+        assertEquals("DJ-Set in February 2026", InvoiceBuilder.describeGig(g, "DJ-Set", "en"));
+        assertEquals("DJ-Set en febrero de 2026", InvoiceBuilder.describeGig(g, "DJ-Set", "es"));
+        g.endDate = "2026-04-30";
+        assertEquals("DJ-Set Februar\u2013April 2026", InvoiceBuilder.describeGig(g, "DJ-Set", "de"));
+        g.date = "2026-12-01";
+        g.endDate = "2027-01-31";
+        assertEquals("DJ-Set December 2026\u2013January 2027", InvoiceBuilder.describeGig(g, "DJ-Set", "en"));
+    }
+
+    @Test
     public void theServiceNameIsTheUsersAndIsNotTranslated() {
         Gig g = gig("2026-08-15", 35000L);
         // Only the connecting word follows the invoice language. Translating the service would

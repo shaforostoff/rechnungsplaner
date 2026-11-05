@@ -188,10 +188,41 @@ public final class InvoiceBuilder {
         String date = Dates.forLanguage(gig.date, language);
         String lang = language == null ? "de" : language.toLowerCase(java.util.Locale.US);
         String what = notEmpty(serviceName) ? serviceName.trim() : fallbackNoun(lang);
+        if (gig.spansDays()) return what + " " + span(gig.date, gig.lastDay(), lang);
         if (lang.startsWith("en")) return what + " on " + date;
         if (lang.startsWith("es")) return what + " el " + date;
         return what + " am " + date;
     }
+
+    /**
+     * "from 15.08.2026 to 17.08.2026", or, when the dates cover whole calendar months, just the
+     * month names ("in August 2026", "August\u2013October 2026").
+     */
+    private static String span(String start, String end, String lang) {
+        int y1 = Dates.year(start), m1 = Dates.month(start);
+        int y2 = Dates.year(end), m2 = Dates.month(end);
+        boolean wholeMonths = Dates.day(start) == 1 && Dates.day(end) == Dates.daysInMonth(y2, m2);
+        boolean en = lang.startsWith("en"), es = lang.startsWith("es");
+        if (!wholeMonths) {
+            String a = Dates.forLanguage(start, lang), b = Dates.forLanguage(end, lang);
+            return en ? "from " + a + " to " + b : es ? "del " + a + " al " + b
+                    : "vom " + a + " bis " + b;
+        }
+        String[] names = en ? MONTHS_EN : es ? MONTHS_ES : MONTHS_DE;
+        String of = es ? " de " : " ";
+        if (y1 == y2 && m1 == m2) {
+            return (en ? "in " : es ? "en " : "im ") + names[m1 - 1] + of + y1;
+        }
+        String first = y1 == y2 ? names[m1 - 1] : names[m1 - 1] + of + y1;
+        return first + "\u2013" + names[m2 - 1] + of + y2;
+    }
+
+    private static final String[] MONTHS_EN = {"January", "February", "March", "April", "May",
+            "June", "July", "August", "September", "October", "November", "December"};
+    private static final String[] MONTHS_DE = {"Januar", "Februar", "M\u00e4rz", "April", "Mai",
+            "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
+    private static final String[] MONTHS_ES = {"enero", "febrero", "marzo", "abril", "mayo",
+            "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"};
 
     /**
      * The generic word for the work, for a job that names no service.
