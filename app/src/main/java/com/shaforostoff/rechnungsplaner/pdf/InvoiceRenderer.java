@@ -138,14 +138,14 @@ public class InvoiceRenderer {
         c.drawText(nullToEmpty(s.name), MARGIN, y, bold);
         y += LINE;
         for (String line : addressLines(s)) {
-            c.drawText(line, MARGIN, y, small);
-            y += LINE - 3f;
+            c.drawText(line, MARGIN, y, body);
+            y += LINE;
         }
         return y;
     }
 
     private float drawRecipient(Canvas c, EnParty b, float y) {
-        c.drawText(nullToEmpty(b.name), MARGIN, y, body);
+        c.drawText(nullToEmpty(b.name), MARGIN, y, bold);
         y += LINE;
         for (String line : addressLines(b)) {
             c.drawText(line, MARGIN, y, body);
