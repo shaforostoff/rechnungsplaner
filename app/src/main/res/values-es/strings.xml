@@ -51,6 +51,7 @@
     <string name="label_end">Fin</string>
     <string name="label_customer">Cliente</string>
     <string name="label_place">Sala</string>
+    <string name="label_place_informal">Sala (informal)</string>
     <string name="label_city">Ciudad</string>
     <string name="label_fee">Caché (neto)</string>
     <string name="label_travel">Gastos de viaje (neto)</string>
@@ -98,7 +99,7 @@
     <string name="label_customer_number">Número de cliente</string>
     <string name="label_default_fee">Caché habitual</string>
     <string name="label_invoice_language">Idioma de la factura</string>
-    <string name="label_share_subject">Asunto al compartir para este cliente</string>
+    <string name="label_share_subject">Asunto del correo para este cliente</string>
     <string name="label_share_message">Mensaje al compartir para este cliente</string>
     <string name="label_share_desc">Deja ambos vacíos para usar el texto de Ajustes. Útil para un contratante al que tuteas, o uno que lee un idioma distinto al del resto.</string>
     <string name="label_note">Nota</string>
@@ -203,7 +204,7 @@
     <string name="setting_output_format">Formato de factura</string>
     <string name="setting_filename_pattern">Patrón del nombre de archivo</string>
     <string name="setting_number_pattern">Patrón del número de factura</string>
-    <string name="setting_mail_subject">Compartir: asunto</string>
+    <string name="setting_mail_subject">Asunto del correo</string>
     <string name="setting_mail_body">Compartir: mensaje</string>
     <string name="setting_mail_desc">Se envía con la factura por correo, y se ofrece a cualquier otra app que acepte un mensaje. %invoiceno%, %service%, %gigdate%, %issuername%, %customername%, %place% y %city% se rellenan; deja un campo vacío para volver al texto del idioma de la app.</string>
     <string name="setting_calendar">Reflejar en el calendario</string>

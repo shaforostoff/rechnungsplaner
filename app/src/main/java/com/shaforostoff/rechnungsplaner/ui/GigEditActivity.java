@@ -249,7 +249,7 @@ public class GigEditActivity extends BaseActivity {
                     }
                 });
 
-        placeField = f.field(R.string.label_place, gig.placeName, false);
+        placeField = f.field(R.string.label_place_informal, gig.placeName, false);
         cityField = f.field(R.string.label_city, gig.city, false);
         FormBuilder.Row amounts = f.row();
         feeField = amounts.left.field(R.string.label_fee, Ui.centsToEditable(gig.feeCents), false,

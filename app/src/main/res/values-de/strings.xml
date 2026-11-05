@@ -51,6 +51,7 @@
     <string name="label_end">Ende</string>
     <string name="label_customer">Kunde</string>
     <string name="label_place">Location</string>
+    <string name="label_place_informal">Location (informell)</string>
     <string name="label_city">Stadt</string>
     <string name="label_fee">Gage (netto)</string>
     <string name="label_travel">Reisekosten (netto)</string>
@@ -98,7 +99,7 @@
     <string name="label_customer_number">Kundennummer</string>
     <string name="label_default_fee">Übliche Gage</string>
     <string name="label_invoice_language">Rechnungssprache</string>
-    <string name="label_share_subject">Betreff beim Teilen für diesen Kunden</string>
+    <string name="label_share_subject">E-Mail-Betreff für diesen Kunden</string>
     <string name="label_share_message">Nachricht beim Teilen für diesen Kunden</string>
     <string name="label_share_desc">Beide leer lassen, um den Text aus den Einstellungen zu verwenden. Nützlich für einen Booker, den man duzt, oder einen, der eine andere Sprache liest als die übrigen.</string>
     <string name="label_note">Notiz</string>
@@ -203,7 +204,7 @@
     <string name="setting_output_format">Rechnungsformat</string>
     <string name="setting_filename_pattern">Muster für Dateinamen</string>
     <string name="setting_number_pattern">Muster für Rechnungsnummern</string>
-    <string name="setting_mail_subject">Teilen: Betreff</string>
+    <string name="setting_mail_subject">E-Mail-Betreff</string>
     <string name="setting_mail_body">Teilen: Nachricht</string>
     <string name="setting_mail_desc">Wird mit der Rechnung per Mail gesendet und jeder anderen App angeboten, die eine Nachricht annimmt. %invoiceno%, %service%, %gigdate%, %issuername%, %customername%, %place% und %city% werden eingesetzt; ein leeres Feld nimmt wieder den Text der App-Sprache.</string>
     <string name="setting_calendar">In Kalender spiegeln</string>

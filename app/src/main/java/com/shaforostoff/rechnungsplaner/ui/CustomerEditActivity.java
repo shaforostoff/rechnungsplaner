@@ -86,7 +86,7 @@ public class CustomerEditActivity extends BaseActivity {
         FormBuilder f = form();
         f.requiredLegend();
 
-        placeField = f.field(R.string.label_place, customer.placeName, false);
+        placeField = f.field(R.string.label_place_informal, customer.placeName, false);
         officialNameField = f.field(R.string.label_official_name, customer.officialName, true,
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         streetField = f.field(R.string.label_street, customer.street, true);
