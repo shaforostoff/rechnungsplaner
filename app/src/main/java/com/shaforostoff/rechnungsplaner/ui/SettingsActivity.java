@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -345,11 +346,25 @@ public class SettingsActivity extends BaseActivity {
      */
     private void saveMailWording() {
         String subject = mailSubjectField.getText().toString();
-        settings.setMailSubject(subject.trim().equals(getString(R.string.mail_subject).trim())
-                ? "" : subject);
+        settings.setMailSubject(isDefaultWording(subject, R.string.mail_subject) ? "" : subject);
         String body = mailBodyField.getText().toString();
-        settings.setMailBody(body.trim().equals(getString(R.string.mail_body).trim())
-                ? "" : body);
+        settings.setMailBody(isDefaultWording(body, R.string.mail_body) ? "" : body);
+    }
+
+    /**
+     * True when the text is the stock wording in any app language, so a default saved under one
+     * language is not mistaken for the user's own and keeps following the language setting.
+     */
+    private boolean isDefaultWording(String text, int resId) {
+        for (String tag : UI_LANGUAGE_TAGS) {
+            if (SettingsStore.LANGUAGE_SYSTEM.equals(tag)) continue;
+            Configuration cfg = new Configuration(getResources().getConfiguration());
+            cfg.setLocale(Locales.forTag(tag));
+            if (text.trim().equals(createConfigurationContext(cfg).getString(resId).trim())) {
+                return true;
+            }
+        }
+        return text.trim().equals(getString(resId).trim());
     }
 
     private String calendarLabel() {

@@ -121,6 +121,12 @@ public class CustomerEditActivity extends BaseActivity {
                 languageIndex(customer.invoiceLanguage), false);
         shareSubjectField = f.field(R.string.label_share_subject, customer.shareSubject, false);
         shareMessageField = f.multiline(R.string.label_share_message, customer.shareMessage);
+        // An empty field falls back to the global wording, so show that wording as the hint.
+        SettingsStore globals = new SettingsStore(this);
+        String globalSubject = globals.getMailSubject();
+        String globalMessage = globals.getMailBody();
+        shareSubjectField.setHint(globalSubject.isEmpty() ? getString(R.string.mail_subject) : globalSubject);
+        shareMessageField.setHint(globalMessage.isEmpty() ? getString(R.string.mail_body) : globalMessage);
         f.caption(getString(R.string.label_share_desc));
 
         noteField = f.multiline(R.string.label_note, customer.note);
