@@ -12,8 +12,8 @@ android {
         applicationId "com.shaforostoff.rechnungsplaner"
         minSdk 24
         targetSdk 37
-        versionCode 3
-        versionName "1.0"
+        versionCode 5
+        versionName "1.0.1"
     }
 
     buildTypes {
