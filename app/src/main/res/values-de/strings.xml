@@ -147,6 +147,7 @@
     <string name="totals_total">Gesamt</string>
     <string name="no_problems">Nichts fehlt, soweit diese App das prüfen kann.</string>
     <string name="validation_caveat">Geprüft gegen die in dieser App hinterlegten Regeln, kein vollständiger Validator.</string>
+    <string name="action_preview">PDF-Vorschau</string>
     <string name="action_create">Erstellen</string>
     <string name="action_create_anyway">Trotzdem erstellen</string>
     <string name="invoice_created">Rechnung %1$s erstellt</string>

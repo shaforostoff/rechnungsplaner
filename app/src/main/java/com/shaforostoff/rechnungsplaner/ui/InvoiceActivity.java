@@ -421,6 +421,12 @@ public class InvoiceActivity extends BaseActivity {
             f.caption(getString(R.string.two_part_label, getString(R.string.label_filename),
                     new InvoiceWriter(this).baseName(issuer, customer, invoice,
                             settings.getOutputFormat())));
+            f.secondaryButton(R.string.action_preview, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    preview();
+                }
+            });
             final int label = replacing == null
                     ? (hasErrors() ? R.string.action_create_anyway : R.string.action_create)
                     : withNewNumber ? R.string.action_issue_correction
@@ -667,6 +673,21 @@ public class InvoiceActivity extends BaseActivity {
         if (numberField == null) return null;
         String typed = numberField.getText().toString().trim();
         return typed.isEmpty() ? null : typed;
+    }
+
+    private void preview() {
+        // The number only shows on the page; restore it so the preview leaves no trace.
+        String saved = invoice.number;
+        try {
+            String chosen = chosenNumber();
+            invoice.number = chosen != null ? chosen
+                    : invoices.peekNextNumber(settings.getInvoiceNumberPattern(), invoice.issueDate);
+            openPdf(new InvoiceWriter(this).preview(issuer, customer, invoice));
+        } catch (IOException e) {
+            Ui.toast(this, getString(R.string.import_failed, String.valueOf(e.getMessage())));
+        } finally {
+            invoice.number = saved;
+        }
     }
 
     private void issue() {

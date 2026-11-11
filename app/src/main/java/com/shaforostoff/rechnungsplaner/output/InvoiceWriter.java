@@ -171,6 +171,20 @@ public class InvoiceWriter {
         return result;
     }
 
+    /** Renders the plain PDF into the shared directory without touching the archive or the series. */
+    public File preview(Issuer issuer, Customer customer, Invoice invoice) throws IOException {
+        EnInvoice en = InvoiceMapper.toEnInvoice(issuer, customer, invoice);
+        File file = new File(com.shaforostoff.rechnungsplaner.util.ShareProvider.shareDir(ctx),
+                "preview.pdf");
+        java.io.FileOutputStream out = new java.io.FileOutputStream(file);
+        try {
+            out.write(new InvoiceRenderer(ctx, en.languageTag).render(en));
+        } finally {
+            out.close();
+        }
+        return file;
+    }
+
     /** Expands the user's file-name pattern for this invoice. */
     public String baseName(Issuer issuer, Customer customer, Invoice invoice,
                            OutputFormat format) {
