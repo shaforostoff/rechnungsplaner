@@ -111,8 +111,9 @@ public class MainActivity extends BaseActivity implements MonthCalendarView.List
 
     private void refreshMonth() {
         setScreenTitle(monthTitle(calendar.getYear(), calendar.getMonth()));
-        calendar.setGigCounts(gigs.countsByDate(calendar.firstVisibleDate(),
-                calendar.lastVisibleDate()));
+        calendar.setGigCustomers(
+                gigs.customersByDate(calendar.firstVisibleDate(), calendar.lastVisibleDate(), true),
+                gigs.customersByDate(calendar.firstVisibleDate(), calendar.lastVisibleDate(), false));
     }
 
     private String monthTitle(int year, int month) {

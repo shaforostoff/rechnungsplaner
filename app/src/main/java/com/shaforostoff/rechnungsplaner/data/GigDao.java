@@ -63,17 +63,29 @@ public class GigDao {
         return list.isEmpty() ? null : list.get(0);
     }
 
-    /** How many gigs fall on each date in the range, for the month grid's day markers. */
-    public Map<String, Integer> countsByDate(String fromIso, String toIso) {
-        Map<String, Integer> out = new HashMap<String, Integer>();
+    /**
+     * The customers with work on each date in the range, sorted by id, for the month grid's
+     * coloured bands or dots. A multiday job counts on every day it covers; no customer is -1.
+     *
+     * @param multiday true for the multiday jobs (bands), false for the single-day ones (dots)
+     */
+    public Map<String, List<Long>> customersByDate(String fromIso, String toIso,
+                                                   boolean multiday) {
+        Map<String, List<Long>> out = new HashMap<String, List<Long>>();
         for (Gig g : query("date <= ? AND (date >= ? OR end_date >= ?)",
                 new String[]{toIso, fromIso, fromIso}, null)) {
+            if (g.spansDays() != multiday) continue;
             String last = g.lastDay();
+            Long customer = Long.valueOf(g.customerId > 0L ? g.customerId : -1L);
             for (String d = g.date; d.compareTo(last) <= 0 && d.compareTo(toIso) <= 0;
                     d = Dates.plusDays(d, 1)) {
                 if (d.compareTo(fromIso) < 0) continue;
-                Integer n = out.get(d);
-                out.put(d, n == null ? 1 : n + 1);
+                List<Long> ids = out.get(d);
+                if (ids == null) out.put(d, ids = new ArrayList<Long>());
+                if (!ids.contains(customer)) {
+                    ids.add(customer);
+                    java.util.Collections.sort(ids);
+                }
             }
         }
         return out;

@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -19,13 +20,14 @@ import com.shaforostoff.rechnungsplaner.util.Dates;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
- * A month grid with a marker on days that have gigs.
+ * A month grid that tints the days that have gigs, one colour band per customer.
  *
  * <p>Hand-drawn rather than pulled from a library, in the same spirit as the sibling projects'
- * custom views, and because the requirement is narrow: seven columns, a number per cell, a dot when
+ * custom views, and because the requirement is narrow: seven columns, a number per cell, a coloured band when
  * something is booked. A calendar library would be several hundred kilobytes for that.
  *
  * <p>Weeks start on Monday, which is what a German calendar looks like and is not what
@@ -70,7 +72,7 @@ public class MonthCalendarView extends View {
 
     private final Paint dayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint headerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint markerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint bandPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint selectionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint todayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF cell = new RectF();
@@ -80,19 +82,43 @@ public class MonthCalendarView extends View {
     private int month;
     private String selectedDate;
     private final String today = Dates.today();
-    private Map<String, Integer> gigCounts = Collections.emptyMap();
+    private Map<String, List<Long>> gigCustomers = Collections.emptyMap();
+    private Map<String, List<Long>> dotCustomers = Collections.emptyMap();
     private Listener listener;
 
     /**
-     * Marker counts by day of month, for the three months a drag can put on screen.
+     * Band colours by day of month (null for a free day), for the three months a drag can put on
+     * screen.
      *
      * <p>The map is keyed by ISO date, so asking it per cell meant building a date string for
      * every cell of every drawn month on every frame. These are refilled only when the data or
      * the month actually changes, which leaves the draw path free of allocation.
      */
-    private final int[] countsPrevious = new int[32];
-    private final int[] countsCurrent = new int[32];
-    private final int[] countsNext = new int[32];
+    private final int[][] colorsPrevious = new int[32][];
+    private final int[][] colorsCurrent = new int[32][];
+    private final int[][] colorsNext = new int[32][];
+    /** The same per day for single-day jobs, drawn as dots. */
+    private final int[][] dotsPrevious = new int[32][];
+    private final int[][] dotsCurrent = new int[32][];
+    private final int[][] dotsNext = new int[32][];
+
+    /** The most bands one day shows; more customers than that stop being tell-apart-able. */
+    private static final int MAX_BANDS = 4;
+
+    /** Lively, well-separated hues; a customer keeps one, chosen from its id. */
+    private static final int[] PALETTE = {
+            0xFF2A9D8F, 0xFFE76F51, 0xFF7B61FF, 0xFFF4A261, 0xFF3A86FF,
+            0xFFE63E8C, 0xFF43AA8B, 0xFFF9C74F, 0xFF9B5DE5, 0xFF4CC9F0};
+
+    /**
+     * A stable colour per customer, from the id alone so nothing has to be stored.
+     * shortcut: past ten customers colours repeat, pick a stored colour if that bites.
+     */
+    static int colorFor(long customerId, int alpha) {
+        int rgb = customerId <= 0L ? 0xFF3A86FF
+                : PALETTE[(int) ((customerId - 1L) % PALETTE.length)];
+        return (rgb & 0x00FFFFFF) | (alpha << 24);
+    }
 
     /** {@link #selectedDate} and {@link #today} split out, so drawing compares ints. */
     private int selectedYear;
@@ -129,7 +155,6 @@ public class MonthCalendarView extends View {
         headerPaint.setTextAlign(Paint.Align.CENTER);
         headerPaint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
 
-        markerPaint.setColor(context.getColor(R.color.accent));
         selectionPaint.setColor(context.getColor(R.color.accent_faint));
         todayPaint.setColor(context.getColor(R.color.accent));
         todayPaint.setStyle(Paint.Style.STROKE);
@@ -219,32 +244,45 @@ public class MonthCalendarView extends View {
         return selectedDate;
     }
 
-    public void setGigCounts(Map<String, Integer> counts) {
-        this.gigCounts = counts == null ? Collections.<String, Integer>emptyMap() : counts;
-        rebuildCounts();
+    /** @param multiday customers per day for multiday jobs (bands); @param single for dots */
+    public void setGigCustomers(Map<String, List<Long>> multiday,
+                                Map<String, List<Long>> single) {
+        this.gigCustomers = multiday == null
+                ? Collections.<String, List<Long>>emptyMap() : multiday;
+        this.dotCustomers = single == null
+                ? Collections.<String, List<Long>>emptyMap() : single;
+        rebuildColors();
         invalidate();
     }
 
     /**
-     * Refills the per-day marker counts for the three months that can be drawn.
+     * Refills the per-day band colours for the three months that can be drawn.
      *
      * <p>Called when the data or the current month changes, which is the whole point: the date
      * strings the map is keyed by get built here, a few dozen times on a month change, rather
      * than once per cell per frame on the draw path.
      */
-    private void rebuildCounts() {
-        fillCounts(countsPrevious, previousMonthYear(), previousMonth());
-        fillCounts(countsCurrent, year, month);
-        fillCounts(countsNext, nextMonthYear(), nextMonth());
+    private void rebuildColors() {
+        fillColors(colorsPrevious, gigCustomers, 120, MAX_BANDS, previousMonthYear(), previousMonth());
+        fillColors(colorsCurrent, gigCustomers, 120, MAX_BANDS, year, month);
+        fillColors(colorsNext, gigCustomers, 120, MAX_BANDS, nextMonthYear(), nextMonth());
+        fillColors(dotsPrevious, dotCustomers, 255, 3, previousMonthYear(), previousMonth());
+        fillColors(dotsCurrent, dotCustomers, 255, 3, year, month);
+        fillColors(dotsNext, dotCustomers, 255, 3, nextMonthYear(), nextMonth());
     }
 
-    private void fillCounts(int[] into, int y, int m) {
-        Arrays.fill(into, 0);
-        if (gigCounts.isEmpty()) return;
+    private void fillColors(int[][] into, Map<String, List<Long>> source, int alpha, int max,
+                            int y, int m) {
+        Arrays.fill(into, null);
+        if (source.isEmpty()) return;
         int days = Dates.daysInMonth(y, m);
         for (int day = 1; day <= days; day++) {
-            Integer count = gigCounts.get(Dates.iso(y, m, day));
-            if (count != null) into[day] = count.intValue();
+            List<Long> ids = source.get(Dates.iso(y, m, day));
+            if (ids == null || ids.isEmpty()) continue;
+            int n = Math.min(max, ids.size());
+            int[] colors = new int[n];
+            for (int i = 0; i < n; i++) colors[i] = colorFor(ids.get(i).longValue(), alpha);
+            into[day] = colors;
         }
     }
 
@@ -255,7 +293,7 @@ public class MonthCalendarView extends View {
         dragX = 0f;
         this.year = year;
         this.month = month;
-        rebuildCounts();
+        rebuildColors();
         invalidate();
         if (listener != null) listener.onMonthChanged(year, month);
     }
@@ -337,18 +375,19 @@ public class MonthCalendarView extends View {
                     headerPaint.getTextSize() * 1.3f, headerPaint);
         }
 
-        drawMonth(canvas, year, month, countsCurrent, dragX);
+        drawMonth(canvas, year, month, colorsCurrent, dotsCurrent, dragX);
         // Only the neighbour the drag is uncovering needs drawing, and it sits exactly one screen
         // away from the current one.
         if (dragX > 0f) {
-            drawMonth(canvas, previousMonthYear(), previousMonth(), countsPrevious,
+            drawMonth(canvas, previousMonthYear(), previousMonth(), colorsPrevious, dotsPrevious,
                     dragX - getWidth());
         } else if (dragX < 0f) {
-            drawMonth(canvas, nextMonthYear(), nextMonth(), countsNext, dragX + getWidth());
+            drawMonth(canvas, nextMonthYear(), nextMonth(), colorsNext, dotsNext, dragX + getWidth());
         }
     }
 
-    private void drawMonth(Canvas canvas, int year, int month, int[] counts, float offsetX) {
+    private void drawMonth(Canvas canvas, int year, int month, int[][] colors, int[][] dots,
+                           float offsetX) {
         float columnWidth = getWidth() / (float) COLUMNS;
         float headerHeight = headerPaint.getTextSize() * 2.2f;
         float rowHeight = (getHeight() - headerHeight) / ROWS;
@@ -364,6 +403,19 @@ public class MonthCalendarView extends View {
             float cx = offsetX + (column + 0.5f) * columnWidth;
             float cy = headerHeight + (row + 0.5f) * rowHeight;
 
+            int[] bands = colors[day];
+            if (bands != null) {
+                // Whole-width cells, so a run of days reads as one bar; the customers stack as
+                // equal horizontal slices of the cell.
+                float top = headerHeight + row * rowHeight + 1f;
+                float sliceHeight = (rowHeight - 2f) / bands.length;
+                for (int i = 0; i < bands.length; i++) {
+                    bandPaint.setColor(bands[i]);
+                    canvas.drawRect(offsetX + column * columnWidth, top + i * sliceHeight,
+                            offsetX + (column + 1) * columnWidth, top + (i + 1) * sliceHeight,
+                            bandPaint);
+                }
+            }
             if (year == selectedYear && month == selectedMonth && day == selectedDay) {
                 cell.set(cx - radius, cy - radius, cx + radius, cy + radius);
                 canvas.drawOval(cell, selectionPaint);
@@ -376,16 +428,15 @@ public class MonthCalendarView extends View {
             float baseline = cy + dayPaint.getTextSize() * 0.35f;
             canvas.drawText(DAY_LABELS[day], cx, baseline, dayPaint);
 
-            int count = counts[day];
-            if (count > 0) {
-                // Up to three dots; beyond that the count stops being worth counting at a glance.
-                int dots = Math.min(3, count);
+            int[] dotColors = dots[day];
+            if (dotColors != null) {
                 float dotRadius = radius * 0.13f;
                 float spacing = dotRadius * 3f;
-                float startX = cx - (dots - 1) * spacing / 2f;
+                float startX = cx - (dotColors.length - 1) * spacing / 2f;
                 float dotY = cy + radius * 0.72f;
-                for (int i = 0; i < dots; i++) {
-                    canvas.drawCircle(startX + i * spacing, dotY, dotRadius, markerPaint);
+                for (int i = 0; i < dotColors.length; i++) {
+                    bandPaint.setColor(dotColors[i]);
+                    canvas.drawCircle(startX + i * spacing, dotY, dotRadius, bandPaint);
                 }
             }
         }
